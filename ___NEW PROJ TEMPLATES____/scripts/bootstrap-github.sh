@@ -6,6 +6,15 @@
 # Bootstrap GitHub configuration for a new project
 # Creates .github/ directory structure with PR templates, issue templates,
 # and CI/CD workflows per official GitHub documentation
+#
+# OFFICIAL DOCUMENTATION:
+# - GitHub Templates: https://docs.github.com/en/communities/using-templates
+# - Issue Templates: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+# - GitHub Actions: https://docs.github.com/en/actions
+#
+# CONFIGURATION SOURCE OF TRUTH:
+# Template files in ___NEW PROJ TEMPLATES____/.github/ are the authoritative source
+# These templates have been validated against official GitHub specifications.
 # ===================================================================
 
 set -e
@@ -42,6 +51,101 @@ log_warning() {
 log_error() {
     echo -e "${RED}✗${NC} $1"
     exit 1
+}
+
+# ===================================================================
+# Template Validation Functions (Pre-Copy Validation)
+# ===================================================================
+
+# Validates GitHub issue template structure against official specs
+# Official: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+validate_issue_template() {
+    local template_file="$1"
+    local template_name=$(basename "$template_file")
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0  # Not a template validation failure, just missing template
+    fi
+
+    # Check for YAML frontmatter
+    if ! grep -q "^---$" "$template_file"; then
+        log_warning "Issue template '$template_name' missing YAML frontmatter"
+        return 1
+    fi
+
+    # Check for required YAML fields in frontmatter using grep
+    local required_fields=("name:" "about:" "title:" "labels:" "assignees:")
+    local missing=0
+    for field in "${required_fields[@]}"; do
+        if ! sed -n '1,/^---$/p' "$template_file" | grep -q "^$field"; then
+            missing=$((missing + 1))
+        fi
+    done
+
+    if [[ $missing -gt 0 ]]; then
+        log_warning "Issue template '$template_name' missing required YAML fields (name, about, title, labels, assignees)"
+        return 1
+    fi
+
+    return 0
+}
+
+# Validates GitHub Actions workflow structure against official specs
+# Official: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions
+validate_workflow_template() {
+    local workflow_file="$1"
+    local workflow_name=$(basename "$workflow_file")
+
+    if [[ ! -f "$workflow_file" ]]; then
+        return 0
+    fi
+
+    # Check for required workflow fields
+    if ! grep -q "^name:" "$workflow_file"; then
+        log_warning "Workflow '$workflow_name' missing 'name' field"
+        return 1
+    fi
+
+    if ! grep -q "^on:" "$workflow_file"; then
+        log_warning "Workflow '$workflow_name' missing 'on' field (event trigger)"
+        return 1
+    fi
+
+    if ! grep -q "^jobs:" "$workflow_file"; then
+        log_warning "Workflow '$workflow_name' missing 'jobs' field"
+        return 1
+    fi
+
+    # Validate YAML syntax using Python
+    if ! python3 -c "import yaml; yaml.safe_load(open('$workflow_file'))" 2>/dev/null; then
+        log_warning "Workflow '$workflow_name' has invalid YAML syntax"
+        return 1
+    fi
+
+    return 0
+}
+
+# Validates issue template config.yml against official specs
+validate_config_template() {
+    local config_file="$1"
+
+    if [[ ! -f "$config_file" ]]; then
+        return 0
+    fi
+
+    # Check for required config fields
+    if ! grep -q "^blank_issues_enabled:" "$config_file"; then
+        log_warning "Config missing 'blank_issues_enabled' field"
+        return 1
+    fi
+
+    # Validate YAML syntax
+    if ! python3 -c "import yaml; yaml.safe_load(open('$config_file'))" 2>/dev/null; then
+        log_warning "Config has invalid YAML syntax"
+        return 1
+    fi
+
+    return 0
 }
 
 # ===================================================================
@@ -124,6 +228,8 @@ log_info "Setting up issue templates..."
 
 # Bug report template
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md" ]]; then
+    # Validate template before copying
+    validate_issue_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md"
     cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md" "$GITHUB_DIR/ISSUE_TEMPLATE/"
     log_success "Copied bug_report.md"
 else
@@ -176,6 +282,8 @@ fi
 
 # Feature request template
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md" ]]; then
+    # Validate template before copying
+    validate_issue_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md"
     cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md" "$GITHUB_DIR/ISSUE_TEMPLATE/"
     log_success "Copied feature_request.md"
 else
@@ -210,6 +318,8 @@ fi
 
 # Issue template config
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml" ]]; then
+    # Validate config before copying
+    validate_config_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml"
     cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml" "$GITHUB_DIR/ISSUE_TEMPLATE/"
     log_success "Copied config.yml"
 else
@@ -234,6 +344,8 @@ fi
 log_info "Setting up GitHub Actions workflows..."
 
 if [[ -f "$TEMPLATE_GITHUB/workflows/ci.yml" ]]; then
+    # Validate workflow before copying
+    validate_workflow_template "$TEMPLATE_GITHUB/workflows/ci.yml"
     cp "$TEMPLATE_GITHUB/workflows/ci.yml" "$GITHUB_DIR/workflows/"
     log_success "Copied ci.yml workflow"
 else

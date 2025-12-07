@@ -45,6 +45,106 @@ log_error() {
 }
 
 # ===================================================================
+# Template Validation Functions (Pre-Copy Validation)
+# ===================================================================
+
+# Validates settings.json structure
+# Official: https://code.visualstudio.com/docs/getstarted/settings
+validate_settings_template() {
+    local template_file="$1"
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    # Validate JSON syntax
+    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
+        log_warning "Settings template has invalid JSON syntax"
+        return 1
+    fi
+
+    # Validate root is an object
+    if ! python3 -c "import json; data=json.load(open('$template_file')); assert isinstance(data, dict)" 2>/dev/null; then
+        log_warning "Settings template root must be a JSON object"
+        return 1
+    fi
+
+    return 0
+}
+
+# Validates extensions.json structure
+# Official: https://code.visualstudio.com/docs/editor/extension-marketplace#_share-extensions
+validate_extensions_template() {
+    local template_file="$1"
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    # Validate JSON syntax
+    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
+        log_warning "Extensions template has invalid JSON syntax"
+        return 1
+    fi
+
+    # Validate has recommendations array
+    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'recommendations' in data and isinstance(data['recommendations'], list)" 2>/dev/null; then
+        log_warning "Extensions template must have 'recommendations' array"
+        return 1
+    fi
+
+    return 0
+}
+
+# Validates tasks.json structure
+# Official: https://code.visualstudio.com/docs/editor/tasks
+validate_tasks_template() {
+    local template_file="$1"
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    # Validate JSON syntax
+    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
+        log_warning "Tasks template has invalid JSON syntax"
+        return 1
+    fi
+
+    # Validate has tasks array
+    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'tasks' in data and isinstance(data['tasks'], list)" 2>/dev/null; then
+        log_warning "Tasks template must have 'tasks' array"
+        return 1
+    fi
+
+    return 0
+}
+
+# Validates launch.json structure
+# Official: https://code.visualstudio.com/docs/editor/debugging
+validate_launch_template() {
+    local template_file="$1"
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    # Validate JSON syntax
+    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
+        log_warning "Launch template has invalid JSON syntax"
+        return 1
+    fi
+
+    # Validate has configurations array
+    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'configurations' in data and isinstance(data['configurations'], list)" 2>/dev/null; then
+        log_warning "Launch template must have 'configurations' array"
+        return 1
+    fi
+
+    return 0
+}
+
+# ===================================================================
 # Validation
 # ===================================================================
 
@@ -69,6 +169,8 @@ log_success "Directory structure created"
 log_info "Setting up VS Code settings.json..."
 
 if [[ -f "$TEMPLATE_VSCODE/settings.json" ]]; then
+    # Validate template before copying
+    validate_settings_template "$TEMPLATE_VSCODE/settings.json"
     cp "$TEMPLATE_VSCODE/settings.json" "$VSCODE_DIR/"
     log_success "Copied settings.json"
 else
@@ -124,6 +226,8 @@ fi
 log_info "Setting up extensions.json..."
 
 if [[ -f "$TEMPLATE_VSCODE/extensions.json" ]]; then
+    # Validate template before copying
+    validate_extensions_template "$TEMPLATE_VSCODE/extensions.json"
     cp "$TEMPLATE_VSCODE/extensions.json" "$VSCODE_DIR/"
     log_success "Copied extensions.json"
 else
@@ -154,6 +258,8 @@ fi
 log_info "Setting up tasks.json..."
 
 if [[ -f "$TEMPLATE_VSCODE/tasks.json" ]]; then
+    # Validate template before copying
+    validate_tasks_template "$TEMPLATE_VSCODE/tasks.json"
     cp "$TEMPLATE_VSCODE/tasks.json" "$VSCODE_DIR/"
     log_success "Copied tasks.json"
 else
@@ -247,6 +353,8 @@ fi
 log_info "Setting up launch.json..."
 
 if [[ -f "$TEMPLATE_VSCODE/launch.json" ]]; then
+    # Validate template before copying
+    validate_launch_template "$TEMPLATE_VSCODE/launch.json"
     cp "$TEMPLATE_VSCODE/launch.json" "$VSCODE_DIR/"
     log_success "Copied launch.json"
 else
