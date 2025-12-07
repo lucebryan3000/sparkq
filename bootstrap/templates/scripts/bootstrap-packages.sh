@@ -7,90 +7,21 @@
 # Sets up .npmrc, .nvmrc, .tool-versions, and .envrc
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
+# Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-TEMPLATE_DIR="${BOOTSTRAP_DIR}/templates"
-PROJECT_ROOT="${1:-.}"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-# Source libraries
-source "${BOOTSTRAP_DIR}/lib/template-utils.sh"
-source "${BOOTSTRAP_DIR}/lib/validation-common.sh"
-source "${BOOTSTRAP_DIR}/lib/config-manager.sh"
+# Initialize script
+init_script "bootstrap-packages.sh"
+
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
 
 # Answers file
 ANSWERS_FILE=".bootstrap-answers.env"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# ===================================================================
-# Utility Functions
-# ===================================================================
-
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
-
-# Backup existing file
-backup_file() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        local backup="${file}.backup.$(date +%s)"
-        if cp "$file" "$backup"; then
-            log_warning "Backed up existing file to: $(basename "$backup")"
-            return 0
-        else
-            log_error "Failed to backup existing file: $file"
-        fi
-    fi
-    return 1
-}
-
-# Verify file creation
-verify_file() {
-    local file="$1"
-    if [[ ! -f "$file" ]]; then
-        log_error "Failed to create file: $file"
-    elif [[ ! -r "$file" ]]; then
-        log_error "Created file but it's not readable: $file"
-    else
-        log_success "File created and verified: $file"
-        return 0
-    fi
-    return 1
-}
-
-# Cleanup on exit
-cleanup_on_error() {
-    local exit_code=$?
-    if [[ $exit_code -ne 0 ]]; then
-        log_error "Bootstrap script failed with exit code $exit_code"
-        log_info "Check the output above for details"
-    fi
-    return $exit_code
-}
-
-trap cleanup_on_error EXIT
 
 # ===================================================================
 # Validation
@@ -99,14 +30,10 @@ trap cleanup_on_error EXIT
 log_info "Bootstrapping package management configuration..."
 
 # Verify project directory exists
-if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
-fi
+require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_ROOT"
 
 # Verify project directory is writable
-if [[ ! -w "$PROJECT_ROOT" ]]; then
-    log_error "Project directory is not writable: $PROJECT_ROOT"
-fi
+is_writable "$PROJECT_ROOT" || log_fatal "Project directory is not writable: $PROJECT_ROOT"
 
 # ===================================================================
 # Create .npmrc
@@ -146,9 +73,9 @@ audit=false
 # legacy-peer-deps=true
 EOF
 then
-    verify_file "$PROJECT_ROOT/.npmrc" || log_error "Failed to verify .npmrc"
+    verify_file "$PROJECT_ROOT/.npmrc" || log_fatal "Failed to verify .npmrc"
 else
-    log_error "Failed to create .npmrc"
+    log_fatal "Failed to create .npmrc"
 fi
 
 # ===================================================================
@@ -159,23 +86,23 @@ log_info "Creating .nvmrc..."
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
-    log_error "Node.js is not installed. Please install Node.js first"
+    log_fatal "Node.js is not installed. Please install Node.js first"
 fi
 
 # Get the current Node.js version
 CURRENT_NODE=$(node --version | sed 's/^v//')
 if [[ -z "$CURRENT_NODE" ]]; then
-    log_error "Failed to detect Node.js version"
+    log_fatal "Failed to detect Node.js version"
 fi
 
 if cat > "$PROJECT_ROOT/.nvmrc" << EOF
 $CURRENT_NODE
 EOF
 then
-    verify_file "$PROJECT_ROOT/.nvmrc" || log_error "Failed to verify .nvmrc"
+    verify_file "$PROJECT_ROOT/.nvmrc" || log_fatal "Failed to verify .nvmrc"
     log_success ".nvmrc created (Node.js $CURRENT_NODE)"
 else
-    log_error "Failed to create .nvmrc"
+    log_fatal "Failed to create .nvmrc"
 fi
 
 # ===================================================================
@@ -188,9 +115,9 @@ if cat > "$PROJECT_ROOT/.tool-versions" << EOF
 nodejs $CURRENT_NODE
 EOF
 then
-    verify_file "$PROJECT_ROOT/.tool-versions" || log_error "Failed to verify .tool-versions"
+    verify_file "$PROJECT_ROOT/.tool-versions" || log_fatal "Failed to verify .tool-versions"
 else
-    log_error "Failed to create .tool-versions"
+    log_fatal "Failed to create .tool-versions"
 fi
 
 # ===================================================================
@@ -227,9 +154,9 @@ if command -v asdf &> /dev/null; then
 fi
 EOF
 then
-    verify_file "$PROJECT_ROOT/.envrc" || log_error "Failed to verify .envrc"
+    verify_file "$PROJECT_ROOT/.envrc" || log_fatal "Failed to verify .envrc"
 else
-    log_error "Failed to create .envrc"
+    log_fatal "Failed to create .envrc"
 fi
 
 # ===================================================================
@@ -261,9 +188,9 @@ if [[ ! -f "$PROJECT_ROOT/package.json" ]]; then
 }
 EOF
     then
-        verify_file "$PROJECT_ROOT/package.json" || log_error "Failed to verify package.json"
+        verify_file "$PROJECT_ROOT/package.json" || log_fatal "Failed to verify package.json"
     else
-        log_error "Failed to create package.json"
+        log_fatal "Failed to create package.json"
     fi
 else
     log_warning "package.json already exists, skipping creation"
