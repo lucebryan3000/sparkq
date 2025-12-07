@@ -1,0 +1,327 @@
+#!/bin/bash
+
+# ===================================================================
+# bootstrap-editor.sh
+#
+# Bootstrap editor formatting standards
+# Creates .editorconfig and .stylelintrc configuration files
+# ===================================================================
+
+set -e
+
+# Configuration
+TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="${1:-.}"
+TEMPLATE_ROOT="${TEMPLATE_DIR}/root"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# ===================================================================
+# Utility Functions
+# ===================================================================
+
+log_info() {
+    echo -e "${BLUE}→${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}⚠${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}✗${NC} $1"
+    exit 1
+}
+
+# Backup existing file
+backup_file() {
+    local file="$1"
+    if [[ -f "$file" ]]; then
+        local backup="${file}.backup.$(date +%s)"
+        if cp "$file" "$backup"; then
+            log_warning "Backed up existing file to: $(basename "$backup")"
+            return 0
+        else
+            log_error "Failed to backup existing file: $file"
+        fi
+    fi
+    return 1
+}
+
+# Verify file creation
+verify_file() {
+    local file="$1"
+    if [[ ! -f "$file" ]]; then
+        log_error "Failed to create file: $file"
+    elif [[ ! -r "$file" ]]; then
+        log_error "Created file but it's not readable: $file"
+    else
+        log_success "File created and verified: $file"
+        return 0
+    fi
+    return 1
+}
+
+# Cleanup on exit
+cleanup_on_error() {
+    local exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        log_error "Bootstrap script failed with exit code $exit_code"
+        log_info "Check the output above for details"
+    fi
+    return $exit_code
+}
+
+trap cleanup_on_error EXIT
+
+# ===================================================================
+# Template Validation Functions (Pre-Copy Validation)
+# ===================================================================
+
+# Validates EditorConfig structure against official specs
+# Official: https://editorconfig.org/
+validate_editorconfig_template() {
+    local template_file="$1"
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    # Check file is not empty
+    if [[ ! -s "$template_file" ]]; then
+        log_warning ".editorconfig template is empty"
+        return 1
+    fi
+
+    # Must have root = true declaration
+    if ! grep -q "root = true" "$template_file"; then
+        log_warning ".editorconfig must declare 'root = true'"
+        return 1
+    fi
+
+    # Should have at least one section
+    if ! grep -q "^\[" "$template_file"; then
+        log_warning ".editorconfig should have at least one section"
+        return 1
+    fi
+
+    return 0
+}
+
+# Validates StyleLint configuration structure
+# Official: https://stylelint.io/user-guide/configure
+validate_stylelint_template() {
+    local template_file="$1"
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    # Validate JSON syntax
+    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
+        log_warning ".stylelintrc template has invalid JSON syntax"
+        return 1
+    fi
+
+    # Check for extends or rules (at least one required config)
+    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'extends' in data or 'rules' in data or 'plugins' in data" 2>/dev/null; then
+        log_warning ".stylelintrc should have extends, rules, or plugins"
+        return 1
+    fi
+
+    return 0
+}
+
+# ===================================================================
+# Validation
+# ===================================================================
+
+log_info "Bootstrapping editor configuration..."
+
+# Verify project directory exists
+if [[ ! -d "$PROJECT_ROOT" ]]; then
+    log_error "Project directory not found: $PROJECT_ROOT"
+fi
+
+# Verify project directory is writable
+if [[ ! -w "$PROJECT_ROOT" ]]; then
+    log_error "Project directory is not writable: $PROJECT_ROOT"
+fi
+
+# ===================================================================
+# Create .editorconfig
+# ===================================================================
+
+log_info "Creating .editorconfig..."
+
+if [[ -f "$PROJECT_ROOT/.editorconfig" ]]; then
+    log_warning ".editorconfig already exists"
+    backup_file "$PROJECT_ROOT/.editorconfig" || {
+        log_warning "Proceeding without backup (file may be read-only)"
+    }
+fi
+
+if [[ -f "$TEMPLATE_ROOT/.editorconfig" ]]; then
+    # Validate template before copying
+    validate_editorconfig_template "$TEMPLATE_ROOT/.editorconfig"
+
+    if cp "$TEMPLATE_ROOT/.editorconfig" "$PROJECT_ROOT/"; then
+        verify_file "$PROJECT_ROOT/.editorconfig" || log_error "Failed to verify .editorconfig"
+    else
+        log_error "Failed to copy .editorconfig"
+    fi
+else
+    log_warning ".editorconfig template not found in $TEMPLATE_ROOT"
+fi
+
+# ===================================================================
+# Create .stylelintrc
+# ===================================================================
+
+log_info "Creating .stylelintrc..."
+
+if [[ -f "$PROJECT_ROOT/.stylelintrc" ]]; then
+    log_warning ".stylelintrc already exists"
+    backup_file "$PROJECT_ROOT/.stylelintrc" || {
+        log_warning "Proceeding without backup (file may be read-only)"
+    }
+fi
+
+if [[ -f "$TEMPLATE_ROOT/.stylelintrc" ]]; then
+    # Validate template before copying
+    validate_stylelint_template "$TEMPLATE_ROOT/.stylelintrc"
+
+    if cp "$TEMPLATE_ROOT/.stylelintrc" "$PROJECT_ROOT/"; then
+        verify_file "$PROJECT_ROOT/.stylelintrc" || log_error "Failed to verify .stylelintrc"
+    else
+        log_error "Failed to copy .stylelintrc"
+    fi
+else
+    log_warning ".stylelintrc template not found in $TEMPLATE_ROOT"
+fi
+
+# ===================================================================
+# Validation & Testing (Self-Testing Protocol)
+# ===================================================================
+
+validate_bootstrap() {
+    local errors=0
+
+    log_info "Validating bootstrap configuration..."
+    echo ""
+
+    # Test 1: Required files
+    log_info "Checking required files..."
+    for file in .editorconfig .stylelintrc; do
+        if [[ -f "$PROJECT_ROOT/$file" ]]; then
+            log_success "File: $file exists"
+        else
+            log_warning "File: $file not found (optional, may use defaults)"
+        fi
+    done
+
+    # Test 2: Validate .editorconfig structure
+    log_info "Checking .editorconfig structure..."
+    if [[ -f "$PROJECT_ROOT/.editorconfig" ]]; then
+        if grep -q "root = true" "$PROJECT_ROOT/.editorconfig"; then
+            log_success "EditorConfig: Has 'root = true' declaration"
+        else
+            log_warning "EditorConfig: Missing 'root = true'"
+            errors=$((errors + 1))
+        fi
+
+        local section_count=$(grep -c "^\[" "$PROJECT_ROOT/.editorconfig" || true)
+        log_success "EditorConfig: Found $section_count section(s)"
+    fi
+
+    # Test 3: Validate StyleLint JSON syntax
+    log_info "Validating StyleLint configuration..."
+    if [[ -f "$PROJECT_ROOT/.stylelintrc" ]]; then
+        if python3 -c "import json; json.load(open('$PROJECT_ROOT/.stylelintrc'))" 2>/dev/null; then
+            log_success "JSON: .stylelintrc is valid"
+        else
+            log_warning "JSON: .stylelintrc has syntax errors"
+            errors=$((errors + 1))
+        fi
+    fi
+
+    # Test 4: Check StyleLint configuration elements
+    log_info "Checking StyleLint configuration..."
+    if [[ -f "$PROJECT_ROOT/.stylelintrc" ]]; then
+        if python3 -c "import json; data=json.load(open('$PROJECT_ROOT/.stylelintrc')); assert 'extends' in data or 'rules' in data" 2>/dev/null; then
+            local has_extends=$(python3 -c "import json; data=json.load(open('$PROJECT_ROOT/.stylelintrc')); print('extends' in data)")
+            local has_rules=$(python3 -c "import json; data=json.load(open('$PROJECT_ROOT/.stylelintrc')); print('rules' in data)")
+            log_success "StyleLint: Configuration is valid (extends=$has_extends, rules=$has_rules)"
+        else
+            log_warning "StyleLint: Missing extends or rules"
+            errors=$((errors + 1))
+        fi
+    fi
+
+    # Test 5: Check for ignore patterns
+    log_info "Checking StyleLint ignore patterns..."
+    if [[ -f "$PROJECT_ROOT/.stylelintrc" ]]; then
+        if python3 -c "import json; data=json.load(open('$PROJECT_ROOT/.stylelintrc')); assert 'ignoreFiles' in data" 2>/dev/null; then
+            local ignore_count=$(python3 -c "import json; data=json.load(open('$PROJECT_ROOT/.stylelintrc')); print(len(data.get('ignoreFiles', [])))")
+            log_success "StyleLint: Found $ignore_count ignore pattern(s)"
+        fi
+    fi
+
+    # Summary
+    echo ""
+    if [[ $errors -eq 0 ]]; then
+        log_success "All validation checks passed!"
+        return 0
+    else
+        log_warning "Validation found $errors issue(s) (non-critical)"
+        return 0
+    fi
+}
+
+# ===================================================================
+# Summary & Next Steps
+# ===================================================================
+
+echo ""
+log_success "Bootstrap complete!"
+echo ""
+
+validate_bootstrap
+
+echo ""
+log_info "Bootstrap Summary:"
+echo "  Files:"
+echo "    ├── .editorconfig   (Editor settings)"
+echo "    └── .stylelintrc    (CSS/SCSS linting)"
+echo ""
+
+log_info "Next steps:"
+echo "  1. Install Editor Support"
+echo "     - VS Code: Install 'EditorConfig for VS Code' extension"
+echo "     - Other editors: See https://editorconfig.org/#download"
+echo "  2. Install StyleLint Tools"
+echo "     - Run: npm install --save-dev stylelint stylelint-config-standard"
+echo "     - Run: npm install --save-dev stylelint-config-tailwindcss"
+echo "     - Run: npm install --save-dev stylelint-order"
+echo "  3. Configure StyleLint"
+echo "     - Update .stylelintrc for your CSS/SCSS style preferences"
+echo "     - Adjust rules and ignore patterns as needed"
+echo "  4. Integrate with Editor"
+echo "     - VS Code: Install 'StyleLint' extension"
+echo "     - Enable 'Format on Save' for CSS/SCSS files"
+echo "  5. Run StyleLint"
+echo "     - Check styles: npm run lint:styles"
+echo "     - Fix styles: npm run lint:styles -- --fix"
+echo "  6. Commit to git:"
+echo "     git add .editorconfig .stylelintrc"
+echo "     git commit -m 'Setup editor formatting configuration'"
+echo ""
