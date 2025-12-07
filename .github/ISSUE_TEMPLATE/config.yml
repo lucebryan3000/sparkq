@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/[org]/[repo]/discussions
+    about: "For general questions and discussions"
+  - name: Documentation
+    url: https://docs.example.com
+    about: "Check our documentation for common questions"
