@@ -42,14 +42,61 @@ log_error() {
     exit 1
 }
 
+# Backup existing file
+backup_file() {
+    local file="$1"
+    if [[ -f "$file" ]]; then
+        local backup="${file}.backup.$(date +%s)"
+        if cp "$file" "$backup"; then
+            log_warning "Backed up existing file to: $(basename "$backup")"
+            return 0
+        else
+            log_error "Failed to backup existing file: $file"
+        fi
+    fi
+    return 1
+}
+
+# Verify file creation
+verify_file() {
+    local file="$1"
+    if [[ ! -f "$file" ]]; then
+        log_error "Failed to create file: $file"
+    elif [[ ! -r "$file" ]]; then
+        log_error "Created file but it's not readable: $file"
+    else
+        log_success "File created and verified: $file"
+        return 0
+    fi
+    return 1
+}
+
+# Cleanup on exit
+cleanup_on_error() {
+    local exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        log_error "Bootstrap script failed with exit code $exit_code"
+        log_info "Check the output above for details"
+    fi
+    return $exit_code
+}
+
+trap cleanup_on_error EXIT
+
 # ===================================================================
 # Validation
 # ===================================================================
 
 log_info "Bootstrapping Git configuration..."
 
+# Verify project directory exists
 if [[ ! -d "$PROJECT_ROOT" ]]; then
     log_error "Project directory not found: $PROJECT_ROOT"
+fi
+
+# Verify project directory is writable
+if [[ ! -w "$PROJECT_ROOT" ]]; then
+    log_error "Project directory is not writable: $PROJECT_ROOT"
 fi
 
 # ===================================================================
@@ -58,7 +105,15 @@ fi
 
 log_info "Creating .gitignore..."
 
-cat > "$PROJECT_ROOT/.gitignore" << 'EOF'
+# Check if .gitignore already exists
+if [[ -f "$PROJECT_ROOT/.gitignore" ]]; then
+    log_warning ".gitignore already exists"
+    backup_file "$PROJECT_ROOT/.gitignore" || {
+        log_warning "Proceeding without backup (file may be read-only)"
+    }
+fi
+
+if cat > "$PROJECT_ROOT/.gitignore" << 'EOF'
 # Dependencies
 node_modules/
 pnpm-lock.yaml
@@ -121,8 +176,11 @@ tmp/
 temp/
 .tmp/
 EOF
-
-log_success ".gitignore created"
+then
+    verify_file "$PROJECT_ROOT/.gitignore" || log_error "Failed to verify .gitignore"
+else
+    log_error "Failed to create .gitignore"
+fi
 
 # ===================================================================
 # Create .gitattributes
@@ -130,7 +188,15 @@ log_success ".gitignore created"
 
 log_info "Creating .gitattributes..."
 
-cat > "$PROJECT_ROOT/.gitattributes" << 'EOFATTR'
+# Check if .gitattributes already exists
+if [[ -f "$PROJECT_ROOT/.gitattributes" ]]; then
+    log_warning ".gitattributes already exists"
+    backup_file "$PROJECT_ROOT/.gitattributes" || {
+        log_warning "Proceeding without backup (file may be read-only)"
+    }
+fi
+
+if cat > "$PROJECT_ROOT/.gitattributes" << 'EOFATTR'
 # Auto detect text files and normalize line endings
 * text=auto
 
@@ -177,8 +243,11 @@ cat > "$PROJECT_ROOT/.gitattributes" << 'EOFATTR'
 *.db binary
 *.sqlite binary
 EOFATTR
-
-log_success ".gitattributes created"
+then
+    verify_file "$PROJECT_ROOT/.gitattributes" || log_error "Failed to verify .gitattributes"
+else
+    log_error "Failed to create .gitattributes"
+fi
 
 # ===================================================================
 # Initialize Git repository if needed
@@ -186,11 +255,22 @@ log_success ".gitattributes created"
 
 if [[ ! -d "$PROJECT_ROOT/.git" ]]; then
     log_info "Initializing Git repository..."
-    cd "$PROJECT_ROOT"
-    git init
-    git config user.email "development@local" || true
-    git config user.name "Development" || true
-    log_success "Git repository initialized"
+
+    # Check if git is installed
+    if ! command -v git &> /dev/null; then
+        log_error "Git is not installed. Please install Git first"
+    fi
+
+    # Initialize the repository
+    if cd "$PROJECT_ROOT" && git init; then
+        if git config user.email "development@local" && git config user.name "Development"; then
+            log_success "Git repository initialized"
+        else
+            log_warning "Git repository created but configuration failed (non-critical)"
+        fi
+    else
+        log_error "Failed to initialize Git repository"
+    fi
 else
     log_warning "Git repository already exists, skipping init"
 fi
