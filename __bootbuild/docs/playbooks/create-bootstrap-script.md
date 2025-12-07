@@ -2,8 +2,8 @@
 title: "Creating New Bootstrap Scripts"
 aliases: ["create bootstrap script", "write new script", "bootstrap development"]
 related:
-  - ../playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md
-  - ../playbooks/PLAYBOOK_RUNNING.md
+  - ./standardize-bootstrap-script.md
+  - ./run-bootstrap-scripts.md
   - ../references/REFERENCE_LIBRARY.md
   - ../references/REFERENCE_CONFIG.md
 review_cycle: quarterly
@@ -31,7 +31,7 @@ When you need to add support for a new technology, tool, or component to the boo
 
 - [ ] Bash scripting knowledge
 - [ ] Understanding of the technology/tool you're bootstrapping
-- [ ] Read PLAYBOOK_MIGRATING_SCRIPTS.md (understand standardized pattern)
+- [ ] Read standardize-bootstrap-script.md (understand standardized pattern)
 - [ ] Access to `lib/common.sh` to understand available functions
 - [ ] Familiarity with `bootstrap.config` structure
 - [ ] Test project directory available

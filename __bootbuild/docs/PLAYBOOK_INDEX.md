@@ -142,6 +142,7 @@ Bootstrap documentation is organized as:
 ```
 __bootbuild/docs/
 ├── PLAYBOOK_INDEX.md          # You are here
+├── DECISION_LOG.md            # Implementation decisions
 ├── playbooks/
 │   ├── PLAYBOOK_CREATING_SCRIPTS.md
 │   ├── PLAYBOOK_RUNNING.md
@@ -150,8 +151,8 @@ __bootbuild/docs/
 │   ├── REFERENCE_SCRIPT_CATALOG.md
 │   ├── REFERENCE_CONFIG.md
 │   └── REFERENCE_LIBRARY.md
-├── _meta/
-│   └── DECISION_LOG.md         # Implementation decisions
+├── cleanup/                    # Files needing review/decision
+├── bryan/                      # Personal/project documentation
 ├── archived/                   # Previous versions
 └── [Other documentation]
 ```
@@ -215,7 +216,7 @@ This design eliminates documentation drift and ensures consistency.
 
 For updates, issues, or contributions:
 
-1. **Found an error?** Check [DECISION_LOG.md](_meta/DECISION_LOG.md) for known issues
+1. **Found an error?** Check [DECISION_LOG.md](DECISION_LOG.md) for known issues
 2. **Need clarification?** Review the specific playbook or reference
 3. **Want to add content?** See [PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md)
 4. **Standardizing scripts?** See [PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md)

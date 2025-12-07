@@ -19,7 +19,7 @@ When the user provides a script filename (e.g., `bootstrap-git.sh`):
 ### 1. Load Context
 
 **Read in this order:**
-1. `__bootbuild/docs/playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md` (authoritative migration guide)
+1. `__bootbuild/docs/playbooks/standardize-bootstrap-script.md` (authoritative migration guide)
 2. Three reference examples showing correct patterns:
    - `__bootbuild/scripts/bootstrap-codex.sh`
    - `__bootbuild/scripts/bootstrap-typescript.sh`
@@ -59,7 +59,7 @@ Key checks:
 
 ### 3. Transform
 
-Follow the 13-step migration guide from PLAYBOOK_MIGRATING_SCRIPTS.md:
+Follow the 13-step migration guide from standardize-bootstrap-script.md:
 
 1. Update header and setup (set -euo pipefail, source lib/common.sh, init_script)
 2. Remove duplicate functions (color defs, log functions, backup_file, verify_file)
@@ -104,7 +104,7 @@ Write the standardized script and run `bash -n` syntax check.
 
 ## Key Reference
 
-**Pattern locations in PLAYBOOK_MIGRATING_SCRIPTS.md:**
+**Pattern locations in standardize-bootstrap-script.md:**
 - Header template: Step 2
 - Duplicate removal: Step 3
 - Path variables: Step 4

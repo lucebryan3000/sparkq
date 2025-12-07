@@ -22,8 +22,9 @@ Validate that the new single-source-of-truth architecture works correctly by:
 
 #### Step 0.1: Create Backups and Directory Structure ✅
 - Created dated backups of original files (CHECKLIST, SLASH_COMMAND_USAGE)
-- Created directory structure: playbooks/, references/, _meta/, archived/
+- Created directory structure: playbooks/, references/, cleanup/, bryan/, archived/
 - **Result:** All directories created, backups secured
+- **Note:** _meta/ merged into root docs/ (DECISION_LOG.md moved to docs root)
 
 #### Step 0.1.5: Content Mapping ✅
 - Mapped 8 sections from SCRIPT_STANDARDIZATION_CHECKLIST.md to 13 playbook steps
