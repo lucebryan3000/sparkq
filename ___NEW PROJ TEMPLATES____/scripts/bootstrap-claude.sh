@@ -92,6 +92,11 @@ if [[ -f "$TEMPLATE_CLAUDE/self-testing-protocol.md" ]]; then
     log_success "Copied self-testing-protocol.md"
 fi
 
+if [[ -f "$TEMPLATE_CLAUDE/codex-optimization.md" ]]; then
+    cp "$TEMPLATE_CLAUDE/codex-optimization.md" "$CLAUDE_DIR/"
+    log_success "Copied codex-optimization.md"
+fi
+
 # ===================================================================
 # Create Example Agents
 # ===================================================================
@@ -912,22 +917,147 @@ EOF
 log_success "Created .claude/README.md"
 
 # ===================================================================
-# Summary
+# Validation & Testing (Self-Testing Protocol)
 # ===================================================================
 
-log_success "Bootstrap complete!"
+validate_bootstrap() {
+    local errors=0
+
+    log_info "Validating bootstrap configuration..."
+    echo ""
+
+    # Test 1: Directory structure
+    log_info "Checking directory structure..."
+    for dir in agents commands hooks skills; do
+        if [[ -d "$CLAUDE_DIR/$dir" ]]; then
+            log_success "Directory: .claude/$dir exists"
+        else
+            log_error "Missing directory: .claude/$dir"
+            errors=$((errors + 1))
+        fi
+    done
+
+    # Test 2: Core configuration files
+    log_info "Checking core configuration files..."
+    for file in settings.json settings.local.json.example README.md; do
+        if [[ -f "$CLAUDE_DIR/$file" ]]; then
+            log_success "File: .claude/$file exists"
+        else
+            log_error "Missing file: .claude/$file"
+            errors=$((errors + 1))
+        fi
+    done
+
+    # Test 3: Root-level files
+    log_info "Checking root-level files..."
+    for file in .mcp.json .claudeignore CLAUDE.md; do
+        if [[ -f "$PROJECT_ROOT/$file" ]]; then
+            log_success "File: $file exists"
+        else
+            log_error "Missing file: $file"
+            errors=$((errors + 1))
+        fi
+    done
+
+    # Test 4: Validate JSON files (Haiku-style validation)
+    log_info "Validating JSON syntax..."
+    if python3 -m json.tool "$CLAUDE_DIR/settings.json" >/dev/null 2>&1; then
+        log_success "JSON: .claude/settings.json is valid"
+    else
+        log_error "Invalid JSON in .claude/settings.json"
+        errors=$((errors + 1))
+    fi
+
+    if python3 -m json.tool "$PROJECT_ROOT/.mcp.json" >/dev/null 2>&1; then
+        log_success "JSON: .mcp.json is valid"
+    else
+        log_error "Invalid JSON in .mcp.json"
+        errors=$((errors + 1))
+    fi
+
+    if python3 -m json.tool "$CLAUDE_DIR/settings.local.json.example" >/dev/null 2>&1; then
+        log_success "JSON: settings.local.json.example is valid"
+    else
+        log_error "Invalid JSON in settings.local.json.example"
+        errors=$((errors + 1))
+    fi
+
+    # Test 5: Agents
+    log_info "Checking agents..."
+    for agent in code-reviewer debugger; do
+        if [[ -f "$CLAUDE_DIR/agents/${agent}.md" ]]; then
+            if grep -q "^---" "$CLAUDE_DIR/agents/${agent}.md" && grep -q "description:" "$CLAUDE_DIR/agents/${agent}.md"; then
+                log_success "Agent: $agent.md has YAML frontmatter"
+            else
+                log_warning "Agent: $agent.md may be missing YAML frontmatter"
+            fi
+        else
+            log_error "Missing agent: $agent.md"
+            errors=$((errors + 1))
+        fi
+    done
+
+    # Test 6: Commands
+    log_info "Checking commands..."
+    for cmd in analyze test document; do
+        if [[ -f "$CLAUDE_DIR/commands/${cmd}.md" ]]; then
+            log_success "Command: $cmd.md exists"
+        else
+            log_error "Missing command: $cmd.md"
+            errors=$((errors + 1))
+        fi
+    done
+
+    # Test 7: Template files
+    log_info "Checking template files..."
+    for tmpl in codex codex_prompt codex-optimization haiku self-testing-protocol; do
+        if [[ -f "$CLAUDE_DIR/${tmpl}.md" ]]; then
+            log_success "Template: $tmpl.md copied"
+        else
+            log_warning "Template: $tmpl.md not found (optional)"
+        fi
+    done
+
+    # Summary
+    echo ""
+    if [[ $errors -eq 0 ]]; then
+        log_success "All validation checks passed!"
+        return 0
+    else
+        log_error "Validation found $errors error(s)"
+        return 1
+    fi
+}
+
+# ===================================================================
+# Summary & Next Steps
+# ===================================================================
 
 echo ""
-echo "✓ .claude/ directory structure created"
-echo "✓ Example agents: code-reviewer, debugger"
-echo "✓ Example commands: analyze, test, document"
-echo "✓ settings.json configured"
-echo "✓ .mcp.json created"
-echo "✓ .claudeignore created"
-echo "✓ CLAUDE.md template created"
+log_success "Bootstrap complete!"
 echo ""
+
+validate_bootstrap
+
+echo ""
+log_info "Bootstrap Summary:"
+echo "  Directory: $CLAUDE_DIR"
+echo "  Structure: agents/, commands/, hooks/, skills/"
+echo "  Agents: code-reviewer, debugger"
+echo "  Commands: analyze, test, document"
+echo "  Configuration: settings.json, .mcp.json, .claudeignore"
+echo "  Documentation: CLAUDE.md, .claude/README.md"
+echo ""
+
 log_info "Next steps:"
-echo "  1. Edit CLAUDE.md - Replace [PROJECT_NAME] with your project"
-echo "  2. Commit: git add -A && git commit -m 'Setup Claude configuration'"
-echo "  3. (Optional) Copy settings.local.json.example to settings.local.json for personal settings"
+echo "  1. Edit CLAUDE.md"
+echo "     - Replace [PROJECT_NAME] with your actual project name"
+echo "     - Update Stack, Owner, Phase sections"
+echo "  2. Review .claude/settings.json"
+echo "     - Customize model selection if needed"
+echo "     - Adjust permissions for your project"
+echo "  3. Commit to git:"
+echo "     git add -A && git commit -m 'Setup Claude configuration'"
+echo "  4. (Optional) Create personal settings:"
+echo "     cp .claude/settings.local.json.example .claude/settings.local.json"
 echo ""
