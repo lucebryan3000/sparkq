@@ -1,0 +1,250 @@
+{
+  "React Functional Component": {
+    "prefix": "rfc",
+    "body": [
+      "export function ${1:${TM_FILENAME_BASE}}({ ${2:} }: ${1}Props) {",
+      "  return (",
+      "    <div>",
+      "      $0",
+      "    </div>",
+      "  )",
+      "}",
+      "",
+      "interface ${1}Props {",
+      "  ${2}",
+      "}"
+    ],
+    "description": "React functional component with props interface"
+  },
+  "React Client Component": {
+    "prefix": "rcc",
+    "body": [
+      "'use client'",
+      "",
+      "import { useState } from 'react'",
+      "",
+      "export function ${1:${TM_FILENAME_BASE}}({ ${2:} }: ${1}Props) {",
+      "  const [${3:state}, set${3/(.*)/${1:/capitalize}/}] = useState<${4:string}>($5)",
+      "",
+      "  return (",
+      "    <div>",
+      "      $0",
+      "    </div>",
+      "  )",
+      "}",
+      "",
+      "interface ${1}Props {",
+      "  ${2}",
+      "}"
+    ],
+    "description": "React client component with useState"
+  },
+  "React Server Component": {
+    "prefix": "rsc",
+    "body": [
+      "export async function ${1:${TM_FILENAME_BASE}}({ ${2:} }: ${1}Props) {",
+      "  $0",
+      "",
+      "  return (",
+      "    <div>",
+      "      ",
+      "    </div>",
+      "  )",
+      "}",
+      "",
+      "interface ${1}Props {",
+      "  ${2}",
+      "}"
+    ],
+    "description": "React server component (async)"
+  },
+  "Custom Hook": {
+    "prefix": "hook",
+    "body": [
+      "import { useState, useCallback } from 'react'",
+      "",
+      "export function use${1:Hook}(${2:initialValue}: ${3:string}) {",
+      "  const [${4:value}, set${4/(.*)/${1:/capitalize}/}] = useState<${3}>(${2})",
+      "",
+      "  const ${5:update} = useCallback((${6:newValue}: ${3}) => {",
+      "    set${4/(.*)/${1:/capitalize}/}(${6})",
+      "  }, [])",
+      "",
+      "  return { ${4}, ${5} }",
+      "}"
+    ],
+    "description": "Custom React hook"
+  },
+  "Zod Schema": {
+    "prefix": "zod",
+    "body": [
+      "import { z } from 'zod'",
+      "",
+      "export const ${1:name}Schema = z.object({",
+      "  ${2:field}: z.${3:string}(),",
+      "  $0",
+      "})",
+      "",
+      "export type ${1/(.*)/${1:/capitalize}/} = z.infer<typeof ${1}Schema>"
+    ],
+    "description": "Zod schema with inferred type"
+  },
+  "API Route Handler": {
+    "prefix": "api",
+    "body": [
+      "import { type NextRequest, NextResponse } from 'next/server'",
+      "",
+      "export async function ${1|GET,POST,PUT,DELETE|}(request: NextRequest) {",
+      "  try {",
+      "    $0",
+      "",
+      "    return NextResponse.json({ data: null })",
+      "  } catch (error) {",
+      "    console.error('[${2:ROUTE}]', error)",
+      "    return NextResponse.json(",
+      "      { error: 'Internal server error' },",
+      "      { status: 500 }",
+      "    )",
+      "  }",
+      "}"
+    ],
+    "description": "Next.js API route handler"
+  },
+  "Service Function": {
+    "prefix": "service",
+    "body": [
+      "import { prisma } from '@/lib/prisma'",
+      "",
+      "export const ${1:Resource}Service = {",
+      "  async list() {",
+      "    return prisma.${1/(.*)/${1:/downcase}/}.findMany()",
+      "  },",
+      "",
+      "  async getById(id: string) {",
+      "    return prisma.${1/(.*)/${1:/downcase}/}.findUnique({",
+      "      where: { id },",
+      "    })",
+      "  },",
+      "",
+      "  async create(data: Create${1}Input) {",
+      "    return prisma.${1/(.*)/${1:/downcase}/}.create({ data })",
+      "  },",
+      "",
+      "  async update(id: string, data: Update${1}Input) {",
+      "    return prisma.${1/(.*)/${1:/downcase}/}.update({",
+      "      where: { id },",
+      "      data,",
+      "    })",
+      "  },",
+      "",
+      "  async delete(id: string) {",
+      "    return prisma.${1/(.*)/${1:/downcase}/}.delete({",
+      "      where: { id },",
+      "    })",
+      "  },",
+      "}"
+    ],
+    "description": "Prisma service with CRUD operations"
+  },
+  "Test Describe Block": {
+    "prefix": "desc",
+    "body": [
+      "describe('${1:${TM_FILENAME_BASE}}', () => {",
+      "  beforeEach(() => {",
+      "    $2",
+      "  })",
+      "",
+      "  it('${3:should}', () => {",
+      "    $0",
+      "  })",
+      "})"
+    ],
+    "description": "Jest describe block with beforeEach"
+  },
+  "Test It Block": {
+    "prefix": "it",
+    "body": [
+      "it('${1:should}', async () => {",
+      "  $0",
+      "})"
+    ],
+    "description": "Jest it block (async)"
+  },
+  "Console Log": {
+    "prefix": "cl",
+    "body": ["console.log('${1:label}:', ${2:value})"],
+    "description": "Console log with label"
+  },
+  "Try Catch": {
+    "prefix": "tc",
+    "body": [
+      "try {",
+      "  $0",
+      "} catch (error) {",
+      "  console.error('${1:Error}:', error)",
+      "  throw error",
+      "}"
+    ],
+    "description": "Try-catch block"
+  },
+  "Async Function": {
+    "prefix": "af",
+    "body": [
+      "async function ${1:name}(${2:params}): Promise<${3:void}> {",
+      "  $0",
+      "}"
+    ],
+    "description": "Async function with return type"
+  },
+  "Arrow Function": {
+    "prefix": "fn",
+    "body": ["const ${1:name} = (${2:params}): ${3:void} => {", "  $0", "}"],
+    "description": "Arrow function with return type"
+  },
+  "Interface": {
+    "prefix": "int",
+    "body": ["interface ${1:Name} {", "  ${2:property}: ${3:type}", "  $0", "}"],
+    "description": "TypeScript interface"
+  },
+  "Type": {
+    "prefix": "type",
+    "body": ["type ${1:Name} = {", "  ${2:property}: ${3:type}", "  $0", "}"],
+    "description": "TypeScript type"
+  },
+  "Import Type": {
+    "prefix": "impt",
+    "body": ["import { type ${1:Type} } from '${2:module}'"],
+    "description": "Import type"
+  },
+  "useState": {
+    "prefix": "us",
+    "body": [
+      "const [${1:state}, set${1/(.*)/${1:/capitalize}/}] = useState<${2:string}>(${3})"
+    ],
+    "description": "useState hook"
+  },
+  "useEffect": {
+    "prefix": "ue",
+    "body": ["useEffect(() => {", "  $0", "}, [${1:}])"],
+    "description": "useEffect hook"
+  },
+  "useCallback": {
+    "prefix": "uc",
+    "body": [
+      "const ${1:callback} = useCallback((${2:}) => {",
+      "  $0",
+      "}, [${3:}])"
+    ],
+    "description": "useCallback hook"
+  },
+  "useMemo": {
+    "prefix": "um",
+    "body": ["const ${1:memoized} = useMemo(() => {", "  $0", "}, [${2:}])"],
+    "description": "useMemo hook"
+  },
+  "cn Utility": {
+    "prefix": "cn",
+    "body": ["className={cn('${1:classes}', ${2:conditional})}"],
+    "description": "cn className utility"
+  }
+}

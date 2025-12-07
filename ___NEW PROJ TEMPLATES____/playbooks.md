@@ -94,11 +94,11 @@ Each template category (`.claude/`, `.github/`, `.vscode/`, etc.) gets:
 
 ---
 
-### Category 2: GitHub Configuration (📋 PLANNED)
+### Category 2: GitHub Configuration (✅ COMPLETE)
 
 **Location**: `___NEW PROJ TEMPLATES____/.github/`
 
-**Bootstrap Script**: `___NEW PROJ TEMPLATES____/scripts/bootstrap-github.sh` (TO CREATE)
+**Bootstrap Script**: `___NEW PROJ TEMPLATES____/scripts/bootstrap-github.sh`
 
 **Source Files**:
 - `PULL_REQUEST_TEMPLATE.md`
@@ -119,22 +119,21 @@ Each template category (`.claude/`, `.github/`, `.vscode/`, etc.) gets:
     └── ci.yml
 ```
 
-**Status**: 📋 Planned
+**Status**: ✅ Complete with validation (based on official GitHub documentation)
 
 ---
 
-### Category 3: VS Code Configuration (📋 PLANNED)
+### Category 3: VS Code Configuration (✅ COMPLETE)
 
 **Location**: `___NEW PROJ TEMPLATES____/.vscode/`
 
-**Bootstrap Script**: `___NEW PROJ TEMPLATES____/scripts/bootstrap-vscode.sh` (TO CREATE)
+**Bootstrap Script**: `___NEW PROJ TEMPLATES____/scripts/bootstrap-vscode.sh`
 
 **Source Files**:
 - `settings.json`
 - `extensions.json`
 - `launch.json`
 - `tasks.json`
-- `snippets/typescript.json`
 
 **Target Structure**:
 ```
@@ -142,14 +141,10 @@ Each template category (`.claude/`, `.github/`, `.vscode/`, etc.) gets:
 ├── settings.json
 ├── extensions.json
 ├── launch.json
-├── tasks.json
-├── snippets/
-│   └── typescript.json
-└── optional/
-    └── [user-specific files]
+└── tasks.json
 ```
 
-**Status**: 📋 Planned
+**Status**: ✅ Complete with validation (based on official VS Code documentation)
 
 ---
 
@@ -196,6 +191,221 @@ Each template category (`.claude/`, `.github/`, `.vscode/`, etc.) gets:
 **Target Structure**: Files copied to project root
 
 **Status**: 📋 Planned
+
+---
+
+## Phase 0: Web Fetch & Authoritative Validation
+
+### Purpose
+
+Before implementing a bootstrap script, establish **authoritative configuration patterns** by fetching official documentation from the source. This ensures our templates follow best practices and stay current with upstream recommendations.
+
+### When to Apply
+
+**Use Phase 0 for**: Any template that has official documentation (GitHub, VS Code, Kubernetes, etc.)
+
+**Skip Phase 0 for**: Internal proprietary configurations with no external documentation
+
+### Process
+
+#### Step 1: Identify Official Documentation Sources
+
+Find the authoritative sources for the configuration category:
+
+**Examples**:
+- GitHub: https://docs.github.com
+- VS Code: https://code.visualstudio.com/docs
+- Docker: https://docs.docker.com
+- Node.js: https://nodejs.org/docs
+
+#### Step 2: Fetch and Extract Key Patterns
+
+Use web fetch to retrieve:
+
+1. **Configuration File Formats**
+   - Official schema/structure
+   - Required vs optional fields
+   - Valid values and types
+   - Default configurations
+
+2. **Best Practices**
+   - Recommended patterns
+   - Anti-patterns to avoid
+   - Performance considerations
+   - Security recommendations
+
+3. **Directory Structure**
+   - Where files should be located
+   - Nested directory requirements
+   - File naming conventions
+   - Permissions and ownership
+
+4. **Integration Points**
+   - How configuration files interact
+   - Dependencies between files
+   - Environment variables
+   - Plugins and extensions
+
+#### Step 3: Copy Authoritative Template Files Locally
+
+While fetching documentation, **save example configurations locally**:
+
+```bash
+# Document structure
+___NEW PROJ TEMPLATES____/
+└── [CATEGORY]/
+    ├── README.md (from documentation)
+    ├── [config-file-1].json (example from docs)
+    ├── [config-file-2].yml (example from docs)
+    └── subfolder/
+        └── [nested-config].json (example)
+```
+
+**Example**: Bootstrap GitHub
+
+```bash
+# Fetch GitHub documentation on PR templates, issue templates, workflows
+# Save locally:
+___NEW PROJ TEMPLATES____/.github/
+├── PULL_REQUEST_TEMPLATE.md (official example)
+├── ISSUE_TEMPLATE/
+│   ├── bug_report.md (official template)
+│   ├── feature_request.md (official template)
+│   └── config.yml (official configuration)
+└── workflows/
+    └── ci.yml (example workflow from GitHub Actions docs)
+```
+
+#### Step 4: Validate Configuration Patterns
+
+Document what you learned from authoritative sources:
+
+**JSON Configurations**
+```bash
+# Validate structure with official schema
+python3 -m json.tool ___NEW PROJ TEMPLATES____/[CATEGORY]/settings.json
+
+# Check required fields against documentation
+grep -E "required|optional" documentation.md
+```
+
+**YAML Configurations**
+```bash
+# Validate syntax
+python3 -c "import yaml; yaml.safe_load(open('config.yml'))"
+
+# Verify structure matches documentation
+# Example: GitHub Actions workflow must have:
+# - name
+# - on (trigger)
+# - jobs
+```
+
+**Markdown Templates**
+```bash
+# Verify YAML frontmatter (GitHub issue templates)
+grep -A5 "^---" ISSUE_TEMPLATE/bug_report.md
+
+# Check required fields: name, about, title, labels, assignees
+```
+
+#### Step 5: Document Authoritative Sources in Bootstrap Script
+
+Add comments referencing official documentation:
+
+```bash
+# bootstrap-[category].sh
+# ===================================================================
+# Configuration based on official documentation:
+# - GitHub: https://docs.github.com/en/communities/using-templates
+# - VS Code: https://code.visualstudio.com/docs/getstarted/settings
+# - Rationale: [Why we chose these patterns]
+# ===================================================================
+```
+
+#### Step 6: Add Authoritative Validation to Bootstrap Script
+
+Incorporate lessons learned into validation:
+
+```bash
+validate_bootstrap() {
+    # Validate against official specs
+
+    # 1. Structure matches official format
+    if [[ ! -f "$VSCODE_DIR/settings.json" ]]; then
+        log_error "Missing settings.json (required per VS Code docs)"
+    fi
+
+    # 2. JSON/YAML is valid
+    python3 -c "import json; json.load(open('$VSCODE_DIR/settings.json'))"
+
+    # 3. Required fields present
+    if ! grep -q '"editor.formatOnSave"' settings.json; then
+        log_warning "Missing recommended field: editor.formatOnSave"
+    fi
+}
+```
+
+### Deliverable: Authoritative Template Files + Documentation
+
+After Phase 0, you should have:
+
+1. ✅ Local copy of official configuration examples
+2. ✅ Documentation of format requirements
+3. ✅ List of required vs optional fields
+4. ✅ Known best practices and anti-patterns
+5. ✅ Valid example configurations to use as defaults
+6. ✅ References to official documentation in script comments
+
+### Example: GitHub Phase 0
+
+**Research Output**:
+```
+# Official GitHub documentation on templates
+✅ PR templates: Support markdown with optional YAML (not used)
+✅ Issue templates: Support YAML frontmatter with fields: name, about, title, labels, assignees
+✅ Workflows: YAML format with required fields: name, on, jobs
+✅ Best practice: Use contact_links in issue config.yml
+
+# Saved locally:
+___NEW PROJ TEMPLATES____/.github/
+├── PULL_REQUEST_TEMPLATE.md (markdown, no YAML needed)
+├── ISSUE_TEMPLATE/
+│   ├── bug_report.md (YAML frontmatter + markdown)
+│   ├── feature_request.md (YAML frontmatter + markdown)
+│   └── config.yml (YAML format with contact_links)
+└── workflows/
+    └── ci.yml (YAML: name, on: [push, pull_request], jobs: [lint, test, build])
+```
+
+**Validation Added to bootstrap-github.sh**:
+```bash
+# Test: YAML frontmatter in issue templates
+grep -q "^---" "$GITHUB_DIR/ISSUE_TEMPLATE/bug_report.md" || log_error "Missing YAML frontmatter"
+
+# Test: Required fields in config.yml
+python3 -c "import yaml; data=yaml.safe_load(open('...'))
+           assert 'blank_issues_enabled' in data"
+```
+
+### Example: VS Code Phase 0
+
+**Research Output**:
+```
+# Official VS Code documentation on configuration
+✅ settings.json: Located at .vscode/settings.json (workspace level)
+✅ extensions.json: List recommended extensions in "recommendations" array
+✅ tasks.json: Version "2.0.0", tasks array with label, type, command
+✅ launch.json: Version "0.2.0", configurations array with debugger configs
+
+# Best practices:
+✅ Language-specific settings: Use [language] key syntax
+✅ Search exclude: Should exclude node_modules, dist, .git
+✅ Format on save: Recommended for consistency
+✅ Extension IDs: Use publisher.extension format
+```
+
+**Saved locally**: All template files created with official examples
 
 ---
 
@@ -738,40 +948,47 @@ ___NEW PROJ TEMPLATES____/scripts/bootstrap-claude.sh /path/to/project
 
 ---
 
-### Example 2: Bootstrap GitHub (📋 PLANNED)
+### Example 2: Bootstrap GitHub (✅ COMPLETE)
 
-**Expected Command**:
+**Command**:
 ```bash
 ___NEW PROJ TEMPLATES____/scripts/bootstrap-github.sh /path/to/project
 ```
 
-**Expected Behavior**:
-- Creates `.github/` directory
-- Copies PR template
-- Copies issue templates (bug, feature, custom)
-- Copies CI workflow
-- Validates YAML syntax for workflows
-- Validates markdown format for templates
-- Creates documentation
+**What It Does**:
+- Creates `.github/` directory with ISSUE_TEMPLATE/ and workflows/
+- Copies or generates PR template (PULL_REQUEST_TEMPLATE.md)
+- Copies or generates issue templates (bug_report.md, feature_request.md)
+- Copies or generates issue template configuration (config.yml with contact_links)
+- Copies or generates CI workflow (workflows/ci.yml with lint, typecheck, test, build jobs)
+- Validates YAML syntax for workflows and config
+- Validates markdown format for templates (checks YAML frontmatter)
+- Reports summary and next steps
+
+**Test Result**:
+✅ All 7+ validation checks pass
 
 ---
 
-### Example 3: Bootstrap VS Code (📋 PLANNED)
+### Example 3: Bootstrap VS Code (✅ COMPLETE)
 
-**Expected Command**:
+**Command**:
 ```bash
 ___NEW PROJ TEMPLATES____/scripts/bootstrap-vscode.sh /path/to/project
 ```
 
-**Expected Behavior**:
+**What It Does**:
 - Creates `.vscode/` directory
-- Copies settings.json with recommended configuration
-- Copies extensions.json with recommended extensions
-- Copies launch.json with debug configurations
-- Copies tasks.json with common tasks
-- Copies snippets/typescript.json
-- Validates JSON syntax for all config files
-- Creates documentation
+- Copies or generates settings.json with recommended editor configuration
+- Copies or generates extensions.json with recommended extensions list
+- Copies or generates launch.json with debug configurations (Node.js, Python)
+- Copies or generates tasks.json with common tasks (lint, typecheck, test, build, watch)
+- Validates JSON syntax for all configuration files
+- Validates structure matches VS Code official specifications
+- Reports summary and next steps
+
+**Test Result**:
+✅ All 7+ validation checks pass
 
 ---
 
@@ -809,8 +1026,8 @@ ___NEW PROJ TEMPLATES____/scripts/bootstrap-[category].sh /path/to/new/project
 | Category | Status | Script | Source | Target |
 |----------|--------|--------|--------|--------|
 | Claude Code | ✅ Complete | `bootstrap-claude.sh` | `.claude/` | `.claude/` |
-| GitHub | 📋 Planned | `bootstrap-github.sh` | `.github/` | `.github/` |
-| VS Code | 📋 Planned | `bootstrap-vscode.sh` | `.vscode/` | `.vscode/` |
+| GitHub | ✅ Complete | `bootstrap-github.sh` | `.github/` | `.github/` |
+| VS Code | ✅ Complete | `bootstrap-vscode.sh` | `.vscode/` | `.vscode/` |
 | DevContainer | 📋 Planned | `bootstrap-devcontainer.sh` | `.devcontainer/` | `.devcontainer/` |
 | Root Config | 📋 Planned | `bootstrap-root.sh` | `root/` | `./` |
 
