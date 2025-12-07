@@ -279,12 +279,43 @@ Set up the development infrastructure needed for active coding.
 
 **Purpose**: Set up Docker and containerized development environment
 
+**What it does**:
+- Copies docker-compose.yml with PostgreSQL, Redis, and app services
+- Copies multi-stage Dockerfile for development and production
+- Copies .dockerignore with comprehensive file exclusions
+- Validates YAML syntax and Dockerfile structure before copying
+- Checks if Docker is installed (informational)
+- Backs up existing files with timestamps
+- Performs post-bootstrap validation of all files
+
 **Files created**:
 - `docker-compose.yml` - Development services (PostgreSQL, Redis, app)
-- `Dockerfile` - Production image definition
-- `.dockerignore` - Files excluded from Docker build
+- `Dockerfile` - Multi-stage build (development, builder, production)
+- `.dockerignore` - Files excluded from Docker build (40+ patterns)
 
-**Status**: 🔴 Coming soon
+**Key features**:
+```yaml
+# docker-compose.yml includes:
+- PostgreSQL 16 Alpine with health checks
+- App service with volume mounts
+- Environment variable support
+- Service dependencies
+
+# Dockerfile includes:
+- Node.js 20 Alpine base
+- Multi-stage build (deps, development, builder, production)
+- Production: unprivileged nextjs user (uid:1001)
+- Development: npm run dev support
+```
+
+**Validation**:
+- Pre-copy: Validates YAML syntax, services definition, FROM instruction
+- Post-bootstrap: Confirms files exist, YAML valid, services and instructions present
+- Idempotent: Backs up existing files, can run multiple times safely
+
+**When to use**: After Phase 1 - containerized development improves consistency
+
+**Status**: ✅ Available
 
 ---
 
