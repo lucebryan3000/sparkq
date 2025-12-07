@@ -12,12 +12,13 @@
 
 1. [Overview](#overview)
 2. [Template Categories](#template-categories)
-3. [Playbook Phases](#playbook-phases)
-4. [Process Flow](#process-flow)
-5. [Implementation Checklist](#implementation-checklist)
-6. [Validation Criteria](#validation-criteria)
-7. [Script Template](#script-template)
+3. [Phase 0: Web Fetch & Authoritative Validation](#phase-0-web-fetch--authoritative-validation)
+4. [Playbook Phases](#playbook-phases)
+5. [Template Validation Pattern](#template-validation-pattern)
+6. [Process Flow](#process-flow)
+7. [Implementation Checklist](#implementation-checklist)
 8. [Example Applications](#example-applications)
+9. [Quick Reference](#quick-reference)
 
 ---
 
@@ -523,9 +524,91 @@ python3 -c "import yaml; data=yaml.safe_load(open('...'))
 
 ### Phase 4: Validation Implementation
 
-**Goal**: Add comprehensive self-testing
+**Goal**: Add comprehensive validation at two levels: pre-copy (template validation) and post-bootstrap (self-testing)
 
 **Steps**:
+
+#### Phase 4a: Template Pre-Copy Validation
+
+Before copying template files to the project, validate that source templates meet official specifications. This ensures the source of truth is always correct.
+
+1. **Create Template Validation Functions** (called BEFORE copying)
+   ```bash
+   # Example: Validate JSON template
+   validate_settings_template() {
+       local template_file="$1"
+       if [[ ! -f "$template_file" ]]; then
+           return 0  # Missing template is OK
+       fi
+       # Validate JSON syntax
+       if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
+           log_warning "Template has invalid JSON"
+           return 1
+       fi
+       return 0
+   }
+   ```
+
+2. **Validation Patterns by File Type**
+
+   **JSON Files**:
+   ```bash
+   validate_json_template() {
+       local file="$1"
+       python3 -c "import json; json.load(open('$file'))" 2>/dev/null
+   }
+   ```
+
+   **YAML Files**:
+   ```bash
+   validate_yaml_template() {
+       local file="$1"
+       python3 -c "import yaml; yaml.safe_load(open('$file'))" 2>/dev/null
+   }
+   ```
+
+   **YAML Frontmatter (Markdown)**:
+   ```bash
+   validate_yaml_frontmatter() {
+       local file="$1"
+       # Check for frontmatter delimiters
+       grep -q "^---$" "$file" || return 1
+       # Check for required fields
+       sed -n '1,/^---$/p' "$file" | grep -q "^name:" || return 1
+   }
+   ```
+
+   **Config File Fields**:
+   ```bash
+   validate_config_field() {
+       local file="$1"
+       local field="$2"
+       grep -q "^$field:" "$file"
+   }
+   ```
+
+3. **Call Validation BEFORE Copying**
+   ```bash
+   if [[ -f "$TEMPLATE_SOURCE/file.json" ]]; then
+       validate_json_template "$TEMPLATE_SOURCE/file.json" || log_warning "Validation failed"
+       cp "$TEMPLATE_SOURCE/file.json" "$TARGET_DIR/"
+   fi
+   ```
+
+4. **Document Official Specifications**
+   - Add comments referencing official docs
+   - Link to authoritative sources in script headers
+   - Document required vs optional fields
+
+5. **Handle Validation Failures Gracefully**
+   - Log warnings, don't fail the whole bootstrap
+   - Still copy the template (user provided it for a reason)
+   - Report which files had validation issues
+   - User can fix and re-run bootstrap
+
+#### Phase 4b: Post-Bootstrap Self-Testing
+
+After bootstrap completes, validate that everything was created correctly.
 
 1. **Create validate_bootstrap() Function**
    - Separate validation from creation
@@ -556,7 +639,7 @@ python3 -c "import yaml; data=yaml.safe_load(open('...'))
    - Report specific failures
    - Suggest corrections if possible
 
-**Deliverable**: Validation function integrated into script
+**Deliverable**: Template validation functions + post-bootstrap validation integrated into script
 
 ---
 
@@ -619,6 +702,242 @@ python3 -c "import yaml; data=yaml.safe_load(open('...'))
    - Add to playbook for future reference
 
 **Deliverable**: Committed bootstrap script
+
+---
+
+## Template Validation Pattern
+
+### Overview
+
+The Template Validation Pattern is a reusable approach for validating template files before copying them to projects. This ensures templates match official specifications and provides clear feedback when they don't.
+
+**Key Principle**: Source of truth (`___NEW PROJ TEMPLATES____/[category]/`) is validated early and often.
+
+### Why Pre-Copy Validation?
+
+1. **Catch errors early** - Validate template quality before bootstrap runs
+2. **Maintain source of truth** - Ensure templates always meet spec
+3. **User guidance** - Clear warnings help fix issues
+4. **Graceful degradation** - Continue bootstrap even if validation fails
+5. **Documentation** - Validation code documents expected structure
+
+### Pattern Structure
+
+#### Step 1: Create Validation Functions
+
+Group validation functions by file type. Each function:
+- Takes a file path as parameter
+- Returns 0 on success, 1 on failure
+- Uses `log_warning()` for failures
+- Handles missing files gracefully
+
+**Pattern**:
+```bash
+validate_[type]_template() {
+    local template_file="$1"
+
+    # OK if missing
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    # Run validation checks
+    # ... checks here ...
+
+    # Return 0 (pass) or 1 (fail)
+    return $result
+}
+```
+
+#### Step 2: Implement Type-Specific Validation
+
+For each file type in your templates, create a focused validation function:
+
+**JSON Configuration Template**:
+```bash
+validate_json_template() {
+    local template_file="$1"
+    local template_name=$(basename "$template_file")
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
+        log_warning "JSON template '$template_name' has invalid syntax"
+        return 1
+    fi
+
+    return 0
+}
+```
+
+**YAML Configuration Template**:
+```bash
+validate_yaml_template() {
+    local template_file="$1"
+    local template_name=$(basename "$template_file")
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    if ! python3 -c "import yaml; yaml.safe_load(open('$template_file'))" 2>/dev/null; then
+        log_warning "YAML template '$template_name' has invalid syntax"
+        return 1
+    fi
+
+    return 0
+}
+```
+
+**Markdown with YAML Frontmatter Template**:
+```bash
+validate_markdown_template() {
+    local template_file="$1"
+    local template_name=$(basename "$template_file")
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    # Check for YAML frontmatter
+    if ! grep -q "^---$" "$template_file"; then
+        log_warning "Markdown '$template_name' missing YAML frontmatter"
+        return 1
+    fi
+
+    # Check required fields
+    local required_fields=("name:" "about:")
+    for field in "${required_fields[@]}"; do
+        if ! sed -n '1,/^---$/p' "$template_file" | grep -q "^$field"; then
+            log_warning "Markdown '$template_name' missing required field: $field"
+            return 1
+        fi
+    done
+
+    return 0
+}
+```
+
+**Configuration Fields Template**:
+```bash
+validate_config_fields() {
+    local template_file="$1"
+    local required_field="$2"
+
+    if [[ ! -f "$template_file" ]]; then
+        return 0
+    fi
+
+    if ! grep -q "^$required_field:" "$template_file"; then
+        log_warning "Config missing required field: $required_field"
+        return 1
+    fi
+
+    return 0
+}
+```
+
+#### Step 3: Call Validation Before Copying
+
+Integrate validation into the copy workflow:
+
+```bash
+# Copy template with validation
+if [[ -f "$TEMPLATE_SOURCE/settings.json" ]]; then
+    # Validate template BEFORE copying
+    validate_json_template "$TEMPLATE_SOURCE/settings.json"
+
+    # Copy the file regardless of validation result
+    cp "$TEMPLATE_SOURCE/settings.json" "$TARGET_DIR/"
+    log_success "Copied settings.json"
+else
+    # Use default if template missing
+    log_info "Creating default settings.json..."
+    cat > "$TARGET_DIR/settings.json" << 'EOF'
+{...}
+EOF
+    log_success "Created default settings.json"
+fi
+```
+
+**Key Pattern**:
+1. Check if template exists
+2. Call validation function (non-blocking)
+3. Copy template or create default
+4. Log success
+
+#### Step 4: Reference Official Documentation
+
+Add official spec links to your validation functions:
+
+```bash
+# Validates GitHub Actions workflow structure
+# Official: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions
+validate_workflow_template() {
+    # ... validation code ...
+}
+```
+
+#### Step 5: Document in Script Header
+
+Add a header comment block explaining the template source:
+
+```bash
+# ===================================================================
+# bootstrap-[category].sh
+#
+# Bootstrap [Category] configuration for a new project
+# Creates [directory] structure with [components]
+#
+# OFFICIAL DOCUMENTATION:
+# - Source 1: https://docs.example.com/path
+# - Source 2: https://docs.example.com/path
+#
+# CONFIGURATION SOURCE OF TRUTH:
+# Template files in ___NEW PROJ TEMPLATES____/[category]/ are the authoritative source
+# These templates have been validated against official [platform] specifications.
+# ===================================================================
+```
+
+### Pattern Benefits
+
+| Benefit | How It Works |
+|---------|-------------|
+| **Early Detection** | Validation happens before copying |
+| **Clear Feedback** | Users see exactly which templates failed validation |
+| **Graceful Failures** | Validation warnings don't stop bootstrap |
+| **Self-Documenting** | Validation code shows expected structure |
+| **Reusable** | Same pattern works for all file types |
+| **Testable** | Validation functions are independent and testable |
+
+### Pattern Checklist
+
+When adding validation to a bootstrap script:
+
+- [ ] Added validation functions after utility functions section
+- [ ] Each function handles missing templates gracefully
+- [ ] Validation runs BEFORE file copying
+- [ ] Validation failures are logged as warnings
+- [ ] Bootstrap continues even if validation fails
+- [ ] Added official documentation references to function comments
+- [ ] Added source of truth declaration in script header
+- [ ] Tested validation functions independently
+- [ ] Documented expected file structure
+
+### Examples in Use
+
+**GitHub Bootstrap** (`bootstrap-github.sh`):
+- `validate_issue_template()` - Checks YAML frontmatter
+- `validate_workflow_template()` - Validates YAML structure
+- `validate_config_template()` - Checks required fields
+
+**VS Code Bootstrap** (`bootstrap-vscode.sh`):
+- `validate_settings_template()` - JSON syntax check
+- `validate_extensions_template()` - Checks "recommendations" array
+- `validate_tasks_template()` - Validates "tasks" structure
+- `validate_launch_template()` - Validates "configurations" structure
 
 ---
 
@@ -1023,13 +1342,18 @@ ___NEW PROJ TEMPLATES____/scripts/bootstrap-[category].sh /path/to/new/project
 
 ## Quick Reference
 
-| Category | Status | Script | Source | Target |
-|----------|--------|--------|--------|--------|
-| Claude Code | ✅ Complete | `bootstrap-claude.sh` | `.claude/` | `.claude/` |
-| GitHub | ✅ Complete | `bootstrap-github.sh` | `.github/` | `.github/` |
-| VS Code | ✅ Complete | `bootstrap-vscode.sh` | `.vscode/` | `.vscode/` |
-| DevContainer | 📋 Planned | `bootstrap-devcontainer.sh` | `.devcontainer/` | `.devcontainer/` |
-| Root Config | 📋 Planned | `bootstrap-root.sh` | `root/` | `./` |
+| Category | Status | Script | Validation | Source | Target |
+|----------|--------|--------|------------|--------|--------|
+| Claude Code | ✅ Complete | `bootstrap-claude.sh` | Post-Bootstrap | `.claude/` | `.claude/` |
+| GitHub | ✅ Complete | `bootstrap-github.sh` | Pre-Copy + Post | `.github/` | `.github/` |
+| VS Code | ✅ Complete | `bootstrap-vscode.sh` | Pre-Copy + Post | `.vscode/` | `.vscode/` |
+| DevContainer | 📋 Planned | `bootstrap-devcontainer.sh` | TBD | `.devcontainer/` | `.devcontainer/` |
+| Root Config | 📋 Planned | `bootstrap-root.sh` | TBD | `root/` | `./` |
+
+**Validation Levels**:
+- **Post-Bootstrap**: Validates result after bootstrap completes
+- **Pre-Copy**: Validates template files before copying them to project
+- **Pre-Copy + Post**: Both template validation and result validation
 
 ---
 
@@ -1039,10 +1363,16 @@ To add a new bootstrap script:
 
 1. Read this playbook completely
 2. Follow all 6 phases in order
-3. Use the script template provided
-4. Test thoroughly in a clean environment
-5. Update the status table above
-6. Commit with reference to this playbook
+3. **Apply the Template Validation Pattern** (documented above)
+   - Add pre-copy validation functions for your template files
+   - Reference official documentation in comments
+   - Validate before copying, warn but don't fail
+4. Use the script template provided
+5. Test thoroughly in a clean environment
+6. Update the status table (include Validation level)
+7. Commit with reference to this playbook
+
+**Key Principle**: Always validate templates against official specifications before copying them to projects. This maintains the source of truth in `___NEW PROJ TEMPLATES____/`.
 
 ---
 
@@ -1061,6 +1391,7 @@ To add a new bootstrap script:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2025-12-07 | Bryan Luce | Added Template Validation Pattern with pre-copy validation for GitHub and VS Code |
 | 1.0 | 2025-12-07 | Bryan Luce | Initial playbook based on .claude/ implementation |
 
 ---
