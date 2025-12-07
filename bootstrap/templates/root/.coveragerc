@@ -1,0 +1,42 @@
+[run]
+source = src
+branch = true
+parallel = true
+omit =
+    */tests/*
+    */__pycache__/*
+    */migrations/*
+    */.venv/*
+    */venv/*
+    */conftest.py
+    */setup.py
+
+[paths]
+source =
+    src/
+    */src/
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+    @abstractmethod
+    @abc.abstractmethod
+
+show_missing = true
+precision = 2
+fail_under = 70
+
+[html]
+directory = coverage/html
+
+[xml]
+output = coverage/coverage.xml
+
+[json]
+output = coverage/coverage.json

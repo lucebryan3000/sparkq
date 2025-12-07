@@ -1,0 +1,20 @@
+{
+  "model": "o4-mini",
+  "provider": "openai",
+  "approval_mode": "full-auto",
+  "sandbox_permissions": "full",
+  "writable_roots": ["."],
+  "full_auto_error_mode": "ask-user",
+  "notify": {
+    "command": "echo",
+    "args": ["-e", "\\a"]
+  },
+  "history": {
+    "persistence": "save-all",
+    "max_entries": 500,
+    "send_on_start": true
+  },
+  "shell_environment_policy": "inherit",
+  "project_doc_max_bytes": 65536,
+  "disable_response_storage": false
+}
