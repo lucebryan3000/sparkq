@@ -678,7 +678,7 @@ wiki/
 .claude/skills/
 .claude/orchestrator/
 .claude/prompts/
-___NEW PROJ TEMPLATES____/
+__bootbuild/
 EOF
 
 log_success "Created .claudeignore"

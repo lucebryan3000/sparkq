@@ -36,7 +36,7 @@ Technology-agnostic by design
 Minimal starter files with clear examples
 Easy to extend, hard to break
 Recommended Structure
-Create in: ___NEW PROJ TEMPLATES____/project-tooling-template/
+Create in: __bootbuild/project-tooling-template/
 project-tooling-template/
 ├── README.md                    # How to use this template
 ├── QUICKSTART.md               # 5-minute setup guide
@@ -321,7 +321,7 @@ Implementation Plan
 Phase 1: Create Generic Template Structure (~1 day)
 Objective: Build the base template with minimal, working examples
 Create directory structure
-___NEW PROJ TEMPLATES____/project-tooling-template/
+__bootbuild/project-tooling-template/
 ├── .tooling/
 │   ├── config/
 │   ├── lib/
@@ -425,7 +425,7 @@ Logging standards
 Config management (env vars vs config file)
 Security considerations (never commit secrets)
 Phase 4: Starter Generator Script (~1 day)
-Objective: Make it trivial to install into new projects Create: ___NEW PROJ TEMPLATES____/project-tooling-template/install.sh
+Objective: Make it trivial to install into new projects Create: __bootbuild/project-tooling-template/install.sh
 #!/bin/bash
 # install.sh - Copy tooling template to a project
 
@@ -553,7 +553,7 @@ Documentation - 4 markdown guides
 install.sh - Automated installation script
 QUICKSTART.md - 5-minute tutorial
 Estimated Effort: ~5 days for complete, documented, multi-example template
-Create this under the ___NEW PROJ TEMPLATES____/bootstrap/templates/#NAME#
+Create this under the __bootbuild/templates/#NAME#
 
 Recommended Structure - agreed!
 1. agreed
@@ -561,7 +561,7 @@ Recommended Structure - agreed!
 3. agreed
 4. agreed - the menu.sh needs to have a few requirements such as numbers only lists, sub menus ok to a second level but not a 3rd. default to Y/n.  If any key is pressed outside of a number it goes to previous menu, or exits the script. Add good DX and error handling.  Where possible to default answers such as [5 min] when asking for a value or a name do so.  Add a bit of color.  Group into sections like functions.
 Create a Claude Code playbook so it can orchestrate 1) run the script and then 2) customization of the tool for speed and velocity and logic and decisions hard to bake into a bash script. it would luanch deploy.sh, let it run and build the baseline or it would ask questions and feed /deploy.sh answers first on how to deploy it with a few options. Deploy.sh should be 80% automated, but 20% ask the dev for values and preferencs.  Howevery highly standardized to best practices.
-Phase 2: Create Technology-Specific Examples - I don't want multiple deploy.sh, I'd take an approach based on running deploy.sh asking the dev what they are going to use for their tech stack and then add on to the structure if there is tech specific items.  Also remember we have ___NEW PROJ TEMPLATES____/bootstrap/templates of which we can pull from and seed phase 2.
+Phase 2: Create Technology-Specific Examples - I don't want multiple deploy.sh, I'd take an approach based on running deploy.sh asking the dev what they are going to use for their tech stack and then add on to the structure if there is tech specific items.  Also remember we have __bootbuild/templates of which we can pull from and seed phase 2.
 Phase 3 agreed needs all of that documentation.  Create a _build/stage/bootstrap_project_tools-phase-#.md in as many phases as you need based on these inputs and you plan above which is great.
 
 before you do that we need a good name for this, everything shared was too generic in naming convention.  propose 10 names for this system.

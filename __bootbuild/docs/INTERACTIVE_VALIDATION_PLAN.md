@@ -64,7 +64,7 @@ fi
 ## File Structure
 
 ```
-___NEW PROJ TEMPLATES____/scripts/
+__bootbuild/scripts/
 ├── lib/
 │   ├── validation-common.sh      # Shared Q&A functions
 │   └── template-utils.sh         # sed/awk helpers

@@ -20,13 +20,13 @@ When the user provides a script filename, you will:
 **REQUIRED READING** (in this order):
 
 1. **Standardization Checklist**:
-   - Read: `___NEW PROJ TEMPLATES____/bootstrap/docs/SCRIPT_STANDARDIZATION_CHECKLIST.md`
+   - Read: `__bootbuild/docs/SCRIPT_STANDARDIZATION_CHECKLIST.md`
    - This is your PRIMARY reference - follow it EXACTLY
 
 2. **Reference Examples** (read ALL three - these show the CORRECT pattern):
-   - `___NEW PROJ TEMPLATES____/bootstrap/scripts/bootstrap-codex.sh`
-   - `___NEW PROJ TEMPLATES____/bootstrap/scripts/bootstrap-typescript.sh`
-   - `___NEW PROJ TEMPLATES____/bootstrap/scripts/bootstrap-environment.sh`
+   - `__bootbuild/scripts/bootstrap-codex.sh`
+   - `__bootbuild/scripts/bootstrap-typescript.sh`
+   - `__bootbuild/scripts/bootstrap-environment.sh`
 
 3. **Target Script** (the file to standardize):
    - User will specify which script to standardize
@@ -34,10 +34,10 @@ When the user provides a script filename, you will:
    - Identify what needs to be changed
 
 4. **Shared Libraries** (understand what's available):
-   - `___NEW PROJ TEMPLATES____/bootstrap/lib/common.sh` (core functions)
-   - `___NEW PROJ TEMPLATES____/bootstrap/lib/json-validator.sh` (JSON validation)
-   - `___NEW PROJ TEMPLATES____/bootstrap/lib/template-utils.sh` (template manipulation)
-   - `___NEW PROJ TEMPLATES____/bootstrap/lib/config-manager.sh` (config access)
+   - `__bootbuild/lib/common.sh` (core functions)
+   - `__bootbuild/lib/json-validator.sh` (JSON validation)
+   - `__bootbuild/lib/template-utils.sh` (template manipulation)
+   - `__bootbuild/lib/config-manager.sh` (config access)
 
 ## Step 2: Analysis Phase
 
