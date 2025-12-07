@@ -1,557 +1,707 @@
-# Bootstrap Playbooks - Script Implementation Guide
+# Bootstrap Playbooks - Orchestration Guide
 
-Orchestration guide for Sonnet to bootstrap new projects with velocity and accuracy.
-
----
-
-## Orchestration Model
-
-**You (Sonnet)** are the orchestrator. Delegate to the right model for each task:
-
-| Model | Use For | Invoke Via |
-|-------|---------|------------|
-| **Haiku** | Fast file ops, syntax checks, repetitive tasks | `--model haiku` or Task tool |
-| **Opus** | Architecture decisions, complex debugging, CLAUDE.md | Task tool with opus |
-| **Codex** | Shell commands, package installs, git ops | `codex "command"` in Bash |
-
-### Delegation Rules
-
-1. **Default to Haiku** for script execution and validation
-2. **Escalate to Opus** when stuck after 2 attempts or architectural decisions needed
-3. **Use Codex** for any bash command that doesn't need conversation context
-4. **Handle yourself** template customization and orchestration logic
+Bash-first bootstrap system for starting new projects with velocity and accuracy.
 
 ---
 
-## Phase 1: AI Development Toolkit (FIRST)
+## Table of Contents
 
-Run these scripts first. They enable AI assistance for all subsequent work.
-
-### 1. bootstrap-claude.sh
-
-**Delegate to**: Haiku (file copying)
-
-**Execute**:
-```bash
-./bootstrap-claude.sh [project-path]
-```
-
-**Files created**:
-- `.claude/` directory with agents, commands, hooks, skills subdirectories
-- `.claude/codex.md`, `.claude/haiku.md`, `.claude/self-testing-protocol.md`
-- `.claudeignore`
-
-**Validation** (delegate to Haiku):
-```bash
-[[ -d ".claude/agents" ]] && [[ -f ".claudeignore" ]]
-```
+1. [Architecture Overview](#architecture-overview)
+2. [Playbook: Running Bootstrap](#playbook-running-bootstrap)
+3. [Playbook: Creating a New Bootstrap Script](#playbook-creating-a-new-bootstrap-script)
+4. [Success Criteria Template](#success-criteria-template)
+5. [Script Catalog](#script-catalog)
+6. [Configuration Reference](#configuration-reference)
+7. [Shared Library Reference](#shared-library-reference)
+8. [TODO Tracking](#todo-tracking)
 
 ---
 
-### 2. bootstrap-git.sh
+## Architecture Overview
 
-**Delegate to**: Haiku (simple file creation)
-
-**Execute**:
-```bash
-./bootstrap-git.sh [project-path]
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    bootstrap-menu.sh                         │
+│                     (Entry Point)                            │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────────────┐    ┌──────────────────────────────┐   │
+│  │ bootstrap-helper │───►│     bootstrap.config          │   │
+│  │  (Background)    │    │  - Detected values            │   │
+│  └──────────────────┘    │  - Profiles                    │   │
+│                          │  - Auto-approve settings       │   │
+│                          └──────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │                    lib/common.sh                      │   │
+│  │  Shared: logging, file ops, validation, config        │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              Individual Scripts                       │   │
+│  │  bootstrap-{name}.sh → templates/{name}/              │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Files created**:
-- `.gitignore` - Node.js, Python, IDE exclusions
-- `.gitattributes` - Line ending normalization
+### Design Principles
 
-**Validation**:
-```bash
-git status  # Should not error
-```
+| Principle | Implementation |
+|-----------|----------------|
+| **Bash-First** | No LLM for standard operations |
+| **Config-Driven** | All settings in bootstrap.config |
+| **Template-Based** | Scripts copy from templates/, customize via config |
+| **Idempotent** | Safe to run multiple times |
+| **Tech-Agnostic** | Same pattern for any technology |
 
 ---
 
-### 3. bootstrap-vscode.sh
+## Playbook: Running Bootstrap
 
-**Delegate to**: Haiku (config copying)
+### Prerequisites Checklist
 
-**Execute**:
+- [ ] Git installed (`git --version`)
+- [ ] Node.js installed (`node --version`)
+- [ ] Target directory exists or will be created
+- [ ] Write permissions to target directory
+
+### Execution Steps
+
+#### Step 1: Check Environment
 ```bash
-./bootstrap-vscode.sh [project-path]
+./bootstrap-menu.sh --status
 ```
+**Success**: Shows detected tools, no critical errors
 
-**Files created**:
-- `.vscode/settings.json`, `extensions.json`, `launch.json`, `tasks.json`
-- `.vscode/snippets/typescript.json`
-
----
-
-### 4. bootstrap-codex.sh
-
-**Delegate to**: Haiku (config file)
-
-**IMPORTANT**: Update the model reference - `code-davinci-002` is deprecated.
-
-**Execute**:
+#### Step 2: Preview (Optional)
 ```bash
-./bootstrap-codex.sh [project-path]
+./bootstrap-menu.sh --profile=standard --dry-run
 ```
+**Success**: Lists scripts that would run without errors
 
-**Files created**:
-- `.codex.json` - Use `gpt-4o` not deprecated models
-- `.codexignore`
-
-**Post-run**: Verify OPENAI_API_KEY is set:
+#### Step 3: Execute
 ```bash
-codex "echo 'Codex CLI working'"
-```
-
----
-
-### 5. bootstrap-packages.sh
-
-**Delegate to**: Haiku
-
-**Execute**:
-```bash
-./bootstrap-packages.sh [project-path]
-```
-
-**Files created**:
-- `.npmrc`, `.nvmrc`, `.tool-versions`, `.envrc`
-- `package.json` (if missing)
-
-**Validation**:
-```bash
-node -v  # Should match .nvmrc
-```
-
----
-
-### 6. bootstrap-typescript.sh
-
-**Delegate to**: Haiku
-
-**Execute**:
-```bash
-./bootstrap-typescript.sh [project-path]
-```
-
-**Files created**:
-- `tsconfig.json` (strict mode)
-- `next.config.js`, `babel.config.js`, `vite.config.ts`
-- `src/` directory structure
-
----
-
-### 7. bootstrap-environment.sh
-
-**Delegate to**: Haiku
-
-**Execute**:
-```bash
-./bootstrap-environment.sh [project-path]
-```
-
-**Files created**:
-- `.env.example`, `.env.local`, `.env.production`
-- `env.d.ts` (TypeScript types)
-
----
-
-## Phase 2: Infrastructure
-
-### 8. bootstrap-docker.sh
-
-**Delegate to**: Haiku
-
-**Execute**:
-```bash
-./bootstrap-docker.sh [project-path]
-```
-
-**Files created**:
-- `docker-compose.yml` (PostgreSQL, Redis, app)
-- `Dockerfile` (multi-stage)
-- `.dockerignore`
-
-**Validation**:
-```bash
-docker compose config  # Should parse without error
-```
-
----
-
-### 9. bootstrap-linting.sh
-
-**Delegate to**: Haiku
-
-**Execute**:
-```bash
-./bootstrap-linting.sh [project-path]
-```
-
-**Files created**:
-- `.eslintrc.json`, `.eslintignore`
-- `.prettierrc.json`, `.prettierignore`
-
-**Validation**:
-```bash
-npx eslint --print-config .eslintrc.json > /dev/null
-```
-
----
-
-### 10. bootstrap-editor.sh
-
-**Delegate to**: Haiku
-
-**Execute**:
-```bash
-./bootstrap-editor.sh [project-path]
-```
-
-**Files created**:
-- `.editorconfig` (14 sections)
-- `.stylelintrc` (Tailwind-aware)
-
----
-
-## Phase 3: Testing & Quality
-
-### 11. bootstrap-testing.sh
-
-**Delegate to**: Haiku
-
-**Execute**:
-```bash
-./bootstrap-testing.sh [project-path]
-```
-
-**Files created**:
-- `jest.config.js` (70% coverage thresholds)
-- `pytest.ini` (Python testing)
-- `.coveragerc`
-
----
-
-## Phase 4: CI/CD & Deployment
-
-### 12. bootstrap-github.sh
-
-**Delegate to**: Haiku
-
-**Execute**:
-```bash
-./bootstrap-github.sh [project-path]
-```
-
-**Files created**:
-- `.github/workflows/ci.yml`
-- `.github/PULL_REQUEST_TEMPLATE.md`
-- `.github/ISSUE_TEMPLATE/` (bug, feature, docs)
-
----
-
-### 13. bootstrap-devcontainer.sh
-
-**Status**: Not implemented
-
-**When implementing** (delegate to Sonnet):
-- Create `.devcontainer/devcontainer.json`
-- Create `.devcontainer/Dockerfile`
-
----
-
-### 14. bootstrap-documentation.sh
-
-**Status**: Not implemented
-
-**When implementing** (delegate to Sonnet):
-- Create `README.md` scaffold
-- Create `docs/` structure
-- Create `CONTRIBUTING.md`
-
----
-
-## NEW: Scripts to Implement
-
-### 15. bootstrap-claudemd.sh (CRITICAL)
-
-**Implement yourself (Sonnet)** - requires project context understanding
-
-**Purpose**: Generate customized CLAUDE.md for the project
-
-**Implementation steps**:
-1. Detect project characteristics (stack, structure)
-2. Prompt for: project name, phase (poc/mvp/production)
-3. Generate CLAUDE.md with:
-   - Critical rules (self-test protocol, no permission prompts)
-   - Code style matching detected linters
-   - File organization from actual `src/` structure
-   - Git conventions
-
-**Template variables**:
-```bash
-PROJECT_NAME=""
-STACK=""        # nextjs, vite, api, python
-PHASE=""        # poc, mvp, production
-OWNER=""
-```
-
-**Escalate to Opus if**: Complex multi-stack project or unusual requirements
-
----
-
-### 16. bootstrap-validate.sh
-
-**Delegate to**: Haiku (validation logic is straightforward)
-
-**Purpose**: Verify bootstrap completed correctly
-
-**Checks to implement**:
-```bash
-# Structure checks
-[[ -d ".claude" ]] || fail ".claude directory missing"
-[[ -f "tsconfig.json" ]] || fail "TypeScript not configured"
-[[ -f ".eslintrc.json" ]] || fail "ESLint not configured"
-
-# Syntax checks (delegate each to Codex)
-codex "npx tsc --noEmit"
-codex "npx eslint --print-config .eslintrc.json"
-codex "node -e \"JSON.parse(require('fs').readFileSync('.prettierrc.json'))\""
-
-# Version checks
-[[ "$(node -v)" == "v$(cat .nvmrc)" ]] || warn "Node version mismatch"
-```
-
-**Output format**:
-```
-Bootstrap Validation: [project-name]
-✓ Claude Code configuration
-✓ Git repository
-✓ TypeScript config
-✗ ESLint: [error message]
-Result: 6/7 passed
-```
-
----
-
-### 17. bootstrap-deps.sh
-
-**Delegate to**: Codex (package installation)
-
-**Purpose**: Install dependencies after config files created
-
-**Execute via Codex**:
-```bash
-codex "Install dev dependencies: typescript @types/node eslint prettier vitest"
-```
-
-**Profile-based packages**:
-
-| Profile | Packages |
-|---------|----------|
-| minimal | typescript |
-| standard | typescript, eslint, prettier, @types/node |
-| full | standard + vitest, @testing-library/react, husky, lint-staged |
-
----
-
-### 18. bootstrap-recipe.sh
-
-**Delegate to**: Haiku (script execution orchestration)
-
-**Purpose**: Run predefined script combinations
-
-**Recipes**:
-```bash
-# Next.js SaaS
-./bootstrap-recipe.sh nextjs-saas
-# Runs: claude, git, vscode, packages, typescript, environment, docker, linting, testing
-
-# Vite Library
-./bootstrap-recipe.sh vite-lib
-# Runs: claude, git, vscode, packages, typescript, linting, testing
-
-# Python API
-./bootstrap-recipe.sh python-api
-# Runs: claude, git, vscode, environment, testing, docker
-
-# Minimal CLI
-./bootstrap-recipe.sh cli-tool
-# Runs: claude, git, packages, typescript
-```
-
-**Implementation**: Loop through script array, execute each, validate after
-
----
-
-## Execution Patterns
-
-### Sequential (Default)
-```bash
+# Option A: Interactive menu
 ./bootstrap-menu.sh
-```
 
-### Parallel Phase 1
-Independent scripts can run simultaneously. Delegate to Codex:
+# Option B: Profile with auto-yes
+./bootstrap-menu.sh --profile=standard -y
+
+# Option C: Specific phase
+./bootstrap-menu.sh --phase=1 -y ./my-project
+```
+**Success**: All scripts complete, summary shows 0 failures
+
+#### Step 4: Verify
 ```bash
-codex "Run in parallel: bootstrap-git.sh bootstrap-vscode.sh bootstrap-codex.sh"
-```
+# Check created files
+ls -la .claude/ .gitignore tsconfig.json
 
-Then run dependent scripts:
-```bash
-./bootstrap-packages.sh && ./bootstrap-typescript.sh && ./bootstrap-environment.sh
+# Check log
+cat bootstrap.log
 ```
+**Success**: Expected files exist, log shows no errors
 
-### Quick Bootstrap (All Phase 1)
-```bash
-./bootstrap-claude.sh . && \
-./bootstrap-git.sh . && \
-./bootstrap-vscode.sh . && \
-./bootstrap-codex.sh . && \
-./bootstrap-packages.sh . && \
-./bootstrap-typescript.sh . && \
-./bootstrap-environment.sh .
-```
-
-Delegate entire chain to Codex:
-```bash
-codex "Run all Phase 1 bootstrap scripts in order for current directory"
-```
-
-### Dry-Run Mode
-**Delegate to**: Haiku
-
-Add `--dry-run` flag to each script:
-```bash
-./bootstrap-git.sh --dry-run
-# Output: Would create .gitignore (87 lines), .gitattributes (23 lines)
-```
+#### Step 5: Post-Bootstrap Actions
+- [ ] Run `pnpm install` (or npm/yarn)
+- [ ] Edit `.env.local` with actual values
+- [ ] Customize `CLAUDE.md` for project
+- [ ] Run `npx tsc --noEmit` to verify TypeScript
+- [ ] Make initial commit
 
 ---
 
-## Error Handling
+## Playbook: Creating a New Bootstrap Script
 
-### When Script Fails
+Use this playbook when adding support for a new technology (e.g., Redis, MongoDB, Tailwind, Prisma).
 
-1. **First failure**: Retry once (delegate to Haiku)
-2. **Second failure**: Check logs, fix obvious issues (delegate to Sonnet)
-3. **Third failure**: Escalate to Opus for root cause analysis
+### Step 1: Define Scope
 
-### Common Fixes
+**Complete this checklist before writing code:**
 
-| Error | Fix | Delegate to |
-|-------|-----|-------------|
-| Permission denied | `chmod +x bootstrap-*.sh` | Codex |
-| Template not found | Check TEMPLATE_DIR path | Haiku |
-| JSON parse error | Validate JSON syntax | Haiku |
-| Node not found | `nvm use` or install Node | Codex |
+```markdown
+## New Bootstrap Script: bootstrap-{name}.sh
 
----
+### Scope Definition
+- [ ] Technology/Tool: _________________
+- [ ] Purpose: _________________
+- [ ] Files to create: _________________
+- [ ] Config section needed: [yes/no]
+- [ ] Template files needed: [yes/no]
+- [ ] Questions file needed: [yes/no]
+- [ ] Dependencies on other scripts: _________________
+- [ ] Phase assignment: [1/2/3/4]
+```
 
-## Post-Bootstrap Checklist
-
-After all scripts complete, verify (delegate to Haiku):
+### Step 2: Create Template Files
 
 ```bash
-# Run validation
-./bootstrap-validate.sh .
+# Create template directory (if needed)
+mkdir -p templates/root/{name}
 
-# If validation passes, install deps
-codex "pnpm install"
-
-# Make initial commit
-codex "git add . && git commit -m 'chore: bootstrap project setup'"
-
-# Open in editor
-code .
+# Add template files
+# Example: templates/root/redis.conf
 ```
 
----
+**Checklist:**
+- [ ] Template files created in `templates/root/` or `templates/{category}/`
+- [ ] Placeholders use format: `{{VARIABLE_NAME}}`
+- [ ] Template tested manually
 
-## Model Delegation Quick Reference
+### Step 3: Add Config Section
 
-```
-HAIKU (fast, cheap):
-  - All script execution
-  - File validation
-  - Syntax checking
-  - Dry-run logic
-  - Simple error recovery
+Edit `config/bootstrap.config`:
 
-SONNET (you - orchestrator):
-  - Template customization
-  - CLAUDE.md generation
-  - Script implementation
-  - Complex error recovery
-  - Decision making
-
-OPUS (powerful, expensive):
-  - Architecture decisions
-  - Complex debugging (3+ failures)
-  - Unusual project requirements
-  - Security reviews
-
-CODEX (task runner):
-  - Package installation: codex "pnpm add -D typescript"
-  - Git operations: codex "git add . && git commit -m 'msg'"
-  - Running tests: codex "npm test"
-  - Shell commands: codex "mkdir -p src/{components,hooks,lib}"
-  - Parallel execution: codex "run scripts in parallel"
+```ini
+[{name}]
+enabled=true
+# Add technology-specific settings
+setting_one=default_value
+setting_two=default_value
 ```
 
----
+**Checklist:**
+- [ ] Section added to bootstrap.config
+- [ ] Default values are sensible
+- [ ] Settings documented in config comments
 
-## Configuration Customization
+### Step 4: Create the Script
 
-After bootstrap, customize as needed:
+Create `scripts/bootstrap-{name}.sh`:
 
-### .env.local
 ```bash
-DATABASE_URL=postgresql://user:pass@localhost:5432/mydb
-API_KEY=your_key
+#!/bin/bash
+set -euo pipefail
+
+# ===================================================================
+# bootstrap-{name}.sh
+#
+# Purpose: {One-line description}
+# Creates: {List of files/directories}
+# Config:  [{name}] section in bootstrap.config
+# ===================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../lib/common.sh"
+
+# ===================================================================
+# Configuration
+# ===================================================================
+SCRIPT_NAME="bootstrap-{name}"
+init_script "$SCRIPT_NAME"
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+
+# Read from config
+ENABLED=$(config_get "{name}.enabled" "true")
+SETTING_ONE=$(config_get "{name}.setting_one" "default")
+
+# ===================================================================
+# Pre-flight Checks
+# ===================================================================
+# Check if this bootstrap should run
+if [[ "$ENABLED" != "true" ]]; then
+    log_info "{name} bootstrap disabled in config"
+    exit 0
+fi
+
+# Check dependencies (other scripts, tools)
+# require_command "some_tool"
+
+# ===================================================================
+# Pre-execution Confirmation
+# ===================================================================
+FILES_TO_CREATE=(
+    "{file1}"
+    "{file2}"
+)
+
+pre_execution_confirm "$SCRIPT_NAME" "{Name} Configuration" "${FILES_TO_CREATE[@]}"
+
+# ===================================================================
+# Main Execution
+# ===================================================================
+log_section "Creating {Name} Configuration"
+
+# Create directories (if needed)
+if is_auto_approved "create_directories"; then
+    ensure_dir "${PROJECT_ROOT}/{some_dir}"
+    log_dir_created "$SCRIPT_NAME" "{some_dir}/"
+fi
+
+# Copy template files
+for file in "${FILES_TO_CREATE[@]}"; do
+    if [[ -f "${PROJECT_ROOT}/${file}" ]]; then
+        backup_file "${PROJECT_ROOT}/${file}"
+        track_skipped "$file (backed up)"
+    fi
+
+    copy_template "root/${file}" "${PROJECT_ROOT}/${file}"
+    log_file_created "$SCRIPT_NAME" "$file"
+    track_created "$file"
+done
+
+# ===================================================================
+# Post-processing (customize templates)
+# ===================================================================
+# Replace placeholders with config values
+# source "${BOOTSTRAP_DIR}/lib/template-utils.sh"
+# replace_in_file "${PROJECT_ROOT}/{file}" "{{SETTING}}" "$SETTING_ONE"
+
+# ===================================================================
+# Summary
+# ===================================================================
+log_script_complete "$SCRIPT_NAME" "${#FILES_TO_CREATE[@]} files created"
+show_summary
+show_log_location
 ```
 
-### package.json scripts
-```json
-{
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "test": "vitest",
-    "lint": "eslint . --fix"
-  }
+**Checklist:**
+- [ ] Script follows standard pattern
+- [ ] Sources `lib/common.sh`
+- [ ] Uses `init_script` and `get_project_root`
+- [ ] Reads settings from config
+- [ ] Uses `pre_execution_confirm`
+- [ ] Uses `log_file_created` / `log_dir_created`
+- [ ] Uses `track_created` / `track_skipped`
+- [ ] Calls `show_summary` at end
+- [ ] Syntax validated: `bash -n scripts/bootstrap-{name}.sh`
+
+### Step 5: Register in Menu
+
+Edit `scripts/bootstrap-menu.sh`:
+
+1. Add to appropriate phase array:
+```bash
+declare -a PHASE2_SCRIPTS=(
+    "bootstrap-docker.sh"
+    "bootstrap-{name}.sh"   # Add here
+    "bootstrap-linting.sh"
+)
+```
+
+2. Update total count if needed
+
+**Checklist:**
+- [ ] Script added to correct phase array
+- [ ] Script number updated in menu help
+
+### Step 6: Add to Profiles (Optional)
+
+Edit `config/bootstrap.config`:
+
+```ini
+[profiles]
+full=claude,git,vscode,...,{name},...
+```
+
+**Checklist:**
+- [ ] Added to appropriate profiles
+- [ ] Profile order is logical (dependencies first)
+
+### Step 7: Create Questions File (Optional)
+
+If interactive customization is needed, create `questions/bootstrap-{name}.questions.sh`:
+
+```bash
+#!/bin/bash
+# Questions for bootstrap-{name}.sh
+
+ask_{name}_questions() {
+    section_header "{Name} Configuration"
+
+    ask_with_default "Setting description?" "{name}.setting_one" "default" SETTING_ONE
+    ask_yes_no "Enable feature?" "{name}.feature" "Y" FEATURE_ENABLED
 }
 ```
 
+**Checklist:**
+- [ ] Function named `ask_{name}_questions`
+- [ ] Uses `ask_with_default`, `ask_yes_no`, `ask_choice`
+- [ ] Config keys match bootstrap.config section
+
+### Step 8: Test
+
+```bash
+# Syntax check
+bash -n scripts/bootstrap-{name}.sh
+
+# Dry run (manual)
+BOOTSTRAP_YES=true bash scripts/bootstrap-{name}.sh /tmp/test-project
+
+# Verify files created
+ls -la /tmp/test-project/
+
+# Run via menu
+./bootstrap-menu.sh
+# Select new script number
+```
+
+**Checklist:**
+- [ ] Syntax validation passes
+- [ ] Script runs without errors
+- [ ] Expected files created
+- [ ] Existing files backed up (not destroyed)
+- [ ] Log entries created
+- [ ] Works with `--yes` flag
+- [ ] Works via menu selection
+
+### Step 9: Document
+
+Add to this playbook's Script Catalog section.
+
+**Checklist:**
+- [ ] Added to Script Catalog
+- [ ] Success criteria documented
+- [ ] Config options documented
+
 ---
 
-## Troubleshooting
+## Success Criteria Template
 
-### Script won't run
-```bash
-chmod +x bootstrap-*.sh
-bash bootstrap-git.sh  # Run with bash explicitly
+Use this template to define success criteria for any bootstrap script:
+
+```markdown
+## bootstrap-{name}.sh
+
+### Purpose
+{One sentence description}
+
+### Files Created
+| File | Description |
+|------|-------------|
+| `{file1}` | {description} |
+| `{file2}` | {description} |
+
+### Config Section
+```ini
+[{name}]
+{key}={default}
 ```
 
-### Git init fails
+### Success Criteria
+- [ ] Script completes without error (exit code 0)
+- [ ] All listed files exist in project root
+- [ ] Files contain expected content (not empty)
+- [ ] Existing files backed up before overwrite
+- [ ] Log entries created in bootstrap.log
+- [ ] Config values correctly applied to templates
+
+### Verification Commands
 ```bash
-git config user.name "Name"
-git config user.email "email@example.com"
+# Check files exist
+ls -la {file1} {file2}
+
+# Validate syntax (if applicable)
+{validation_command}
+
+# Check content
+grep "{expected_string}" {file1}
 ```
 
-### TypeScript errors
-```bash
-codex "Install TypeScript and run tsc --noEmit"
-```
+### Dependencies
+- Requires: {other scripts or tools}
+- Required by: {scripts that depend on this}
 
-### Environment not loading
-```bash
-direnv allow
-# or
-source .env.local
+### Failure Recovery
+If script fails:
+1. Check bootstrap.log for error details
+2. Verify template files exist in templates/root/
+3. Check config section exists and has valid values
+4. Restore from .backup files if needed
 ```
 
 ---
 
-**Version**: 2.0 - Orchestration Edition
+## Script Catalog
+
+### Phase 1: AI Development Toolkit
+
+#### bootstrap-claude.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Configure Claude Code for AI-assisted development |
+| **Creates** | `.claude/` directory, `.claudeignore` |
+| **Config** | `[claude]` section |
+| **Success** | `.claude/agents/` exists, `.claudeignore` exists |
+| **Verify** | `ls -la .claude/` |
+
+#### bootstrap-git.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Initialize git with sensible defaults |
+| **Creates** | `.gitignore`, `.gitattributes` |
+| **Config** | `[git]` section |
+| **Success** | `git status` runs without error |
+| **Verify** | `git status && cat .gitignore` |
+
+#### bootstrap-vscode.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Configure VS Code workspace |
+| **Creates** | `.vscode/settings.json`, `extensions.json`, `launch.json` |
+| **Config** | None (static templates) |
+| **Success** | `.vscode/` contains all files |
+| **Verify** | `ls .vscode/` |
+
+#### bootstrap-packages.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Set up package manager and Node version |
+| **Creates** | `.npmrc`, `.nvmrc`, `.tool-versions`, `package.json` |
+| **Config** | `[packages]` section |
+| **Success** | `node -v` matches `.nvmrc` |
+| **Verify** | `cat .nvmrc && node -v` |
+
+#### bootstrap-typescript.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Configure TypeScript with strict mode |
+| **Creates** | `tsconfig.json`, `src/` directory |
+| **Config** | None (static templates) |
+| **Success** | `npx tsc --noEmit` passes |
+| **Verify** | `npx tsc --noEmit` |
+
+#### bootstrap-environment.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Set up environment variables |
+| **Creates** | `.env.example`, `.env.local`, `env.d.ts` |
+| **Config** | None |
+| **Success** | `.env.example` exists, `.env.local` gitignored |
+| **Verify** | `cat .env.example` |
+
+### Phase 2: Infrastructure
+
+#### bootstrap-docker.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Set up Docker development environment |
+| **Creates** | `docker-compose.yml`, `Dockerfile`, `.dockerignore` |
+| **Config** | `[docker]` section |
+| **Success** | `docker compose config` validates |
+| **Verify** | `docker compose config` |
+
+#### bootstrap-linting.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Configure ESLint and Prettier |
+| **Creates** | `.eslintrc.json`, `.prettierrc.json`, ignore files |
+| **Config** | `[linting]` section |
+| **Success** | `npx eslint --print-config .` works |
+| **Verify** | `npx eslint --print-config .eslintrc.json` |
+
+#### bootstrap-editor.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Universal editor configuration |
+| **Creates** | `.editorconfig`, `.stylelintrc` |
+| **Config** | None |
+| **Success** | Files exist and are valid |
+| **Verify** | `cat .editorconfig` |
+
+### Phase 3: Testing
+
+#### bootstrap-testing.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Configure test frameworks |
+| **Creates** | `jest.config.js`, `pytest.ini`, `.coveragerc` |
+| **Config** | `[testing]` section |
+| **Success** | Test config files parse without error |
+| **Verify** | `node -e "require('./jest.config.js')"` |
+
+### Phase 4: CI/CD
+
+#### bootstrap-github.sh
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | GitHub workflows and templates |
+| **Creates** | `.github/workflows/ci.yml`, PR/issue templates |
+| **Config** | None |
+| **Success** | `.github/` structure complete |
+| **Verify** | `ls -la .github/workflows/` |
+
+---
+
+## Configuration Reference
+
+### bootstrap.config Structure
+
+```ini
+# ===================================================================
+# [project] - Project metadata
+# ===================================================================
+[project]
+name=my-project          # Used in templates, package.json
+phase=POC                # POC, MVP, Production
+owner=Developer Name     # Used in CLAUDE.md
+owner_email=dev@email    # Used in package.json, git
+
+# ===================================================================
+# [profiles] - Script combinations
+# ===================================================================
+[profiles]
+minimal=claude,git,packages
+standard=claude,git,vscode,packages,typescript,environment,linting,editor
+full=claude,git,vscode,codex,packages,typescript,environment,docker,linting,editor,testing,github
+api=claude,git,packages,typescript,environment,docker,testing
+frontend=claude,git,vscode,packages,typescript,linting,editor
+library=claude,git,packages,typescript,linting,testing
+default_profile=standard
+
+# ===================================================================
+# [auto_approve] - Actions that don't need confirmation
+# ===================================================================
+[auto_approve]
+create_directories=true
+create_config_files=true
+backup_existing_files=true
+set_file_permissions=true
+git_init=true
+detect_package_manager=true
+
+# ===================================================================
+# [detected] - Populated by bootstrap-helper.sh
+# ===================================================================
+[detected]
+last_run=
+git_installed=
+node_installed=
+docker_installed=
+has_package_json=
+has_git_repo=
+```
+
+### Adding a New Config Section
+
+1. Add section to `config/bootstrap.config`
+2. Document in this reference
+3. Use in script via `config_get "{section}.{key}" "default"`
+
+---
+
+## Shared Library Reference
+
+### lib/common.sh Functions
+
+#### Logging
+```bash
+log_info "message"      # Blue arrow: → message
+log_success "message"   # Green check: ✓ message
+log_warning "message"   # Yellow warning: ⚠ message
+log_error "message"     # Red X: ✗ message (to stderr)
+log_fatal "message"     # Red X + exit 1
+log_section "Title"     # Bordered section header
+log_debug "message"     # Only if BOOTSTRAP_DEBUG=true
+```
+
+#### File Logging (to bootstrap.log)
+```bash
+log_to_file "script-name" "message"
+log_file_created "script-name" "filename"
+log_dir_created "script-name" "dirname"
+log_script_complete "script-name" "summary"
+log_script_failed "script-name" "error"
+```
+
+#### File Operations
+```bash
+backup_file "/path/file"           # Returns backup path
+verify_file "/path/file"           # Logs success/error
+safe_copy "src" "dst"              # Backup + copy + verify
+ensure_dir "/path/dir"             # mkdir -p with logging
+copy_template "rel/path" "dst"     # From templates/ dir
+```
+
+#### Validation
+```bash
+require_command "git"              # Exit if missing
+is_writable "/path"                # Returns 0/1
+file_exists "/path"                # Returns 0/1
+dir_exists "/path"                 # Returns 0/1
+```
+
+#### Config Access
+```bash
+config_get "section.key" "default" # Read from bootstrap.config
+config_set "section.key" "value"   # Write to bootstrap.config
+is_auto_approved "action_name"     # Check auto_approve section
+```
+
+#### Script Setup
+```bash
+init_script "bootstrap-name.sh"    # Set up paths, source config
+get_project_root "${1:-.}"         # Resolve project path
+```
+
+#### User Interaction
+```bash
+confirm "Proceed?" "Y"             # Returns 0 for yes
+pre_execution_confirm "script" "desc" file1 file2  # Show + confirm
+```
+
+#### Progress Tracking
+```bash
+track_created "filename"           # Add to created list
+track_skipped "filename"           # Add to skipped list
+track_warning "message"            # Add to warnings list
+show_summary                       # Display all tracked items
+```
+
+---
+
+## TODO Tracking
+
+### Open TODOs
+
+| ID | Script/Area | Description | Assignable To |
+|----|-------------|-------------|---------------|
+| TODO-001 | bootstrap-menu.sh | Implement `--rollback` flag | Haiku |
+| TODO-002 | bootstrap-menu.sh | Implement `--health-check` flag | Haiku |
+| TODO-003 | lib/common.sh | Implement `rollback_session()` function | Haiku |
+| TODO-004 | bootstrap-devcontainer.sh | Create script (not implemented) | Sonnet |
+| TODO-005 | bootstrap-documentation.sh | Create script (not implemented) | Sonnet |
+| TODO-006 | bootstrap-validate.sh | Create validation script | Haiku |
+| TODO-007 | All scripts | Migrate to use lib/common.sh consistently | Haiku |
+| TODO-008 | bootstrap-codex.sh | Update deprecated model references | Haiku |
+
+### TODO Template
+
+When adding a TODO:
+
+```markdown
+| TODO-XXX | {location} | {description} | {Haiku/Sonnet/Opus/Codex} |
+```
+
+### Completion Criteria for TODOs
+
+- **Haiku assignable**: Pattern-following, no complex decisions
+- **Sonnet assignable**: Needs context, moderate complexity
+- **Opus assignable**: Architecture decisions, complex debugging
+- **Codex assignable**: Shell commands, package operations
+
+---
+
+## Quick Reference
+
+```bash
+# Check environment
+./bootstrap-menu.sh --status
+
+# Preview without executing
+./bootstrap-menu.sh --profile=standard --dry-run
+
+# Run standard profile
+./bootstrap-menu.sh --profile=standard -y
+
+# Run specific phase
+./bootstrap-menu.sh --phase=1 -y
+
+# Interactive mode
+./bootstrap-menu.sh -i
+
+# Check log after run
+cat bootstrap.log
+```
+
+---
+
+**Version**: 4.0 - Playbook Edition
 **Last Updated**: December 2025

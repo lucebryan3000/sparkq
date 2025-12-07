@@ -7,81 +7,24 @@
 # Sets up .gitignore, .gitattributes, and git hooks
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
-TEMPLATE_GIT="${TEMPLATE_DIR}/.gitignore"
+# Source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../lib/common.sh"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Initialize script
+init_script "bootstrap-git.sh"
+
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
 
 # ===================================================================
-# Utility Functions
+# Pre-Execution Confirmation
 # ===================================================================
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
-
-# Backup existing file
-backup_file() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        local backup="${file}.backup.$(date +%s)"
-        if cp "$file" "$backup"; then
-            log_warning "Backed up existing file to: $(basename "$backup")"
-            return 0
-        else
-            log_error "Failed to backup existing file: $file"
-        fi
-    fi
-    return 1
-}
-
-# Verify file creation
-verify_file() {
-    local file="$1"
-    if [[ ! -f "$file" ]]; then
-        log_error "Failed to create file: $file"
-    elif [[ ! -r "$file" ]]; then
-        log_error "Created file but it's not readable: $file"
-    else
-        log_success "File created and verified: $file"
-        return 0
-    fi
-    return 1
-}
-
-# Cleanup on exit
-cleanup_on_error() {
-    local exit_code=$?
-    if [[ $exit_code -ne 0 ]]; then
-        log_error "Bootstrap script failed with exit code $exit_code"
-        log_info "Check the output above for details"
-    fi
-    return $exit_code
-}
-
-trap cleanup_on_error EXIT
+pre_execution_confirm "bootstrap-git" "Git Configuration" \
+    ".gitignore" ".gitattributes" "Git repository init"
 
 # ===================================================================
 # Validation
@@ -90,14 +33,10 @@ trap cleanup_on_error EXIT
 log_info "Bootstrapping Git configuration..."
 
 # Verify project directory exists
-if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
-fi
+require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_ROOT"
 
 # Verify project directory is writable
-if [[ ! -w "$PROJECT_ROOT" ]]; then
-    log_error "Project directory is not writable: $PROJECT_ROOT"
-fi
+is_writable "$PROJECT_ROOT" || log_fatal "Project directory is not writable: $PROJECT_ROOT"
 
 # ===================================================================
 # Create .gitignore
@@ -107,10 +46,13 @@ log_info "Creating .gitignore..."
 
 # Check if .gitignore already exists
 if [[ -f "$PROJECT_ROOT/.gitignore" ]]; then
-    log_warning ".gitignore already exists"
-    backup_file "$PROJECT_ROOT/.gitignore" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.gitignore"
+        log_warning ".gitignore existed, backed up"
+    else
+        track_skipped ".gitignore"
+        log_warning ".gitignore already exists, skipping"
+    fi
 fi
 
 if cat > "$PROJECT_ROOT/.gitignore" << 'EOF'
@@ -177,9 +119,12 @@ temp/
 .tmp/
 EOF
 then
-    verify_file "$PROJECT_ROOT/.gitignore" || log_error "Failed to verify .gitignore"
+    if verify_file "$PROJECT_ROOT/.gitignore"; then
+        track_created ".gitignore"
+        log_file_created "bootstrap-git" ".gitignore"
+    fi
 else
-    log_error "Failed to create .gitignore"
+    log_fatal "Failed to create .gitignore"
 fi
 
 # ===================================================================
@@ -190,10 +135,13 @@ log_info "Creating .gitattributes..."
 
 # Check if .gitattributes already exists
 if [[ -f "$PROJECT_ROOT/.gitattributes" ]]; then
-    log_warning ".gitattributes already exists"
-    backup_file "$PROJECT_ROOT/.gitattributes" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.gitattributes"
+        log_warning ".gitattributes existed, backed up"
+    else
+        track_skipped ".gitattributes"
+        log_warning ".gitattributes already exists, skipping"
+    fi
 fi
 
 if cat > "$PROJECT_ROOT/.gitattributes" << 'EOFATTR'
@@ -244,9 +192,12 @@ if cat > "$PROJECT_ROOT/.gitattributes" << 'EOFATTR'
 *.sqlite binary
 EOFATTR
 then
-    verify_file "$PROJECT_ROOT/.gitattributes" || log_error "Failed to verify .gitattributes"
+    if verify_file "$PROJECT_ROOT/.gitattributes"; then
+        track_created ".gitattributes"
+        log_file_created "bootstrap-git" ".gitattributes"
+    fi
 else
-    log_error "Failed to create .gitattributes"
+    log_fatal "Failed to create .gitattributes"
 fi
 
 # ===================================================================
@@ -254,39 +205,38 @@ fi
 # ===================================================================
 
 if [[ ! -d "$PROJECT_ROOT/.git" ]]; then
-    log_info "Initializing Git repository..."
+    if is_auto_approved "git_init"; then
+        log_info "Initializing Git repository..."
 
-    # Check if git is installed
-    if ! command -v git &> /dev/null; then
-        log_error "Git is not installed. Please install Git first"
-    fi
+        # Check if git is installed
+        require_command "git" || log_fatal "Git is not installed. Please install Git first"
 
-    # Initialize the repository
-    if cd "$PROJECT_ROOT" && git init; then
-        if git config user.email "development@local" && git config user.name "Development"; then
+        # Initialize the repository
+        if cd "$PROJECT_ROOT" && git init; then
             log_success "Git repository initialized"
+            track_created ".git/"
+            log_dir_created "bootstrap-git" ".git/"
         else
-            log_warning "Git repository created but configuration failed (non-critical)"
+            log_fatal "Failed to initialize Git repository"
         fi
     else
-        log_error "Failed to initialize Git repository"
+        log_info "Git init skipped (not auto-approved)"
+        track_skipped ".git/"
     fi
 else
     log_warning "Git repository already exists, skipping init"
+    track_skipped ".git/ (exists)"
 fi
 
 # ===================================================================
 # Summary
 # ===================================================================
 
-echo ""
-log_success "Git configuration complete!"
-echo ""
-echo "Files created:"
-echo "  - .gitignore"
-echo "  - .gitattributes"
-echo ""
-echo "Next steps:"
+show_summary
+log_script_complete "bootstrap-git" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+show_log_location
+
+log_info "Next steps:"
 echo "  1. Customize .gitignore if needed"
 echo "  2. Run: git add .gitignore .gitattributes"
 echo "  3. Run: git commit -m 'chore: add git configuration'"

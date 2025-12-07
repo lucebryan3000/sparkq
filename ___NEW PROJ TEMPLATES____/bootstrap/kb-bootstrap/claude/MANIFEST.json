@@ -1,0 +1,132 @@
+{
+  "name": "Claude Code Documentation",
+  "description": "Local copy of official Claude Code documentation",
+  "source": "https://code.claude.com/docs",
+  "lastUpdated": "2025-12-07",
+  "version": "latest",
+  "documentsCount": 3,
+  "documentsFetched": [
+    {
+      "filename": "overview.md",
+      "title": "Claude Code Overview",
+      "category": "getting-started",
+      "status": "complete"
+    },
+    {
+      "filename": "quickstart.md",
+      "title": "Quickstart Guide",
+      "category": "getting-started",
+      "status": "complete"
+    },
+    {
+      "filename": "cli-reference.md",
+      "title": "CLI Reference",
+      "category": "reference",
+      "status": "complete"
+    },
+    {
+      "filename": "slash-commands.md",
+      "title": "Slash Commands",
+      "category": "reference",
+      "status": "complete"
+    }
+  ],
+  "documentsAvailableOnline": [
+    {
+      "filename": "common-workflows.md",
+      "title": "Common Workflows",
+      "url": "https://code.claude.com/docs/en/common-workflows.md"
+    },
+    {
+      "filename": "interactive-mode.md",
+      "title": "Interactive Mode",
+      "url": "https://code.claude.com/docs/en/interactive-mode.md"
+    },
+    {
+      "filename": "memory.md",
+      "title": "Memory Management",
+      "url": "https://code.claude.com/docs/en/memory.md"
+    },
+    {
+      "filename": "mcp.md",
+      "title": "Model Context Protocol",
+      "url": "https://code.claude.com/docs/en/mcp.md"
+    },
+    {
+      "filename": "hooks.md",
+      "title": "Hooks Reference",
+      "url": "https://code.claude.com/docs/en/hooks.md"
+    },
+    {
+      "filename": "hooks-guide.md",
+      "title": "Getting Started with Hooks",
+      "url": "https://code.claude.com/docs/en/hooks-guide.md"
+    },
+    {
+      "filename": "security.md",
+      "title": "Security",
+      "url": "https://code.claude.com/docs/en/security.md"
+    },
+    {
+      "filename": "iam.md",
+      "title": "Identity and Access Management",
+      "url": "https://code.claude.com/docs/en/iam.md"
+    },
+    {
+      "filename": "settings.md",
+      "title": "Settings",
+      "url": "https://code.claude.com/docs/en/settings.md"
+    },
+    {
+      "filename": "vs-code.md",
+      "title": "Visual Studio Code",
+      "url": "https://code.claude.com/docs/en/vs-code.md"
+    },
+    {
+      "filename": "plugins.md",
+      "title": "Plugins",
+      "url": "https://code.claude.com/docs/en/plugins.md"
+    },
+    {
+      "filename": "sandboxing.md",
+      "title": "Sandboxing",
+      "url": "https://code.claude.com/docs/en/sandboxing.md"
+    },
+    {
+      "filename": "checkpointing.md",
+      "title": "Checkpointing",
+      "url": "https://code.claude.com/docs/en/checkpointing.md"
+    },
+    {
+      "filename": "costs.md",
+      "title": "Cost Management",
+      "url": "https://code.claude.com/docs/en/costs.md"
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "title": "Monitoring Usage",
+      "url": "https://code.claude.com/docs/en/monitoring-usage.md"
+    },
+    {
+      "filename": "amazon-bedrock.md",
+      "title": "Amazon Bedrock",
+      "url": "https://code.claude.com/docs/en/amazon-bedrock.md"
+    },
+    {
+      "filename": "google-vertex-ai.md",
+      "title": "Google Vertex AI",
+      "url": "https://code.claude.com/docs/en/google-vertex-ai.md"
+    },
+    {
+      "filename": "model-config.md",
+      "title": "Model Configuration",
+      "url": "https://code.claude.com/docs/en/model-config.md"
+    }
+  ],
+  "instructions": {
+    "viewing": "Read any .md file directly or open in your editor of choice",
+    "searching": "Use grep to search: grep -r 'keyword' .claude/docs/",
+    "updating": "Run /update-docs command or visit https://code.claude.com/docs for latest",
+    "offline": "All fetched files are available offline without internet"
+  }
+}

@@ -4,55 +4,47 @@
 # bootstrap-claude.sh
 #
 # Bootstrap Claude Code configuration for a new project
-# Pulls from ___NEW PROJ TEMPLATES____/.claude/ and creates complete
-# .claude/ directory structure per Anthropic's official guidelines
+# Pulls from templates/.claude/ and creates complete .claude/ directory
+# structure per Anthropic's official guidelines
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
+# Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TEMPLATE_DIR="${BOOTSTRAP_DIR}/templates"
-PROJECT_ROOT="${1:-.}"
-CLAUDE_DIR="${PROJECT_ROOT}/.claude"
-TEMPLATE_CLAUDE="${TEMPLATE_DIR}/.claude"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-# Source libraries
+# Initialize script
+init_script "bootstrap-claude.sh"
+
+# Source additional libraries
 source "${BOOTSTRAP_DIR}/lib/template-utils.sh"
 source "${BOOTSTRAP_DIR}/lib/validation-common.sh"
 source "${BOOTSTRAP_DIR}/lib/config-manager.sh"
 
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+CLAUDE_DIR="${PROJECT_ROOT}/.claude"
+TEMPLATE_CLAUDE="${TEMPLATES_DIR}/.claude"
+
 # Answers file
 ANSWERS_FILE=".bootstrap-answers.env"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Script identifier for logging
+SCRIPT_NAME="bootstrap-claude"
 
 # ===================================================================
-# Utility Functions
+# Pre-Execution Confirmation
 # ===================================================================
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
+pre_execution_confirm "$SCRIPT_NAME" "Claude Code Configuration" \
+    ".claude/ directory" \
+    "agents/, commands/, hooks/, skills/" \
+    "settings.json" \
+    "CLAUDE.md" \
+    ".mcp.json" \
+    ".claudeignore"
 
 # ===================================================================
 # Validation
@@ -60,20 +52,20 @@ log_error() {
 
 log_info "Bootstrapping Claude Code configuration..."
 
-if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
-fi
-
-if [[ ! -d "$TEMPLATE_CLAUDE" ]]; then
-    log_error "Template .claude directory not found: $TEMPLATE_CLAUDE"
-fi
+require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_ROOT"
+require_dir "$TEMPLATE_CLAUDE" || log_fatal "Template .claude directory not found: $TEMPLATE_CLAUDE"
 
 # ===================================================================
 # Create Directory Structure
 # ===================================================================
 
 log_info "Creating .claude directory structure..."
-mkdir -p "$CLAUDE_DIR"/{agents,commands,hooks,skills}
+ensure_dir "$CLAUDE_DIR"
+for dir in agents commands hooks skills; do
+    ensure_dir "$CLAUDE_DIR/$dir"
+    log_dir_created "$SCRIPT_NAME" ".claude/$dir"
+done
+track_created ".claude/ structure"
 log_success "Directory structure created"
 
 # ===================================================================
@@ -1118,27 +1110,16 @@ customize_templates() {
 # Summary & Next Steps
 # ===================================================================
 
-echo ""
-log_success "Bootstrap complete!"
-echo ""
-
 # Run customization if answers exist
 if [[ -f "$ANSWERS_FILE" ]]; then
     customize_templates
-    echo ""
 fi
 
 validate_bootstrap
 
-echo ""
-log_info "Bootstrap Summary:"
-echo "  Directory: $CLAUDE_DIR"
-echo "  Structure: agents/, commands/, hooks/, skills/"
-echo "  Agents: code-reviewer, debugger"
-echo "  Commands: analyze, test, document"
-echo "  Configuration: settings.json, .mcp.json, .claudeignore"
-echo "  Documentation: CLAUDE.md, .claude/README.md"
-echo ""
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} items created"
+show_summary
+show_log_location
 
 log_info "Next steps:"
 if [[ -f "$ANSWERS_FILE" ]]; then
@@ -1149,16 +1130,9 @@ if [[ -f "$ANSWERS_FILE" ]]; then
     echo "  3. (Optional) Create personal settings:"
     echo "     cp .claude/settings.local.json.example .claude/settings.local.json"
 else
-    echo "  1. Edit CLAUDE.md"
-    echo "     - Replace [PROJECT_NAME] with your actual project name"
-    echo "     - Update Stack, Owner, Phase sections"
-    echo "  2. Review .claude/settings.json"
-    echo "     - Customize model selection if needed"
-    echo "     - Adjust permissions for your project"
-    echo "  3. Commit to git:"
-    echo "     git add -A && git commit -m 'Setup Claude configuration'"
-    echo "  4. (Optional) Create personal settings:"
-    echo "     cp .claude/settings.local.json.example .claude/settings.local.json"
-    echo "  Tip: Run with --interactive mode for automatic customization"
+    echo "  1. Edit CLAUDE.md - replace [PROJECT_NAME], update Stack/Owner/Phase"
+    echo "  2. Review .claude/settings.json - customize model and permissions"
+    echo "  3. Commit: git add -A && git commit -m 'Setup Claude configuration'"
+    echo "  4. (Optional) cp .claude/settings.local.json.example .claude/settings.local.json"
 fi
 echo ""

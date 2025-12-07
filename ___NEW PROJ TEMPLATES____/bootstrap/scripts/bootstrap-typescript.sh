@@ -4,52 +4,60 @@
 # bootstrap-typescript.sh
 #
 # Bootstrap TypeScript and build configuration
-# Sets up tsconfig.json, next.config.js, babel.config.js, etc.
+# Sets up tsconfig.json, next.config.js, babel.config.js, vite.config.ts
 # ===================================================================
 
-set -e
-
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+set -euo pipefail
 
 # ===================================================================
-# Utility Functions
+# Setup
 # ===================================================================
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
+# Get script directory and bootstrap root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
+# Source common library
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
+# Initialize script
+init_script "bootstrap-typescript"
 
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
+# Get project root from argument or current directory
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+
+# Script identifier for logging
+SCRIPT_NAME="bootstrap-typescript"
+
+# ===================================================================
+# Pre-Execution Confirmation
+# ===================================================================
+
+pre_execution_confirm "$SCRIPT_NAME" "TypeScript Configuration" \
+    "tsconfig.json" \
+    "next.config.js" \
+    "babel.config.js" \
+    "vite.config.ts" \
+    "src/ (directory structure)"
 
 # ===================================================================
 # Validation
 # ===================================================================
 
-log_info "Bootstrapping TypeScript and build configuration..."
+log_info "Validating environment..."
 
-if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
+# Check directory permissions
+require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_ROOT"
+is_writable "$PROJECT_ROOT" || log_fatal "Project directory not writable: $PROJECT_ROOT"
+
+# Warn if jq not available (optional tool)
+if ! command -v jq &>/dev/null; then
+    track_warning "jq not installed - JSON validation will be skipped"
+    log_warning "jq not installed - JSON validation will be skipped"
+    log_info "Install with: sudo apt install jq (or brew install jq)"
 fi
+
+log_success "Environment validated"
 
 # ===================================================================
 # Create tsconfig.json
@@ -57,7 +65,12 @@ fi
 
 log_info "Creating tsconfig.json..."
 
-cat > "$PROJECT_ROOT/tsconfig.json" << 'EOF'
+# Skip if file exists
+if file_exists "$PROJECT_ROOT/tsconfig.json"; then
+    log_warning "tsconfig.json already exists, skipping"
+    track_skipped "tsconfig.json"
+else
+    if cat > "$PROJECT_ROOT/tsconfig.json" << 'EOFTSCONFIG'
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -80,7 +93,6 @@ cat > "$PROJECT_ROOT/tsconfig.json" << 'EOF'
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitAnyIndexer": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -107,17 +119,37 @@ cat > "$PROJECT_ROOT/tsconfig.json" << 'EOF'
     "coverage"
   ]
 }
-EOF
+EOFTSCONFIG
+    then
+        verify_file "$PROJECT_ROOT/tsconfig.json"
+        track_created "tsconfig.json"
+        log_file_created "$SCRIPT_NAME" "tsconfig.json"
 
-log_success "tsconfig.json created"
+        # Validate JSON if jq available
+        if command -v jq &>/dev/null; then
+            source "${LIB_DIR}/json-validator.sh"
+            if validate_json_file "$PROJECT_ROOT/tsconfig.json" > /dev/null 2>&1; then
+                log_success "JSON syntax validated"
+            else
+                log_warning "JSON syntax validation failed - please check file manually"
+            fi
+        fi
+    else
+        log_fatal "Failed to create tsconfig.json"
+    fi
+fi
 
 # ===================================================================
-# Create next.config.js (if Next.js project)
+# Create next.config.js
 # ===================================================================
 
 log_info "Creating next.config.js..."
 
-cat > "$PROJECT_ROOT/next.config.js" << 'EOF'
+if file_exists "$PROJECT_ROOT/next.config.js"; then
+    log_warning "next.config.js already exists, skipping"
+    track_skipped "next.config.js"
+else
+    if cat > "$PROJECT_ROOT/next.config.js" << 'EOFNEXT'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -165,9 +197,15 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
-EOF
-
-log_success "next.config.js created"
+EOFNEXT
+    then
+        verify_file "$PROJECT_ROOT/next.config.js"
+        track_created "next.config.js"
+        log_file_created "$SCRIPT_NAME" "next.config.js"
+    else
+        log_fatal "Failed to create next.config.js"
+    fi
+fi
 
 # ===================================================================
 # Create babel.config.js
@@ -175,7 +213,11 @@ log_success "next.config.js created"
 
 log_info "Creating babel.config.js..."
 
-cat > "$PROJECT_ROOT/babel.config.js" << 'EOF'
+if file_exists "$PROJECT_ROOT/babel.config.js"; then
+    log_warning "babel.config.js already exists, skipping"
+    track_skipped "babel.config.js"
+else
+    if cat > "$PROJECT_ROOT/babel.config.js" << 'EOFBABEL'
 module.exports = {
   presets: [
     ['@babel/preset-env', { targets: { node: 'current' } }],
@@ -194,17 +236,27 @@ module.exports = {
     },
   },
 }
-EOF
-
-log_success "babel.config.js created"
+EOFBABEL
+    then
+        verify_file "$PROJECT_ROOT/babel.config.js"
+        track_created "babel.config.js"
+        log_file_created "$SCRIPT_NAME" "babel.config.js"
+    else
+        log_fatal "Failed to create babel.config.js"
+    fi
+fi
 
 # ===================================================================
-# Create vite.config.ts (optional)
+# Create vite.config.ts
 # ===================================================================
 
-log_info "Creating vite.config.ts (optional)..."
+log_info "Creating vite.config.ts..."
 
-cat > "$PROJECT_ROOT/vite.config.ts" << 'EOF'
+if file_exists "$PROJECT_ROOT/vite.config.ts"; then
+    log_warning "vite.config.ts already exists, skipping"
+    track_skipped "vite.config.ts"
+else
+    if cat > "$PROJECT_ROOT/vite.config.ts" << 'EOFVITE'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
@@ -226,9 +278,15 @@ export default defineConfig({
     outDir: 'dist',
   },
 })
-EOF
-
-log_success "vite.config.ts created"
+EOFVITE
+    then
+        verify_file "$PROJECT_ROOT/vite.config.ts"
+        track_created "vite.config.ts"
+        log_file_created "$SCRIPT_NAME" "vite.config.ts"
+    else
+        log_fatal "Failed to create vite.config.ts"
+    fi
+fi
 
 # ===================================================================
 # Create src directory structure
@@ -236,33 +294,42 @@ log_success "vite.config.ts created"
 
 log_info "Creating src directory structure..."
 
-mkdir -p "$PROJECT_ROOT/src"/{components,hooks,lib,types,services}
+# Create base src directory
+ensure_dir "$PROJECT_ROOT/src"
+
+# Create subdirectories
+for dir in components hooks lib types services; do
+    if dir_exists "$PROJECT_ROOT/src/$dir"; then
+        log_debug "src/$dir already exists, skipping"
+    else
+        ensure_dir "$PROJECT_ROOT/src/$dir"
+        log_dir_created "$SCRIPT_NAME" "src/$dir"
+    fi
+done
+
 log_success "src directory structure created"
 
 # ===================================================================
 # Summary
 # ===================================================================
 
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+
+show_summary
+
 echo ""
 log_success "TypeScript and build configuration complete!"
 echo ""
-echo "Files created:"
-echo "  - tsconfig.json"
-echo "  - next.config.js"
-echo "  - babel.config.js"
-echo "  - vite.config.ts"
-echo "  - src/ (directory structure)"
-echo ""
 echo "Next steps:"
 echo "  1. Install TypeScript: npm install --save-dev typescript @types/node"
-echo "  2. Configure for your project type (Next.js, Vite, plain Node, etc.)"
+echo "  2. Choose your build tool (Next.js, Vite, or plain tsc)"
 echo "  3. Create src/index.ts or src/index.tsx"
 echo "  4. Run: npm run build"
-echo "  5. Commit files: git add tsconfig.json next.config.js babel.config.js vite.config.ts"
 echo ""
-echo "Strict TypeScript Mode:"
-echo "  - All strict flags enabled by default"
-echo "  - No implicit 'any' types"
-echo "  - Full null checking enabled"
-echo "  - Requires explicit return types"
+echo "Configuration notes:"
+echo "  - Strict TypeScript mode enabled (no implicit any)"
+echo "  - Path alias configured: @/* → ./src/*"
+echo "  - Multiple build configs provided (choose based on your stack)"
 echo ""
+
+show_log_location

@@ -4,52 +4,52 @@
 # bootstrap-environment.sh
 #
 # Bootstrap environment configuration
-# Sets up .env.example and .env.local templates
+# Sets up .env.example, .env.local, .env.production, and env.d.ts
 # ===================================================================
 
-set -e
-
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+set -euo pipefail
 
 # ===================================================================
-# Utility Functions
+# Setup
 # ===================================================================
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
+# Get script directory and bootstrap root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
+# Source common library
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
+# Initialize script
+init_script "bootstrap-environment"
 
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
+# Get project root from argument or current directory
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+
+# Script identifier for logging
+SCRIPT_NAME="bootstrap-environment"
+
+# ===================================================================
+# Pre-Execution Confirmation
+# ===================================================================
+
+pre_execution_confirm "$SCRIPT_NAME" "Environment Configuration" \
+    ".env.example" \
+    ".env.local" \
+    ".env.production" \
+    "env.d.ts"
 
 # ===================================================================
 # Validation
 # ===================================================================
 
-log_info "Bootstrapping environment configuration..."
+log_info "Validating environment..."
 
-if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
-fi
+# Check directory permissions
+require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_ROOT"
+is_writable "$PROJECT_ROOT" || log_fatal "Project directory not writable: $PROJECT_ROOT"
+
+log_success "Environment validated"
 
 # ===================================================================
 # Create .env.example
@@ -57,7 +57,12 @@ fi
 
 log_info "Creating .env.example..."
 
-cat > "$PROJECT_ROOT/.env.example" << 'EOF'
+# Skip if file exists
+if file_exists "$PROJECT_ROOT/.env.example"; then
+    log_warning ".env.example already exists, skipping"
+    track_skipped ".env.example"
+else
+    if cat > "$PROJECT_ROOT/.env.example" << 'EOFENVEXAMPLE'
 # ===================================================================
 # Environment Configuration Template
 # Copy this file to .env.local and fill in actual values
@@ -116,18 +121,28 @@ FEATURE_EXPERIMENTAL=false
 # Custom Configuration
 APP_NAME=MyApp
 APP_VERSION=0.0.1
-EOF
-
-log_success ".env.example created"
+EOFENVEXAMPLE
+    then
+        verify_file "$PROJECT_ROOT/.env.example"
+        track_created ".env.example"
+        log_file_created "$SCRIPT_NAME" ".env.example"
+    else
+        log_fatal "Failed to create .env.example"
+    fi
+fi
 
 # ===================================================================
-# Create .env.local (if it doesn't exist)
+# Create .env.local
 # ===================================================================
 
-if [[ ! -f "$PROJECT_ROOT/.env.local" ]]; then
-    log_info "Creating .env.local..."
-    
-    cat > "$PROJECT_ROOT/.env.local" << 'EOF'
+log_info "Creating .env.local..."
+
+# Skip if file exists (don't overwrite local env)
+if file_exists "$PROJECT_ROOT/.env.local"; then
+    log_warning ".env.local already exists, skipping"
+    track_skipped ".env.local"
+else
+    if cat > "$PROJECT_ROOT/.env.local" << 'EOFENVLOCAL'
 # Local Development Environment
 # Copy from .env.example and fill in your local values
 
@@ -150,21 +165,29 @@ SECRET_KEY=dev_secret_67890
 # Logging
 LOG_LEVEL=debug
 LOG_FORMAT=pretty
-EOF
-    
-    log_success ".env.local created"
-    log_warning "⚠ .env.local created with placeholder values. Update with your actual development values."
-else
-    log_warning ".env.local already exists, skipping creation"
+EOFENVLOCAL
+    then
+        verify_file "$PROJECT_ROOT/.env.local"
+        track_created ".env.local"
+        log_file_created "$SCRIPT_NAME" ".env.local"
+        track_warning ".env.local created with placeholder values - update with your actual development values"
+    else
+        log_fatal "Failed to create .env.local"
+    fi
 fi
 
 # ===================================================================
-# Create .env.production (template)
+# Create .env.production
 # ===================================================================
 
 log_info "Creating .env.production..."
 
-cat > "$PROJECT_ROOT/.env.production" << 'EOF'
+# Skip if file exists
+if file_exists "$PROJECT_ROOT/.env.production"; then
+    log_warning ".env.production already exists, skipping"
+    track_skipped ".env.production"
+else
+    if cat > "$PROJECT_ROOT/.env.production" << 'EOFENVPROD'
 # Production Environment
 # Use in production deployment. Never commit actual secrets.
 # Load from secure secrets management system (AWS Secrets Manager, Vault, etc.)
@@ -191,71 +214,86 @@ LOG_FORMAT=json
 
 # Monitoring
 SENTRY_DSN=${SENTRY_DSN}
-EOF
-
-log_success ".env.production created"
+EOFENVPROD
+    then
+        verify_file "$PROJECT_ROOT/.env.production"
+        track_created ".env.production"
+        log_file_created "$SCRIPT_NAME" ".env.production"
+    else
+        log_fatal "Failed to create .env.production"
+    fi
+fi
 
 # ===================================================================
-# Create environment validation schema (optional)
+# Create env.d.ts (TypeScript types)
 # ===================================================================
 
-log_info "Creating env.d.ts (TypeScript types)..."
+log_info "Creating env.d.ts..."
 
-cat > "$PROJECT_ROOT/env.d.ts" << 'EOF'
+# Skip if file exists
+if file_exists "$PROJECT_ROOT/env.d.ts"; then
+    log_warning "env.d.ts already exists, skipping"
+    track_skipped "env.d.ts"
+else
+    if cat > "$PROJECT_ROOT/env.d.ts" << 'EOFENVDTS'
 declare namespace NodeJS {
   interface ProcessEnv {
     NODE_ENV: 'development' | 'production' | 'test'
     DEBUG: string
     PORT: string
     HOST: string
-    
+
     // Database
     DATABASE_URL: string
     DATABASE_POOL_SIZE: string
-    
+
     // Cache
     REDIS_URL: string
     REDIS_PASSWORD?: string
-    
+
     // API Keys
     API_KEY: string
     SECRET_KEY: string
-    
+
     // External Services
     OPENAI_API_KEY?: string
     OPENAI_ORGANIZATION?: string
     GITHUB_TOKEN?: string
-    
+
     // Authentication
     JWT_SECRET: string
     JWT_EXPIRY?: string
-    
+
     // Logging
     LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error'
     LOG_FORMAT: 'json' | 'pretty'
-    
+
     // Error Tracking
     SENTRY_DSN?: string
   }
 }
 
 export {}
-EOF
-
-log_success "env.d.ts created"
+EOFENVDTS
+    then
+        verify_file "$PROJECT_ROOT/env.d.ts"
+        track_created "env.d.ts"
+        log_file_created "$SCRIPT_NAME" "env.d.ts"
+    else
+        log_fatal "Failed to create env.d.ts"
+    fi
+fi
 
 # ===================================================================
 # Summary
 # ===================================================================
 
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+
+show_summary
+
 echo ""
 log_success "Environment configuration complete!"
-echo ""
-echo "Files created:"
-echo "  - .env.example (template with all variables)"
-echo "  - .env.local (local development values)"
-echo "  - .env.production (production template)"
-echo "  - env.d.ts (TypeScript type definitions)"
 echo ""
 echo "Next steps:"
 echo "  1. Edit .env.local with your local database/service credentials"
@@ -264,12 +302,13 @@ echo "     - AWS Secrets Manager"
 echo "     - HashiCorp Vault"
 echo "     - 1Password / LastPass"
 echo "     - Environment variables in CI/CD"
-echo "  3. Never commit .env.local or actual secrets"
-echo "  4. Commit .env.example and env.d.ts only"
+echo "  3. Never commit .env.local or actual secrets to git"
 echo ""
 echo "Security checklist:"
-echo "  - .env.local is in .gitignore (never commit secrets)"
-echo "  - Use strong, random values for secrets"
-echo "  - Rotate secrets regularly in production"
-echo "  - Use env.d.ts to catch missing required variables at compile time"
+echo "  ✓ .env.local is in .gitignore (never commit secrets)"
+echo "  ✓ Use strong, random values for secrets"
+echo "  ✓ Rotate secrets regularly in production"
+echo "  ✓ Use env.d.ts to catch missing required variables at compile time"
 echo ""
+
+show_log_location

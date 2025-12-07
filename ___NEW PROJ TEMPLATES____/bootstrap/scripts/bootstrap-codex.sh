@@ -7,49 +7,54 @@
 # Sets up .codex.json for Codex AI assistance integration
 # ===================================================================
 
-set -e
-
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+set -euo pipefail
 
 # ===================================================================
-# Utility Functions
+# Setup
 # ===================================================================
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
+# Get script directory and bootstrap root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
+# Source common library
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
+# Initialize script
+init_script "bootstrap-codex"
 
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
+# Get project root from argument or current directory
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+
+# Script identifier for logging
+SCRIPT_NAME="bootstrap-codex"
+
+# ===================================================================
+# Pre-Execution Confirmation
+# ===================================================================
+
+pre_execution_confirm "$SCRIPT_NAME" "Codex Configuration" \
+    ".codex.json" \
+    ".codexignore"
 
 # ===================================================================
 # Validation
 # ===================================================================
 
-log_info "Bootstrapping Codex configuration..."
+log_info "Validating environment..."
 
-if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
+# Check directory permissions
+require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_ROOT"
+is_writable "$PROJECT_ROOT" || log_fatal "Project directory not writable: $PROJECT_ROOT"
+
+# Warn if jq not available (optional tool)
+if ! has_jq; then
+    track_warning "jq not installed - JSON validation will be skipped"
+    log_warning "jq not installed - JSON validation will be skipped"
+    log_info "Install with: sudo apt install jq (or brew install jq)"
 fi
+
+log_success "Environment validated"
 
 # ===================================================================
 # Create .codex.json
@@ -57,7 +62,12 @@ fi
 
 log_info "Creating .codex.json..."
 
-cat > "$PROJECT_ROOT/.codex.json" << 'EOF'
+# Skip if file exists
+if file_exists "$PROJECT_ROOT/.codex.json"; then
+    log_warning ".codex.json already exists, skipping"
+    track_skipped ".codex.json"
+else
+    if cat > "$PROJECT_ROOT/.codex.json" << 'EOFCODEX'
 {
   "openai": {
     "apiKey": "${OPENAI_API_KEY}",
@@ -105,9 +115,25 @@ cat > "$PROJECT_ROOT/.codex.json" << 'EOF'
     "file": ".codex.log"
   }
 }
-EOF
+EOFCODEX
+    then
+        verify_file "$PROJECT_ROOT/.codex.json"
+        track_created ".codex.json"
+        log_file_created "$SCRIPT_NAME" ".codex.json"
 
-log_success ".codex.json created"
+        # Validate JSON if jq available
+        if has_jq; then
+            source "${LIB_DIR}/json-validator.sh"
+            if validate_json_file "$PROJECT_ROOT/.codex.json" > /dev/null 2>&1; then
+                log_success "JSON syntax validated"
+            else
+                log_warning "JSON syntax validation failed - please check file manually"
+            fi
+        fi
+    else
+        log_fatal "Failed to create .codex.json"
+    fi
+fi
 
 # ===================================================================
 # Create .codexignore
@@ -115,7 +141,11 @@ log_success ".codex.json created"
 
 log_info "Creating .codexignore..."
 
-cat > "$PROJECT_ROOT/.codexignore" << 'EOF'
+if file_exists "$PROJECT_ROOT/.codexignore"; then
+    log_warning ".codexignore already exists, skipping"
+    track_skipped ".codexignore"
+else
+    if cat > "$PROJECT_ROOT/.codexignore" << 'EOFIGNORE'
 # Dependencies
 node_modules/
 .venv/
@@ -156,26 +186,36 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
-EOF
-
-log_success ".codexignore created"
+EOFIGNORE
+    then
+        verify_file "$PROJECT_ROOT/.codexignore"
+        track_created ".codexignore"
+        log_file_created "$SCRIPT_NAME" ".codexignore"
+    else
+        log_fatal "Failed to create .codexignore"
+    fi
+fi
 
 # ===================================================================
 # Summary
 # ===================================================================
 
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+
+show_summary
+
 echo ""
 log_success "Codex configuration complete!"
 echo ""
-echo "Files created:"
-echo "  - .codex.json"
-echo "  - .codexignore"
-echo ""
 echo "Next steps:"
 echo "  1. Set OPENAI_API_KEY environment variable"
-echo "  2. Update .codex.json with your preferences"
-echo "  3. Enable Codex by setting 'enabled': true"
-echo "  4. Commit files: git add .codex.json .codexignore"
+echo "  2. Update .codex.json with your OpenAI organization ID"
+echo "  3. Enable Codex by setting 'enabled': true in .codex.json"
+echo "  4. Test with: codex --version (if Codex CLI is installed)"
 echo ""
-echo "Note: Codex requires an OpenAI API key. Get one at https://beta.openai.com/account/api-keys"
+echo "Documentation:"
+echo "  - OpenAI API: https://beta.openai.com/account/api-keys"
+echo "  - Codex CLI: https://github.com/openai/openai-codex-cli"
 echo ""
+
+show_log_location
