@@ -1,6 +1,15 @@
-# Project Bootstrap Templates
+---
+title: Bootstrap Templates Reference
+category: Reference
+version: 1.0
+created: 2025-12-07
+purpose: "Complete inventory of production-ready template files used by bootstrap scripts"
+audience: Developers, Template Maintainers
+---
 
-A complete collection of production-ready configuration files for modern TypeScript/React/Next.js development. These templates encode opinionated defaults optimized for AI-assisted development workflows, fast iteration, and minimal configuration overhead.
+# Bootstrap Templates Reference
+
+Complete collection of production-ready configuration templates for TypeScript/React/Next.js projects, optimized for AI-assisted development workflows and minimal configuration overhead.
 
 ---
 

@@ -8,15 +8,31 @@ Migrate bootstrap scripts to follow the standardized pattern using the shared li
 
 ## Your Task
 
-When the user provides a script filename (e.g., `bootstrap-git.sh`):
-1. Load the migration playbook and reference examples
-2. Analyze the target script against the standardization checklist
-3. Apply transformations systematically
-4. Validate and output the standardized result
+1. Scan for backlog scripts that need standardization
+2. Display them as a numbered list
+3. Ask user which one to standardize (or accept filename argument)
+4. Load migration context and apply transformations
 
 ## Process
 
-### 1. Load Context
+### 1. List Backlog Scripts
+
+When this command runs, first check `__bootbuild/templates/scripts/` for scripts that:
+- Exist and contain shell code
+- Don't yet use the standardized pattern (check for `source "${BOOTSTRAP_DIR}/lib/common.sh"`)
+
+Display as:
+```
+Available bootstrap scripts to standardize:
+1. bootstrap-git.sh
+2. bootstrap-linting.sh
+3. bootstrap-testing.sh
+...
+
+Specify script name (e.g., bootstrap-git.sh) or select by number:
+```
+
+### 2. Load Context
 
 **Read in this order:**
 1. `__bootbuild/docs/playbooks/standardize-bootstrap-script.md` (authoritative migration guide)
@@ -26,7 +42,7 @@ When the user provides a script filename (e.g., `bootstrap-git.sh`):
    - `__bootbuild/scripts/bootstrap-environment.sh`
 3. The target script specified by the user
 
-### 2. Analyze
+### 3. Analyze
 
 Create a brief analysis checklist:
 
@@ -57,7 +73,7 @@ Key checks:
 - Has logging calls: `log_file_created`, `log_dir_created`, `log_script_complete`?
 - Calls `show_summary` and `show_log_location` at end?
 
-### 3. Transform
+### 4. Transform
 
 Follow the 13-step migration guide from standardize-bootstrap-script.md:
 
@@ -76,7 +92,7 @@ Follow the 13-step migration guide from standardize-bootstrap-script.md:
 
 **Critical requirement:** Preserve ALL original functionality and file contents.
 
-### 4. Validate
+### 5. Validate
 
 Show verification table:
 
@@ -98,7 +114,7 @@ Show verification table:
 | Syntax validation passes | ✅/❌ |
 ```
 
-### 5. Output
+### 6. Output
 
 Write the standardized script and run `bash -n` syntax check.
 

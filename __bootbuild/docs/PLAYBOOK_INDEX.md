@@ -21,7 +21,7 @@ Navigation hub for all bootstrap system documentation, playbooks, and references
    - Troubleshooting common issues
    - Rolling back changes
 
-2. **[REFERENCE_SCRIPT_CATALOG.md](references/REFERENCE_SCRIPT_CATALOG.md)** - Available bootstrap scripts
+2. **[SCRIPT_CATALOG.md](references/SCRIPT_CATALOG.md)** - Available bootstrap scripts
    - What each script does
    - Files it creates
    - Dependencies and runtime
@@ -63,19 +63,19 @@ Detailed workflows for specific tasks:
 
 Comprehensive lookup tables and command references:
 
-- **[REFERENCE_SCRIPT_CATALOG.md](references/REFERENCE_SCRIPT_CATALOG.md)** - All bootstrap scripts
+- **[REFERENCE_SCRIPT_CATALOG.md](references/SCRIPT_CATALOG.md)** - All bootstrap scripts
   - Organized by phase (1-4)
   - Purpose, status, dependencies
   - Files created and configuration sections
   - Usage patterns and examples
 
-- **[REFERENCE_CONFIG.md](references/REFERENCE_CONFIG.md)** - Configuration and environment variables
+- **[REFERENCE_CONFIG.md](references/CONFIG.md)** - Configuration and environment variables
   - Configuration file sections and options
   - Environment variable reference
   - Configuration precedence rules
   - Validation procedures
 
-- **[REFERENCE_LIBRARY.md](references/REFERENCE_LIBRARY.md)** - Bootstrap library functions
+- **[REFERENCE_LIBRARY.md](references/LIBRARY.md)** - Bootstrap library functions
   - Complete function reference from `lib/common.sh`
   - Organized by category (logging, files, validation, etc.)
   - Syntax, examples, return values
@@ -97,13 +97,13 @@ Comprehensive lookup tables and command references:
 → [PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md)
 
 **See what scripts are available**
-→ [REFERENCE_SCRIPT_CATALOG.md](references/REFERENCE_SCRIPT_CATALOG.md)
+→ [SCRIPT_CATALOG.md](references/SCRIPT_CATALOG.md)
 
 **Configure bootstrap behavior**
-→ [REFERENCE_CONFIG.md](references/REFERENCE_CONFIG.md)
+→ [CONFIG.md](references/CONFIG.md)
 
 **Use a specific library function**
-→ [REFERENCE_LIBRARY.md](references/REFERENCE_LIBRARY.md)
+→ [LIBRARY.md](references/LIBRARY.md)
 
 **Find troubleshooting help**
 → [PLAYBOOK_RUNNING.md - Troubleshooting](playbooks/PLAYBOOK_RUNNING.md#common-issues--troubleshooting)
@@ -116,14 +116,14 @@ Comprehensive lookup tables and command references:
 
 Use these to bootstrap your project:
 - [PLAYBOOK_RUNNING.md](playbooks/PLAYBOOK_RUNNING.md) - How to run bootstrap scripts
-- [REFERENCE_SCRIPT_CATALOG.md](references/REFERENCE_SCRIPT_CATALOG.md) - What scripts do
-- [REFERENCE_CONFIG.md](references/REFERENCE_CONFIG.md) - Configuration options
+- [SCRIPT_CATALOG.md](references/SCRIPT_CATALOG.md) - What scripts do
+- [CONFIG.md](references/CONFIG.md) - Configuration options
 
 ### I'm a DevOps/Infrastructure
 
 Use these to extend bootstrap:
 - [PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md) - Create new scripts
-- [REFERENCE_LIBRARY.md](references/REFERENCE_LIBRARY.md) - Available functions
+- [LIBRARY.md](references/LIBRARY.md) - Available functions
 - [PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md) - Standardization
 
 ### I'm Maintaining Bootstrap System
@@ -131,7 +131,7 @@ Use these to extend bootstrap:
 Use these for system maintenance:
 - [PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md) - Script creation guide
 - [PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md) - Standardization guide
-- [REFERENCE_LIBRARY.md](references/REFERENCE_LIBRARY.md) - Function reference
+- [LIBRARY.md](references/LIBRARY.md) - Function reference
 
 ---
 
@@ -148,9 +148,14 @@ __bootbuild/docs/
 │   ├── PLAYBOOK_RUNNING.md
 │   └── PLAYBOOK_MIGRATING_SCRIPTS.md
 ├── references/
-│   ├── REFERENCE_SCRIPT_CATALOG.md
-│   ├── REFERENCE_CONFIG.md
-│   └── REFERENCE_LIBRARY.md
+│   ├── SCRIPT_CATALOG.md
+│   ├── CONFIG.md
+│   ├── LIBRARY.md
+│   ├── MENU_STRUCTURE.md
+│   ├── TEMPLATES.md
+│   ├── DEPLOYMENT_GUIDE.md
+│   ├── IMPLEMENTATION_STATUS.md
+│   └── README.md
 ├── cleanup/                    # Files needing review/decision
 ├── bryan/                      # Personal/project documentation
 ├── archived/                   # Previous versions
@@ -172,16 +177,16 @@ __bootbuild/docs/
 - [Config File Not Found](playbooks/PLAYBOOK_RUNNING.md#issue-3-bootstrap-config-file-not-found)
 
 **Function Lookup:**
-- [Logging Functions](references/REFERENCE_LIBRARY.md#logging-functions)
-- [File Operations](references/REFERENCE_LIBRARY.md#file-operations)
-- [Validation Functions](references/REFERENCE_LIBRARY.md#validation-functions)
-- [Configuration Functions](references/REFERENCE_LIBRARY.md#configuration-functions)
+- [Logging Functions](references/LIBRARY.md#logging-functions)
+- [File Operations](references/LIBRARY.md#file-operations)
+- [Validation Functions](references/LIBRARY.md#validation-functions)
+- [Configuration Functions](references/LIBRARY.md#configuration-functions)
 
 **Scripts by Phase:**
-- [Phase 1: Foundation](references/REFERENCE_SCRIPT_CATALOG.md#phase-1-foundation)
-- [Phase 2: Development](references/REFERENCE_SCRIPT_CATALOG.md#phase-2-development)
-- [Phase 3: Advanced](references/REFERENCE_SCRIPT_CATALOG.md#phase-3-advanced)
-- [Phase 4: Optional](references/REFERENCE_SCRIPT_CATALOG.md#phase-4-optionaladvanced)
+- [Phase 1: Foundation](references/SCRIPT_CATALOG.md#phase-1-foundation)
+- [Phase 2: Development](references/SCRIPT_CATALOG.md#phase-2-development)
+- [Phase 3: Advanced](references/SCRIPT_CATALOG.md#phase-3-advanced)
+- [Phase 4: Optional](references/SCRIPT_CATALOG.md#phase-4-optionaladvanced)
 
 ---
 
@@ -193,9 +198,13 @@ __bootbuild/docs/
 | PLAYBOOK_CREATING_SCRIPTS.md | 1.0 | Active | 2025-12-07 |
 | PLAYBOOK_RUNNING.md | 1.0 | Active | 2025-12-07 |
 | PLAYBOOK_MIGRATING_SCRIPTS.md | 1.0 | Active | 2025-12-07 |
-| REFERENCE_SCRIPT_CATALOG.md | 1.0 | Active | 2025-12-07 |
-| REFERENCE_CONFIG.md | 1.0 | Active | 2025-12-07 |
-| REFERENCE_LIBRARY.md | 1.0 | Active | 2025-12-07 |
+| references/SCRIPT_CATALOG.md | 1.0 | Active | 2025-12-07 |
+| references/CONFIG.md | 1.0 | Active | 2025-12-07 |
+| references/LIBRARY.md | 1.0 | Active | 2025-12-07 |
+| references/MENU_STRUCTURE.md | 1.0 | Active | 2025-12-07 |
+| references/TEMPLATES.md | 1.0 | Active | 2025-12-07 |
+| references/DEPLOYMENT_GUIDE.md | 1.0 | Active | 2025-12-07 |
+| references/IMPLEMENTATION_STATUS.md | 1.0 | Active | 2025-12-07 |
 
 ---
 

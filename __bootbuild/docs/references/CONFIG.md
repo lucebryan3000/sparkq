@@ -1,11 +1,14 @@
 ---
-title: Reference - Bootstrap Configuration
+title: Bootstrap Configuration Reference
+category: Reference
 version: 1.0
 created: 2025-12-07
 updated: 2025-12-07
+purpose: "Complete reference for configuration options, environment variables, and settings"
+audience: Developers, System Administrators, Advanced Users
 ---
 
-# Reference: Bootstrap Configuration
+# Bootstrap Configuration Reference
 
 Complete reference for configuration options, environment variables, and settings that control bootstrap behavior.
 

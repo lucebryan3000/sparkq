@@ -1,6 +1,15 @@
-# SparkQ Bootstrap Menu Structure - AI-First Development Order
+---
+title: Bootstrap Menu Structure & Execution Order
+category: Reference
+version: 1.0
+created: 2025-12-07
+purpose: "Documents the 4-phase bootstrap menu structure and AI-first execution order"
+audience: Developers, Bootstrap Users
+---
 
-Generated from `bootstrap-menu.sh` - Optimized for AI-assisted development with Claude Code.
+# Bootstrap Menu Structure & Execution Order
+
+Reference guide for the 14-script bootstrap menu organized in 4 phases for optimal AI-assisted development workflow.
 
 ## Setup Order Overview (14 Scripts Total)
 

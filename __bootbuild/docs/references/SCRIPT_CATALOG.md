@@ -1,11 +1,14 @@
 ---
-title: Reference - Bootstrap Script Catalog
+title: Bootstrap Script Catalog
+category: Reference
 version: 1.0
 created: 2025-12-07
 updated: 2025-12-07
+purpose: "Complete reference guide to all 14 bootstrap scripts organized by phase"
+audience: Developers, System Administrators, Script Maintainers
 ---
 
-# Reference: Bootstrap Script Catalog
+# Bootstrap Script Catalog
 
 Complete reference of all available bootstrap scripts, their purposes, dependencies, and outputs.
 

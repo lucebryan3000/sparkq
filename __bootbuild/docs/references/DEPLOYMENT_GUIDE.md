@@ -1,6 +1,15 @@
+---
+title: Bootstrap System Deployment Guide
+category: Reference
+version: 1.0
+created: 2025-12-07
+purpose: "Complete guide for deploying the bootstrap system to new projects"
+audience: DevOps, Infrastructure, Project Setup
+---
+
 # Bootstrap System Deployment Guide
 
-> Comprehensive guide for deploying the SparkQ Bootstrap System to new projects.
+Comprehensive reference for deploying the SparkQ Bootstrap System to new projects with prerequisites, configurations, and troubleshooting.
 
 ---
 

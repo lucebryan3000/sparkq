@@ -1,11 +1,14 @@
 ---
-title: Reference - Bootstrap Library Functions
+title: Bootstrap Library Function Reference
+category: Reference
 version: 1.0
 created: 2025-12-07
 updated: 2025-12-07
+purpose: "Complete API reference for all functions in lib/common.sh"
+audience: Script Developers, Bootstrap Contributors, Advanced Users
 ---
 
-# Reference: Bootstrap Library Functions
+# Bootstrap Library Function Reference
 
 Complete reference for functions available in `lib/common.sh`. These functions provide standard operations for all bootstrap scripts.
 
