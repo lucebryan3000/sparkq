@@ -1,9 +1,24 @@
 {
   "cleanupPeriodDays": 30,
-  "model": "sonnet",
+  "model": "claude-opus-4-5-20251101",
 
   "permissions": {
     "defaultMode": "bypassPermissions",
+    "allow": [
+      "Bash(npm run test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Read(./secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Bash(rm -rf /)",
+      "Bash(git push origin -f)"
+    ],
     "additionalDirectories": [
       "./.venv",
       "./venv",
