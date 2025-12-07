@@ -1,0 +1,50 @@
+{
+  "name": "Development Container",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.devcontainer.yml"],
+  "service": "app",
+  "workspaceFolder": "/app",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "typescript.tsdk": "node_modules/typescript/lib"
+      },
+      "extensions": [
+        "anthropic.claude-code",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "prisma.prisma",
+        "eamodio.gitlens",
+        "usernamehw.errorlens",
+        "gruntfuggly.todo-tree",
+        "github.github-vscode-theme",
+        "pkief.material-icon-theme"
+      ]
+    }
+  },
+
+  "forwardPorts": [3000, 5432],
+
+  "postCreateCommand": "pnpm install && pnpm db:generate",
+
+  "postStartCommand": "pnpm dev",
+
+  "remoteUser": "node",
+
+  "containerEnv": {
+    "NODE_ENV": "development",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  }
+}

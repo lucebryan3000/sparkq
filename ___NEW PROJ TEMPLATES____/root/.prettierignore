@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+.output/
+.turbo/
+.vercel/
+
+# Generated
+*.generated.*
+src/generated/
+src/__generated__/
+
+# Cache
+.cache/
+.eslintcache
+
+# Lock files
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Database
+prisma/migrations/
+postgres_data/
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
+
+# Documentation (preserve formatting)
+*.md
+*.mdx
+
+# Build workspace
+_build/
+
+# Environment
+.env*
+
+# Assets
+public/
+*.svg
+*.ico
