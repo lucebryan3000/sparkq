@@ -4,84 +4,30 @@
 # bootstrap-testing.sh
 #
 # Bootstrap testing frameworks and coverage configuration
-# Creates jest.config.js, pytest.ini, and .coveragerc files
+# Creates jest.config.js, vitest.config.ts, and related files
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
-TEMPLATE_ROOT="${TEMPLATE_DIR}/root"
+# Source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Initialize script
+init_script "bootstrap-testing.sh"
 
-# ===================================================================
-# Utility Functions
-# ===================================================================
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+TEMPLATE_ROOT="${TEMPLATES_DIR}/root"
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
+# Script identifier
+SCRIPT_NAME="bootstrap-testing"
 
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
-
-# Backup existing file
-backup_file() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        local backup="${file}.backup.$(date +%s)"
-        if cp "$file" "$backup"; then
-            log_warning "Backed up existing file to: $(basename "$backup")"
-            return 0
-        else
-            log_error "Failed to backup existing file: $file"
-        fi
-    fi
-    return 1
-}
-
-# Verify file creation
-verify_file() {
-    local file="$1"
-    if [[ ! -f "$file" ]]; then
-        log_error "Failed to create file: $file"
-    elif [[ ! -r "$file" ]]; then
-        log_error "Created file but it's not readable: $file"
-    else
-        log_success "File created and verified: $file"
-        return 0
-    fi
-    return 1
-}
-
-# Cleanup on exit
-cleanup_on_error() {
-    local exit_code=$?
-    if [[ $exit_code -ne 0 ]]; then
-        log_error "Bootstrap script failed with exit code $exit_code"
-        log_info "Check the output above for details"
-    fi
-    return $exit_code
-}
-
-trap cleanup_on_error EXIT
+# Pre-execution confirmation
+pre_execution_confirm "$SCRIPT_NAME" "Testing Configuration" \
+    "vitest.config.ts" "jest.config.js" \
+    "tests/ directory"
 
 # ===================================================================
 # Template Validation Functions (Pre-Copy Validation)
@@ -182,10 +128,12 @@ fi
 log_info "Creating jest.config.js..."
 
 if [[ -f "$PROJECT_ROOT/jest.config.js" ]]; then
-    log_warning "jest.config.js already exists"
-    backup_file "$PROJECT_ROOT/jest.config.js" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/jest.config.js"
+    else
+        track_skipped "jest.config.js"
+        log_warning "jest.config.js already exists, skipping"
+    fi
 fi
 
 if [[ -f "$TEMPLATE_ROOT/jest.config.js" ]]; then
@@ -193,11 +141,15 @@ if [[ -f "$TEMPLATE_ROOT/jest.config.js" ]]; then
     validate_jest_template "$TEMPLATE_ROOT/jest.config.js"
 
     if cp "$TEMPLATE_ROOT/jest.config.js" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/jest.config.js" || log_error "Failed to verify jest.config.js"
+        if verify_file "$PROJECT_ROOT/jest.config.js"; then
+            track_created "jest.config.js"
+            log_file_created "$SCRIPT_NAME" "jest.config.js"
+        fi
     else
-        log_error "Failed to copy jest.config.js"
+        log_fatal "Failed to copy jest.config.js"
     fi
 else
+    track_warning "jest.config.js template not found"
     log_warning "jest.config.js template not found in $TEMPLATE_ROOT"
 fi
 
@@ -208,10 +160,12 @@ fi
 log_info "Creating pytest.ini..."
 
 if [[ -f "$PROJECT_ROOT/pytest.ini" ]]; then
-    log_warning "pytest.ini already exists"
-    backup_file "$PROJECT_ROOT/pytest.ini" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/pytest.ini"
+    else
+        track_skipped "pytest.ini"
+        log_warning "pytest.ini already exists, skipping"
+    fi
 fi
 
 if [[ -f "$TEMPLATE_ROOT/pytest.ini" ]]; then
@@ -219,11 +173,15 @@ if [[ -f "$TEMPLATE_ROOT/pytest.ini" ]]; then
     validate_pytest_template "$TEMPLATE_ROOT/pytest.ini"
 
     if cp "$TEMPLATE_ROOT/pytest.ini" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/pytest.ini" || log_error "Failed to verify pytest.ini"
+        if verify_file "$PROJECT_ROOT/pytest.ini"; then
+            track_created "pytest.ini"
+            log_file_created "$SCRIPT_NAME" "pytest.ini"
+        fi
     else
-        log_error "Failed to copy pytest.ini"
+        log_fatal "Failed to copy pytest.ini"
     fi
 else
+    track_warning "pytest.ini template not found"
     log_warning "pytest.ini template not found in $TEMPLATE_ROOT"
 fi
 
@@ -234,10 +192,12 @@ fi
 log_info "Creating .coveragerc..."
 
 if [[ -f "$PROJECT_ROOT/.coveragerc" ]]; then
-    log_warning ".coveragerc already exists"
-    backup_file "$PROJECT_ROOT/.coveragerc" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.coveragerc"
+    else
+        track_skipped ".coveragerc"
+        log_warning ".coveragerc already exists, skipping"
+    fi
 fi
 
 if [[ -f "$TEMPLATE_ROOT/.coveragerc" ]]; then
@@ -245,11 +205,15 @@ if [[ -f "$TEMPLATE_ROOT/.coveragerc" ]]; then
     validate_coverage_template "$TEMPLATE_ROOT/.coveragerc"
 
     if cp "$TEMPLATE_ROOT/.coveragerc" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/.coveragerc" || log_error "Failed to verify .coveragerc"
+        if verify_file "$PROJECT_ROOT/.coveragerc"; then
+            track_created ".coveragerc"
+            log_file_created "$SCRIPT_NAME" ".coveragerc"
+        fi
     else
-        log_error "Failed to copy .coveragerc"
+        log_fatal "Failed to copy .coveragerc"
     fi
 else
+    track_warning ".coveragerc template not found"
     log_warning ".coveragerc template not found in $TEMPLATE_ROOT"
 fi
 
@@ -340,39 +304,15 @@ validate_bootstrap() {
 # Summary & Next Steps
 # ===================================================================
 
-echo ""
-log_success "Bootstrap complete!"
-echo ""
-
 validate_bootstrap
 
-echo ""
-log_info "Bootstrap Summary:"
-echo "  Files:"
-echo "    ├── jest.config.js   (Node.js/Next.js testing)"
-echo "    ├── pytest.ini       (Python testing)"
-echo "    └── .coveragerc      (Coverage reporting)"
-echo ""
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+show_summary
+show_log_location
 
 log_info "Next steps:"
-echo "  1. Create Test Directory"
-echo "     - Run: mkdir -p src/__tests__"
-echo "     - Or for Python: mkdir -p tests"
-echo "  2. Create First Test File"
-echo "     - JavaScript: src/__tests__/example.test.ts"
-echo "     - Python: tests/test_example.py"
-echo "  3. Install Test Dependencies"
-echo "     - JavaScript: npm install --save-dev jest @testing-library/react"
-echo "     - Python: pip install pytest pytest-cov"
-echo "  4. Customize Test Configuration"
-echo "     - Edit jest.config.js for project-specific settings"
-echo "     - Edit pytest.ini for Python test settings"
-echo "     - Adjust .coveragerc coverage thresholds as needed"
-echo "  5. Run Tests"
-echo "     - JavaScript: npm test"
-echo "     - Python: pytest"
-echo "     - Coverage: coverage run -m pytest && coverage report"
-echo "  6. Commit to git:"
-echo "     git add jest.config.js pytest.ini .coveragerc"
-echo "     git commit -m 'Setup testing configuration'"
+echo "  1. Create test directory: mkdir -p src/__tests__ or tests/"
+echo "  2. Install: npm install --save-dev jest (or pip install pytest)"
+echo "  3. Run tests: npm test or pytest"
+echo "  4. Commit: git add jest.config.js pytest.ini .coveragerc"
 echo ""

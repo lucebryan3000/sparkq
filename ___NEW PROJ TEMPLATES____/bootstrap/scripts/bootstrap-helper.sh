@@ -14,14 +14,18 @@
 
 set -euo pipefail
 
-# Paths
+# Paths - derive BOOTSTRAP_DIR first
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-CONFIG_FILE="${BOOTSTRAP_DIR}/config/bootstrap.config"
-STATUS_FILE="${BOOTSTRAP_DIR}/config/.helper-status"
 
-# Source config manager
-source "${BOOTSTRAP_DIR}/lib/config-manager.sh"
+# Source lib/paths.sh to initialize all paths
+source "${BOOTSTRAP_DIR}/lib/paths.sh" || exit 1
+
+# Status file uses CONFIG_DIR from paths.sh
+STATUS_FILE="${CONFIG_DIR}/.helper-status"
+
+# Source config manager (now CONFIG_FILE is set by lib/paths.sh)
+source "${LIB_DIR}/config-manager.sh" || exit 1
 
 # ===================================================================
 # Quick Detection Functions (optimized for speed)

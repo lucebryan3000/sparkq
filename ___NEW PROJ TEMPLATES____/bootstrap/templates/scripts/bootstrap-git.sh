@@ -11,7 +11,8 @@ set -euo pipefail
 
 # Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../lib/common.sh"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
 # Initialize script
 init_script "bootstrap-git.sh"

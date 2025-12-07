@@ -6,52 +6,30 @@
 # Bootstrap GitHub configuration for a new project
 # Creates .github/ directory structure with PR templates, issue templates,
 # and CI/CD workflows per official GitHub documentation
-#
-# OFFICIAL DOCUMENTATION:
-# - GitHub Templates: https://docs.github.com/en/communities/using-templates
-# - Issue Templates: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
-# - GitHub Actions: https://docs.github.com/en/actions
-#
-# CONFIGURATION SOURCE OF TRUTH:
-# Template files in ___NEW PROJ TEMPLATES____/.github/ are the authoritative source
-# These templates have been validated against official GitHub specifications.
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
+# Source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
+
+# Initialize script
+init_script "bootstrap-github.sh"
+
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
 GITHUB_DIR="${PROJECT_ROOT}/.github"
-TEMPLATE_GITHUB="${TEMPLATE_DIR}/.github"
+TEMPLATE_GITHUB="${TEMPLATES_DIR}/.github"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# Script identifier
+SCRIPT_NAME="bootstrap-github"
 
-# ===================================================================
-# Utility Functions
-# ===================================================================
-
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
+# Pre-execution confirmation
+pre_execution_confirm "$SCRIPT_NAME" "GitHub Configuration" \
+    ".github/ISSUE_TEMPLATE/" ".github/PULL_REQUEST_TEMPLATE.md" \
+    ".github/workflows/"
 
 # ===================================================================
 # Template Validation Functions (Pre-Copy Validation)
@@ -176,9 +154,20 @@ log_success "Directory structure created"
 
 log_info "Setting up pull request template..."
 
+if [[ -f "$GITHUB_DIR/PULL_REQUEST_TEMPLATE.md" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$GITHUB_DIR/PULL_REQUEST_TEMPLATE.md"
+    else
+        track_skipped "PULL_REQUEST_TEMPLATE.md"
+        log_warning "PULL_REQUEST_TEMPLATE.md already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_GITHUB/PULL_REQUEST_TEMPLATE.md" ]]; then
-    cp "$TEMPLATE_GITHUB/PULL_REQUEST_TEMPLATE.md" "$GITHUB_DIR/"
-    log_success "Copied PULL_REQUEST_TEMPLATE.md"
+    if cp "$TEMPLATE_GITHUB/PULL_REQUEST_TEMPLATE.md" "$GITHUB_DIR/"; then
+        track_created ".github/PULL_REQUEST_TEMPLATE.md"
+        log_file_created "$SCRIPT_NAME" ".github/PULL_REQUEST_TEMPLATE.md"
+    fi
 else
     log_info "Creating default PULL_REQUEST_TEMPLATE.md..."
     cat > "$GITHUB_DIR/PULL_REQUEST_TEMPLATE.md" << 'EOF'
@@ -217,7 +206,8 @@ Closes #[issue_number]
 
 Add screenshots here
 EOF
-    log_success "Created default PULL_REQUEST_TEMPLATE.md"
+    track_created ".github/PULL_REQUEST_TEMPLATE.md"
+    log_file_created "$SCRIPT_NAME" ".github/PULL_REQUEST_TEMPLATE.md"
 fi
 
 # ===================================================================
@@ -227,11 +217,22 @@ fi
 log_info "Setting up issue templates..."
 
 # Bug report template
+if [[ -f "$GITHUB_DIR/ISSUE_TEMPLATE/bug_report.md" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$GITHUB_DIR/ISSUE_TEMPLATE/bug_report.md"
+    else
+        track_skipped "bug_report.md"
+        log_warning "bug_report.md already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md" ]]; then
     # Validate template before copying
     validate_issue_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md"
-    cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md" "$GITHUB_DIR/ISSUE_TEMPLATE/"
-    log_success "Copied bug_report.md"
+    if cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md" "$GITHUB_DIR/ISSUE_TEMPLATE/"; then
+        track_created ".github/ISSUE_TEMPLATE/bug_report.md"
+        log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/bug_report.md"
+    fi
 else
     log_info "Creating default bug_report.md..."
     cat > "$GITHUB_DIR/ISSUE_TEMPLATE/bug_report.md" << 'EOF'
@@ -277,15 +278,27 @@ If applicable, add screenshots to help explain the problem.
 
 Add any other context about the problem here.
 EOF
-    log_success "Created default bug_report.md"
+    track_created ".github/ISSUE_TEMPLATE/bug_report.md"
+    log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/bug_report.md"
 fi
 
 # Feature request template
+if [[ -f "$GITHUB_DIR/ISSUE_TEMPLATE/feature_request.md" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$GITHUB_DIR/ISSUE_TEMPLATE/feature_request.md"
+    else
+        track_skipped "feature_request.md"
+        log_warning "feature_request.md already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md" ]]; then
     # Validate template before copying
     validate_issue_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md"
-    cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md" "$GITHUB_DIR/ISSUE_TEMPLATE/"
-    log_success "Copied feature_request.md"
+    if cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md" "$GITHUB_DIR/ISSUE_TEMPLATE/"; then
+        track_created ".github/ISSUE_TEMPLATE/feature_request.md"
+        log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/feature_request.md"
+    fi
 else
     log_info "Creating default feature_request.md..."
     cat > "$GITHUB_DIR/ISSUE_TEMPLATE/feature_request.md" << 'EOF'
@@ -313,15 +326,27 @@ A clear and concise description of any alternative solutions or features you've 
 
 Add any other context or screenshots about the feature request here.
 EOF
-    log_success "Created default feature_request.md"
+    track_created ".github/ISSUE_TEMPLATE/feature_request.md"
+    log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/feature_request.md"
 fi
 
 # Issue template config
+if [[ -f "$GITHUB_DIR/ISSUE_TEMPLATE/config.yml" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$GITHUB_DIR/ISSUE_TEMPLATE/config.yml"
+    else
+        track_skipped "ISSUE_TEMPLATE/config.yml"
+        log_warning "config.yml already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml" ]]; then
     # Validate config before copying
     validate_config_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml"
-    cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml" "$GITHUB_DIR/ISSUE_TEMPLATE/"
-    log_success "Copied config.yml"
+    if cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml" "$GITHUB_DIR/ISSUE_TEMPLATE/"; then
+        track_created ".github/ISSUE_TEMPLATE/config.yml"
+        log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/config.yml"
+    fi
 else
     log_info "Creating default config.yml..."
     cat > "$GITHUB_DIR/ISSUE_TEMPLATE/config.yml" << 'EOF'
@@ -334,7 +359,8 @@ contact_links:
     url: https://docs.example.com
     about: "Check our documentation for common questions"
 EOF
-    log_success "Created default config.yml"
+    track_created ".github/ISSUE_TEMPLATE/config.yml"
+    log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/config.yml"
 fi
 
 # ===================================================================
@@ -343,11 +369,22 @@ fi
 
 log_info "Setting up GitHub Actions workflows..."
 
+if [[ -f "$GITHUB_DIR/workflows/ci.yml" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$GITHUB_DIR/workflows/ci.yml"
+    else
+        track_skipped "workflows/ci.yml"
+        log_warning "ci.yml workflow already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_GITHUB/workflows/ci.yml" ]]; then
     # Validate workflow before copying
     validate_workflow_template "$TEMPLATE_GITHUB/workflows/ci.yml"
-    cp "$TEMPLATE_GITHUB/workflows/ci.yml" "$GITHUB_DIR/workflows/"
-    log_success "Copied ci.yml workflow"
+    if cp "$TEMPLATE_GITHUB/workflows/ci.yml" "$GITHUB_DIR/workflows/"; then
+        track_created ".github/workflows/ci.yml"
+        log_file_created "$SCRIPT_NAME" ".github/workflows/ci.yml"
+    fi
 else
     log_info "Creating default ci.yml workflow..."
     cat > "$GITHUB_DIR/workflows/ci.yml" << 'EOF'
@@ -405,7 +442,8 @@ jobs:
       - run: npm run build
         if: always()
 EOF
-    log_success "Created default ci.yml workflow"
+    track_created ".github/workflows/ci.yml"
+    log_file_created "$SCRIPT_NAME" ".github/workflows/ci.yml"
 fi
 
 # ===================================================================
@@ -477,34 +515,15 @@ validate_bootstrap() {
 # Summary & Next Steps
 # ===================================================================
 
-echo ""
-log_success "Bootstrap complete!"
-echo ""
-
 validate_bootstrap
 
-echo ""
-log_info "Bootstrap Summary:"
-echo "  Directory: $GITHUB_DIR"
-echo "  Structure:"
-echo "    ├── PULL_REQUEST_TEMPLATE.md"
-echo "    ├── ISSUE_TEMPLATE/"
-echo "    │   ├── bug_report.md"
-echo "    │   ├── feature_request.md"
-echo "    │   └── config.yml"
-echo "    └── workflows/"
-echo "        └── ci.yml"
-echo ""
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+show_summary
+show_log_location
 
 log_info "Next steps:"
-echo "  1. Customize Templates"
-echo "     - Edit PR template to match your process"
-echo "     - Update issue templates for your project"
-echo "     - Update config.yml links for your repository"
-echo "  2. Customize CI Workflow"
-echo "     - Edit .github/workflows/ci.yml for your tech stack"
-echo "     - Add deployment jobs if needed"
-echo "     - Configure branch protection rules"
-echo "  3. Commit to git:"
-echo "     git add .github/ && git commit -m 'Setup GitHub configuration'"
+echo "  1. Edit PR template to match your process"
+echo "  2. Update issue templates for your project"
+echo "  3. Edit .github/workflows/ci.yml for your tech stack"
+echo "  4. Commit: git add .github/ && git commit -m 'Setup GitHub configuration'"
 echo ""

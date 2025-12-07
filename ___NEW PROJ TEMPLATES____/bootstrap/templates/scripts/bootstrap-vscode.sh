@@ -8,41 +8,28 @@
 # and extensions configuration per official VS Code documentation
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
+# Source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
+
+# Initialize script
+init_script "bootstrap-vscode.sh"
+
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
 VSCODE_DIR="${PROJECT_ROOT}/.vscode"
-TEMPLATE_VSCODE="${TEMPLATE_DIR}/.vscode"
+TEMPLATE_VSCODE="${TEMPLATES_DIR}/.vscode"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# Script identifier
+SCRIPT_NAME="bootstrap-vscode"
 
-# ===================================================================
-# Utility Functions
-# ===================================================================
-
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
+# Pre-execution confirmation
+pre_execution_confirm "$SCRIPT_NAME" "VS Code Configuration" \
+    ".vscode/settings.json" ".vscode/extensions.json" \
+    ".vscode/tasks.json" ".vscode/launch.json"
 
 # ===================================================================
 # Template Validation Functions (Pre-Copy Validation)
@@ -168,11 +155,22 @@ log_success "Directory structure created"
 
 log_info "Setting up VS Code settings.json..."
 
+if [[ -f "$VSCODE_DIR/settings.json" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$VSCODE_DIR/settings.json"
+    else
+        track_skipped "settings.json"
+        log_warning "settings.json already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_VSCODE/settings.json" ]]; then
     # Validate template before copying
     validate_settings_template "$TEMPLATE_VSCODE/settings.json"
-    cp "$TEMPLATE_VSCODE/settings.json" "$VSCODE_DIR/"
-    log_success "Copied settings.json"
+    if cp "$TEMPLATE_VSCODE/settings.json" "$VSCODE_DIR/"; then
+        track_created ".vscode/settings.json"
+        log_file_created "$SCRIPT_NAME" ".vscode/settings.json"
+    fi
 else
     log_info "Creating default settings.json..."
     cat > "$VSCODE_DIR/settings.json" << 'EOF'
@@ -216,7 +214,8 @@ else
   "python.formatting.blackArgs": ["--line-length=100"]
 }
 EOF
-    log_success "Created default settings.json"
+    track_created ".vscode/settings.json"
+    log_file_created "$SCRIPT_NAME" ".vscode/settings.json"
 fi
 
 # ===================================================================
@@ -225,11 +224,22 @@ fi
 
 log_info "Setting up extensions.json..."
 
+if [[ -f "$VSCODE_DIR/extensions.json" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$VSCODE_DIR/extensions.json"
+    else
+        track_skipped "extensions.json"
+        log_warning "extensions.json already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_VSCODE/extensions.json" ]]; then
     # Validate template before copying
     validate_extensions_template "$TEMPLATE_VSCODE/extensions.json"
-    cp "$TEMPLATE_VSCODE/extensions.json" "$VSCODE_DIR/"
-    log_success "Copied extensions.json"
+    if cp "$TEMPLATE_VSCODE/extensions.json" "$VSCODE_DIR/"; then
+        track_created ".vscode/extensions.json"
+        log_file_created "$SCRIPT_NAME" ".vscode/extensions.json"
+    fi
 else
     log_info "Creating default extensions.json..."
     cat > "$VSCODE_DIR/extensions.json" << 'EOF'
@@ -248,7 +258,8 @@ else
   ]
 }
 EOF
-    log_success "Created default extensions.json"
+    track_created ".vscode/extensions.json"
+    log_file_created "$SCRIPT_NAME" ".vscode/extensions.json"
 fi
 
 # ===================================================================
@@ -257,11 +268,22 @@ fi
 
 log_info "Setting up tasks.json..."
 
+if [[ -f "$VSCODE_DIR/tasks.json" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$VSCODE_DIR/tasks.json"
+    else
+        track_skipped "tasks.json"
+        log_warning "tasks.json already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_VSCODE/tasks.json" ]]; then
     # Validate template before copying
     validate_tasks_template "$TEMPLATE_VSCODE/tasks.json"
-    cp "$TEMPLATE_VSCODE/tasks.json" "$VSCODE_DIR/"
-    log_success "Copied tasks.json"
+    if cp "$TEMPLATE_VSCODE/tasks.json" "$VSCODE_DIR/"; then
+        track_created ".vscode/tasks.json"
+        log_file_created "$SCRIPT_NAME" ".vscode/tasks.json"
+    fi
 else
     log_info "Creating default tasks.json..."
     cat > "$VSCODE_DIR/tasks.json" << 'EOF'
@@ -343,7 +365,8 @@ else
   ]
 }
 EOF
-    log_success "Created default tasks.json"
+    track_created ".vscode/tasks.json"
+    log_file_created "$SCRIPT_NAME" ".vscode/tasks.json"
 fi
 
 # ===================================================================
@@ -352,11 +375,22 @@ fi
 
 log_info "Setting up launch.json..."
 
+if [[ -f "$VSCODE_DIR/launch.json" ]]; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$VSCODE_DIR/launch.json"
+    else
+        track_skipped "launch.json"
+        log_warning "launch.json already exists, skipping"
+    fi
+fi
+
 if [[ -f "$TEMPLATE_VSCODE/launch.json" ]]; then
     # Validate template before copying
     validate_launch_template "$TEMPLATE_VSCODE/launch.json"
-    cp "$TEMPLATE_VSCODE/launch.json" "$VSCODE_DIR/"
-    log_success "Copied launch.json"
+    if cp "$TEMPLATE_VSCODE/launch.json" "$VSCODE_DIR/"; then
+        track_created ".vscode/launch.json"
+        log_file_created "$SCRIPT_NAME" ".vscode/launch.json"
+    fi
 else
     log_info "Creating default launch.json..."
     cat > "$VSCODE_DIR/launch.json" << 'EOF'
@@ -398,7 +432,8 @@ else
   "compounds": []
 }
 EOF
-    log_success "Created default launch.json"
+    track_created ".vscode/launch.json"
+    log_file_created "$SCRIPT_NAME" ".vscode/launch.json"
 fi
 
 # ===================================================================
@@ -506,39 +541,16 @@ validate_bootstrap() {
 # Summary & Next Steps
 # ===================================================================
 
-echo ""
-log_success "Bootstrap complete!"
-echo ""
-
 validate_bootstrap
 
-echo ""
-log_info "Bootstrap Summary:"
-echo "  Directory: $VSCODE_DIR"
-echo "  Structure:"
-echo "    ├── settings.json"
-echo "    ├── extensions.json"
-echo "    ├── tasks.json"
-echo "    └── launch.json"
-echo ""
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+show_summary
+show_log_location
 
 log_info "Next steps:"
-echo "  1. Customize Settings"
-echo "     - Edit .vscode/settings.json for your editor preferences"
-echo "     - Add language-specific settings as needed"
-echo "     - Configure formatter and linter preferences"
-echo "  2. Manage Extensions"
-echo "     - Update .vscode/extensions.json with team recommendations"
-echo "     - Remove extensions not needed for your project"
-echo "     - VS Code will prompt users to install recommended extensions"
-echo "  3. Configure Build Tasks"
-echo "     - Edit .vscode/tasks.json for your build/test commands"
-echo "     - Customize task labels and commands to match your scripts"
-echo "     - Add problem matchers for proper error detection"
-echo "  4. Set Up Debug Configurations"
-echo "     - Edit .vscode/launch.json for your runtime environments"
-echo "     - Add Python, Node.js, or other debugger configs as needed"
-echo "     - Test launch configurations with 'Run > Start Debugging'"
-echo "  5. Commit to git:"
-echo "     git add .vscode/ && git commit -m 'Setup VS Code configuration'"
+echo "  1. Customize .vscode/settings.json for your editor preferences"
+echo "  2. Update .vscode/extensions.json with team recommendations"
+echo "  3. Edit .vscode/tasks.json for your build/test commands"
+echo "  4. Configure .vscode/launch.json for debugging"
+echo "  5. Commit: git add .vscode/ && git commit -m 'Setup VS Code configuration'"
 echo ""

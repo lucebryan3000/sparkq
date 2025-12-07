@@ -1,0 +1,423 @@
+{
+  "version": "1.0.0",
+  "description": "Bootstrap system manifest - single source of truth for paths, libraries, scripts, templates, and technology metadata",
+  "generated": "2025-12-07T00:00:00Z",
+  "note": "This file is auto-maintained. Core sections [paths, libraries, scripts, templates] should be kept in sync with filesystem. Technology metadata is updated by bootstrap-kb-sync.sh during scans.",
+
+  "paths": {
+    "bootstrap_root": "___NEW PROJ TEMPLATES____/bootstrap",
+    "config_dir": "___NEW PROJ TEMPLATES____/bootstrap/config",
+    "config_file": "___NEW PROJ TEMPLATES____/bootstrap/config/bootstrap.config",
+    "lib_dir": "___NEW PROJ TEMPLATES____/bootstrap/lib",
+    "scripts_dir": "___NEW PROJ TEMPLATES____/bootstrap/scripts",
+    "templates_root": "___NEW PROJ TEMPLATES____/bootstrap/templates",
+    "templates_root_files": "___NEW PROJ TEMPLATES____/bootstrap/templates/root",
+    "templates_claude": "___NEW PROJ TEMPLATES____/bootstrap/templates/.claude",
+    "templates_vscode": "___NEW PROJ TEMPLATES____/bootstrap/templates/.vscode",
+    "templates_github": "___NEW PROJ TEMPLATES____/bootstrap/templates/.github",
+    "templates_devcontainer": "___NEW PROJ TEMPLATES____/bootstrap/templates/.devcontainer",
+    "templates_scripts": "___NEW PROJ TEMPLATES____/bootstrap/templates/scripts",
+    "kb_root": "___NEW PROJ TEMPLATES____/bootstrap/kb-bootstrap",
+    "logs_dir": "___NEW PROJ TEMPLATES____/bootstrap/logs",
+    "logs_kb_dir": "___NEW PROJ TEMPLATES____/bootstrap/logs/kb",
+    "kb_manifest_file": "___NEW PROJ TEMPLATES____/bootstrap/kb-bootstrap/kb-bootstrap-manifest.json",
+    "kb_scan_report": "___NEW PROJ TEMPLATES____/bootstrap/logs/kb/bootstrap-kb-scan.log"
+  },
+
+  "libraries": {
+    "paths.sh": {
+      "path": "lib/paths.sh",
+      "description": "Centralized path initialization - source this in all bootstrap scripts",
+      "exports": ["BOOTSTRAP_DIR", "MANIFEST_FILE", "CONFIG_FILE", "CONFIG_DIR", "LIB_DIR", "SCRIPTS_DIR", "TEMPLATES_DIR", "KB_ROOT", "LOGS_DIR", "LOGS_KB_DIR"],
+      "dependencies": [],
+      "critical": true
+    },
+    "config-manager.sh": {
+      "path": "lib/config-manager.sh",
+      "description": "Config file parsing and value management",
+      "exports": ["config_get", "config_set", "config_list"],
+      "dependencies": ["CONFIG_FILE must be set"],
+      "usage": "source \"${LIB_DIR}/config-manager.sh\""
+    },
+    "common.sh": {
+      "path": "lib/common.sh",
+      "description": "Common utilities and logging functions",
+      "exports": ["log_info", "log_error", "log_warn", "log_verbose"],
+      "dependencies": ["config-manager.sh", "LIB_DIR"],
+      "usage": "source \"${LIB_DIR}/common.sh\""
+    }
+  },
+
+  "scripts": {
+    "bootstrap-menu.sh": {
+      "path": "scripts/bootstrap-menu.sh",
+      "description": "Interactive menu launcher for bootstrap system",
+      "type": "menu",
+      "requires": ["lib/paths.sh", "lib/common.sh", "lib/config-manager.sh"],
+      "entry_point": true,
+      "usage": "./scripts/bootstrap-menu.sh"
+    },
+    "bootstrap-helper.sh": {
+      "path": "scripts/bootstrap-helper.sh",
+      "description": "Environment detection and health checks",
+      "type": "helper",
+      "requires": ["lib/paths.sh", "lib/config-manager.sh"],
+      "runs_on": "menu_launch",
+      "outputs": ["config/.helper-status"],
+      "usage": "./scripts/bootstrap-helper.sh [project_root]"
+    },
+    "bootstrap-kb-sync.sh": {
+      "path": "scripts/bootstrap-kb-sync.sh",
+      "description": "Phase 2: Knowledge base documentation scanner",
+      "type": "scanner",
+      "requires": ["lib/paths.sh", "lib/config-manager.sh"],
+      "outputs": ["logs/kb/bootstrap-kb-scan.log", "kb-bootstrap/kb-bootstrap-manifest.json"],
+      "usage": "./scripts/bootstrap-kb-sync.sh [--report-only] [--verbose]"
+    }
+  },
+
+  "templates": {
+    "root": {
+      "path": "templates/root",
+      "description": "Project root template files and directories",
+      "files": []
+    },
+    "claude": {
+      "path": "templates/.claude",
+      "description": "Claude Code configuration templates (.claudeignore, hooks, commands)",
+      "files": []
+    },
+    "vscode": {
+      "path": "templates/.vscode",
+      "description": "VSCode configuration templates (settings.json, extensions.json, launch.json)",
+      "files": []
+    },
+    "github": {
+      "path": "templates/.github",
+      "description": "GitHub configuration templates (workflows, issue templates, PR templates)",
+      "files": []
+    },
+    "devcontainer": {
+      "path": "templates/.devcontainer",
+      "description": "Dev container configuration templates",
+      "files": []
+    },
+    "scripts": {
+      "path": "templates/scripts",
+      "description": "Additional bootstrap script templates for project phases",
+      "files": []
+    }
+  },
+
+  "kb_scan": {
+    "report_file": "logs/kb/bootstrap-kb-scan.log",
+    "manifest_file": "kb-bootstrap/kb-bootstrap-manifest.json",
+    "description": "Knowledge base scanning configuration",
+    "scan_options": {
+      "doc_extensions": ["md", "txt", "json"],
+      "doc_threshold_documented": 5,
+      "doc_threshold_partial": 1
+    },
+    "usage": "Run: ./scripts/bootstrap-kb-sync.sh to scan kb-bootstrap/ and update status"
+  },
+
+  "summary": {
+    "totalTechnologies": 36,
+    "documented": 1,
+    "partial": 0,
+    "missing": 35,
+    "lastScanned": "2025-12-07T00:00:00Z"
+  },
+
+  "technologies": {
+    "babel": {
+      "name": "Babel",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://babeljs.io/docs/",
+      "priority": "high",
+      "category": "build-tool"
+    },
+    "claude": {
+      "name": "Claude Code",
+      "status": "documented",
+      "docs_count": 5,
+      "source_url": "https://code.claude.com/docs",
+      "priority": "high",
+      "category": "ai-tool",
+      "last_fetched": "2025-12-07"
+    },
+    "claudeignore": {
+      "name": "Claude Ignore Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://code.claude.com/docs",
+      "priority": "medium",
+      "category": "configuration"
+    },
+    "codex": {
+      "name": "Anthropic Codex",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://github.com/anthropics/anthropic-sdk-python",
+      "priority": "medium",
+      "category": "ai-tool"
+    },
+    "coverage": {
+      "name": "Code Coverage",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://coverage.readthedocs.io/",
+      "priority": "medium",
+      "category": "testing"
+    },
+    "coveragerc": {
+      "name": "Coverage Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://coverage.readthedocs.io/",
+      "priority": "low",
+      "category": "configuration"
+    },
+    "direnv": {
+      "name": "Direnv",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://direnv.net/",
+      "priority": "medium",
+      "category": "environment"
+    },
+    "docker": {
+      "name": "Docker",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://docs.docker.com/",
+      "priority": "high",
+      "category": "devops"
+    },
+    "docker-compose": {
+      "name": "Docker Compose",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://docs.docker.com/compose/",
+      "priority": "high",
+      "category": "devops"
+    },
+    "dockerignore": {
+      "name": "Docker Ignore",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://docs.docker.com/",
+      "priority": "low",
+      "category": "configuration"
+    },
+    "docs": {
+      "name": "Documentation",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://www.writethedocs.org/",
+      "priority": "medium",
+      "category": "documentation"
+    },
+    "editor": {
+      "name": "Editor Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://code.visualstudio.com/docs",
+      "priority": "low",
+      "category": "tooling"
+    },
+    "editorconfig": {
+      "name": "EditorConfig",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://editorconfig.org/",
+      "priority": "low",
+      "category": "configuration"
+    },
+    "environment": {
+      "name": "Environment Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html",
+      "priority": "medium",
+      "category": "environment"
+    },
+    "eslint": {
+      "name": "ESLint",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://eslint.org/docs/latest/",
+      "priority": "high",
+      "category": "linting"
+    },
+    "git": {
+      "name": "Git",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://git-scm.com/doc",
+      "priority": "high",
+      "category": "vcs"
+    },
+    "gitattributes": {
+      "name": "Git Attributes",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://git-scm.com/docs/gitattributes",
+      "priority": "low",
+      "category": "configuration"
+    },
+    "github": {
+      "name": "GitHub",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://docs.github.com/",
+      "priority": "high",
+      "category": "vcs"
+    },
+    "gitignore": {
+      "name": "Git Ignore",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://git-scm.com/docs/gitignore",
+      "priority": "medium",
+      "category": "configuration"
+    },
+    "jest": {
+      "name": "Jest",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://jestjs.io/docs/getting-started",
+      "priority": "high",
+      "category": "testing"
+    },
+    "linting": {
+      "name": "Linting",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://eslint.org/docs/latest/",
+      "priority": "high",
+      "category": "code-quality"
+    },
+    "next": {
+      "name": "Next.js",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://nextjs.org/docs/",
+      "priority": "high",
+      "category": "framework"
+    },
+    "nvm": {
+      "name": "Node Version Manager",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://github.com/nvm-sh/nvm#readme",
+      "priority": "medium",
+      "category": "environment"
+    },
+    "nvmrc": {
+      "name": "NVM Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://github.com/nvm-sh/nvm#readme",
+      "priority": "low",
+      "category": "configuration"
+    },
+    "packages": {
+      "name": "Package Management",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://docs.npmjs.com/",
+      "priority": "high",
+      "category": "tooling"
+    },
+    "prettier": {
+      "name": "Prettier",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://prettier.io/docs/en/",
+      "priority": "high",
+      "category": "formatting"
+    },
+    "prompts": {
+      "name": "Prompts",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://en.wikipedia.org/wiki/Prompt_engineering",
+      "priority": "medium",
+      "category": "ai-tool"
+    },
+    "pytest": {
+      "name": "pytest",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://docs.pytest.org/",
+      "priority": "high",
+      "category": "testing"
+    },
+    "rollup": {
+      "name": "Rollup",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://rollupjs.org/guide/en/",
+      "priority": "medium",
+      "category": "build-tool"
+    },
+    "stylelint": {
+      "name": "Stylelint",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://stylelint.io/user-guide/",
+      "priority": "high",
+      "category": "linting"
+    },
+    "testing": {
+      "name": "Testing",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://jestjs.io/docs/getting-started",
+      "priority": "high",
+      "category": "testing"
+    },
+    "tool-versions": {
+      "name": "asdf Tool Versions",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://asdf-vm.com/guide/introduction.html",
+      "priority": "low",
+      "category": "configuration"
+    },
+    "typescript": {
+      "name": "TypeScript",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://www.typescriptlang.org/docs/",
+      "priority": "high",
+      "category": "language"
+    },
+    "vite": {
+      "name": "Vite",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://vitejs.dev/guide/",
+      "priority": "high",
+      "category": "build-tool"
+    },
+    "vscode": {
+      "name": "Visual Studio Code",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://code.visualstudio.com/docs",
+      "priority": "high",
+      "category": "editor"
+    },
+    "webpack": {
+      "name": "Webpack",
+      "status": "missing",
+      "docs_count": 0,
+      "source_url": "https://webpack.js.org/concepts/",
+      "priority": "high",
+      "category": "build-tool"
+    }
+  }
+}

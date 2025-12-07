@@ -15,7 +15,7 @@ set -euo pipefail
 
 # Get script directory and bootstrap root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 # Source common library
 source "${BOOTSTRAP_DIR}/lib/common.sh"
@@ -51,7 +51,7 @@ require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_
 is_writable "$PROJECT_ROOT" || log_fatal "Project directory not writable: $PROJECT_ROOT"
 
 # Warn if jq not available (optional tool)
-if ! command -v jq &>/dev/null; then
+if ! has_jq; then
     track_warning "jq not installed - JSON validation will be skipped"
     log_warning "jq not installed - JSON validation will be skipped"
     log_info "Install with: sudo apt install jq (or brew install jq)"
@@ -126,7 +126,7 @@ EOFTSCONFIG
         log_file_created "$SCRIPT_NAME" "tsconfig.json"
 
         # Validate JSON if jq available
-        if command -v jq &>/dev/null; then
+        if has_jq; then
             source "${LIB_DIR}/json-validator.sh"
             if validate_json_file "$PROJECT_ROOT/tsconfig.json" > /dev/null 2>&1; then
                 log_success "JSON syntax validated"

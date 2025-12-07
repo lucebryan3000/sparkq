@@ -1,0 +1,382 @@
+{
+  "name": "Knowledge Base Bootstrap Documentation",
+  "version": "1.0.0",
+  "description": "Central manifest for all technology documentation in kb-bootstrap/",
+  "lastScanned": "2025-12-07T00:00:00Z",
+  "lastUpdated": "2025-12-07T00:00:00Z",
+  "summary": {
+    "totalTechnologies": 36,
+    "documented": 1,
+    "partial": 0,
+    "missing": 35
+  },
+  "technologies": {
+    "babel": {
+      "name": "Babel",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://babeljs.io/docs/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "build-tool"
+    },
+    "claude": {
+      "name": "Claude Code",
+      "status": "documented",
+      "docs_count": 5,
+      "has_manifest": true,
+      "source_url": "https://code.claude.com/docs",
+      "docs_available": [
+        "README.md",
+        "quickstart.md",
+        "cli-reference.md",
+        "slash-commands.md",
+        "MANIFEST.json"
+      ],
+      "priority": "high",
+      "category": "ai-tool",
+      "last_fetched": "2025-12-07"
+    },
+    "claudeignore": {
+      "name": "Claude Ignore Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://code.claude.com/docs",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "configuration"
+    },
+    "codex": {
+      "name": "Anthropic Codex",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://github.com/anthropics/anthropic-sdk-python",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "ai-tool"
+    },
+    "coverage": {
+      "name": "Code Coverage",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://coverage.readthedocs.io/",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "testing"
+    },
+    "coveragerc": {
+      "name": "Coverage Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://coverage.readthedocs.io/",
+      "docs_available": [],
+      "priority": "low",
+      "category": "configuration"
+    },
+    "direnv": {
+      "name": "Direnv",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://direnv.net/",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "environment"
+    },
+    "docker": {
+      "name": "Docker",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://docs.docker.com/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "devops"
+    },
+    "docker-compose": {
+      "name": "Docker Compose",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://docs.docker.com/compose/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "devops"
+    },
+    "dockerignore": {
+      "name": "Docker Ignore",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://docs.docker.com/",
+      "docs_available": [],
+      "priority": "low",
+      "category": "configuration"
+    },
+    "docs": {
+      "name": "Documentation",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://www.writethedocs.org/",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "documentation"
+    },
+    "editor": {
+      "name": "Editor Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://code.visualstudio.com/docs",
+      "docs_available": [],
+      "priority": "low",
+      "category": "tooling"
+    },
+    "editorconfig": {
+      "name": "EditorConfig",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://editorconfig.org/",
+      "docs_available": [],
+      "priority": "low",
+      "category": "configuration"
+    },
+    "environment": {
+      "name": "Environment Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "environment"
+    },
+    "eslint": {
+      "name": "ESLint",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://eslint.org/docs/latest/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "linting"
+    },
+    "git": {
+      "name": "Git",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://git-scm.com/doc",
+      "docs_available": [],
+      "priority": "high",
+      "category": "vcs"
+    },
+    "gitattributes": {
+      "name": "Git Attributes",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://git-scm.com/docs/gitattributes",
+      "docs_available": [],
+      "priority": "low",
+      "category": "configuration"
+    },
+    "github": {
+      "name": "GitHub",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://docs.github.com/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "vcs"
+    },
+    "gitignore": {
+      "name": "Git Ignore",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://git-scm.com/docs/gitignore",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "configuration"
+    },
+    "jest": {
+      "name": "Jest",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://jestjs.io/docs/getting-started",
+      "docs_available": [],
+      "priority": "high",
+      "category": "testing"
+    },
+    "linting": {
+      "name": "Linting",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://eslint.org/docs/latest/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "code-quality"
+    },
+    "next": {
+      "name": "Next.js",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://nextjs.org/docs/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "framework"
+    },
+    "nvm": {
+      "name": "Node Version Manager",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://github.com/nvm-sh/nvm#readme",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "environment"
+    },
+    "nvmrc": {
+      "name": "NVM Configuration",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://github.com/nvm-sh/nvm#readme",
+      "docs_available": [],
+      "priority": "low",
+      "category": "configuration"
+    },
+    "packages": {
+      "name": "Package Management",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://docs.npmjs.com/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "tooling"
+    },
+    "prettier": {
+      "name": "Prettier",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://prettier.io/docs/en/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "formatting"
+    },
+    "prompts": {
+      "name": "Prompts",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://en.wikipedia.org/wiki/Prompt_engineering",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "ai-tool"
+    },
+    "pytest": {
+      "name": "pytest",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://docs.pytest.org/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "testing"
+    },
+    "rollup": {
+      "name": "Rollup",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://rollupjs.org/guide/en/",
+      "docs_available": [],
+      "priority": "medium",
+      "category": "build-tool"
+    },
+    "stylelint": {
+      "name": "Stylelint",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://stylelint.io/user-guide/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "linting"
+    },
+    "testing": {
+      "name": "Testing",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://jestjs.io/docs/getting-started",
+      "docs_available": [],
+      "priority": "high",
+      "category": "testing"
+    },
+    "tool-versions": {
+      "name": "asdf Tool Versions",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://asdf-vm.com/guide/introduction.html",
+      "docs_available": [],
+      "priority": "low",
+      "category": "configuration"
+    },
+    "typescript": {
+      "name": "TypeScript",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://www.typescriptlang.org/docs/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "language"
+    },
+    "vite": {
+      "name": "Vite",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://vitejs.dev/guide/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "build-tool"
+    },
+    "vscode": {
+      "name": "Visual Studio Code",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://code.visualstudio.com/docs",
+      "docs_available": [],
+      "priority": "high",
+      "category": "editor"
+    },
+    "webpack": {
+      "name": "Webpack",
+      "status": "missing",
+      "docs_count": 0,
+      "has_manifest": false,
+      "source_url": "https://webpack.js.org/concepts/",
+      "docs_available": [],
+      "priority": "high",
+      "category": "build-tool"
+    }
+  }
+}

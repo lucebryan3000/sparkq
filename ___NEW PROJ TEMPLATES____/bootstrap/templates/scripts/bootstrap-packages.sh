@@ -11,7 +11,7 @@ set -e
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 TEMPLATE_DIR="${BOOTSTRAP_DIR}/templates"
 PROJECT_ROOT="${1:-.}"
 

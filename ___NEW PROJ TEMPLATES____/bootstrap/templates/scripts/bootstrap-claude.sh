@@ -12,7 +12,7 @@ set -euo pipefail
 
 # Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${BOOTSTRAP_DIR}/lib/common.sh"
 
 # Initialize script

@@ -24,13 +24,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 
-# Source libraries
-source "${BOOTSTRAP_DIR}/lib/common.sh"
-source "${BOOTSTRAP_DIR}/lib/config-manager.sh"
+# Source lib/paths.sh first to initialize all paths
+source "${BOOTSTRAP_DIR}/lib/paths.sh" || exit 1
 
-# Configuration file
-BOOTSTRAP_CONFIG="${BOOTSTRAP_DIR}/config/bootstrap.config"
-STATUS_FILE="${BOOTSTRAP_DIR}/config/.helper-status"
+# Implementation scripts directory (now using TEMPLATES_SCRIPTS from paths.sh)
+IMPL_SCRIPTS_DIR="${TEMPLATES_SCRIPTS}"
+
+# Source libraries (all path vars now available from lib/paths.sh)
+source "${LIB_DIR}/common.sh" || exit 1
+source "${LIB_DIR}/config-manager.sh" || exit 1
+
+# Status file uses CONFIG_DIR from paths.sh
+STATUS_FILE="${CONFIG_DIR}/.helper-status"
 ANSWERS_FILE=".bootstrap-answers.env"
 
 # ===================================================================
@@ -262,12 +267,12 @@ to_script_name() {
 # ===================================================================
 script_exists() {
     local script="$1"
-    [[ -f "${SCRIPT_DIR}/${script}" ]]
+    [[ -f "${IMPL_SCRIPTS_DIR}/${script}" ]]
 }
 
 run_script() {
     local script="$1"
-    local script_path="${SCRIPT_DIR}/${script}"
+    local script_path="${IMPL_SCRIPTS_DIR}/${script}"
 
     if [[ ! -f "$script_path" ]]; then
         log_warning "Script not found: $script"

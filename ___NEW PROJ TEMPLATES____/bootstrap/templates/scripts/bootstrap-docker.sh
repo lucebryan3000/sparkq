@@ -7,91 +7,37 @@
 # Creates docker-compose.yml, Dockerfile, and .dockerignore
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
+# Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TEMPLATE_DIR="${BOOTSTRAP_DIR}/templates"
-PROJECT_ROOT="${1:-.}"
-TEMPLATE_ROOT="${TEMPLATE_DIR}/root"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-# Source libraries
+# Initialize script
+init_script "bootstrap-docker.sh"
+
+# Source additional libraries
 source "${BOOTSTRAP_DIR}/lib/template-utils.sh"
 source "${BOOTSTRAP_DIR}/lib/validation-common.sh"
 source "${BOOTSTRAP_DIR}/lib/config-manager.sh"
 
-# Answers file
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+TEMPLATE_ROOT="${TEMPLATES_DIR}/root"
+
+# Script identifier and answers file
+SCRIPT_NAME="bootstrap-docker"
 ANSWERS_FILE=".bootstrap-answers.env"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
 # ===================================================================
-# Utility Functions
+# Pre-Execution Confirmation
 # ===================================================================
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
-
-# Backup existing file
-backup_file() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        local backup="${file}.backup.$(date +%s)"
-        if cp "$file" "$backup"; then
-            log_warning "Backed up existing file to: $(basename "$backup")"
-            return 0
-        else
-            log_error "Failed to backup existing file: $file"
-        fi
-    fi
-    return 1
-}
-
-# Verify file creation
-verify_file() {
-    local file="$1"
-    if [[ ! -f "$file" ]]; then
-        log_error "Failed to create file: $file"
-    elif [[ ! -r "$file" ]]; then
-        log_error "Created file but it's not readable: $file"
-    else
-        log_success "File created and verified: $file"
-        return 0
-    fi
-    return 1
-}
-
-# Cleanup on exit
-cleanup_on_error() {
-    local exit_code=$?
-    if [[ $exit_code -ne 0 ]]; then
-        log_error "Bootstrap script failed with exit code $exit_code"
-        log_info "Check the output above for details"
-    fi
-    return $exit_code
-}
-
-trap cleanup_on_error EXIT
+pre_execution_confirm "$SCRIPT_NAME" "Docker Configuration" \
+    "docker-compose.yml" \
+    "Dockerfile" \
+    ".dockerignore"
 
 # ===================================================================
 # Template Validation Functions (Pre-Copy Validation)
@@ -187,20 +133,14 @@ validate_dockerignore_template() {
 
 log_info "Bootstrapping Docker configuration..."
 
-# Verify project directory exists
-if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
-fi
-
-# Verify project directory is writable
-if [[ ! -w "$PROJECT_ROOT" ]]; then
-    log_error "Project directory is not writable: $PROJECT_ROOT"
-fi
+require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_ROOT"
+is_writable "$PROJECT_ROOT" || log_fatal "Project directory not writable: $PROJECT_ROOT"
 
 # Check if Docker is installed (informational only)
-if command -v docker &> /dev/null; then
+if require_command "docker" 2>/dev/null; then
     log_success "Docker is installed: $(docker --version)"
 else
+    track_warning "Docker is not installed (required to run containers)"
     log_warning "Docker is not installed (required for docker-compose to run)"
 fi
 
@@ -211,23 +151,27 @@ fi
 log_info "Creating docker-compose.yml..."
 
 # Check if docker-compose.yml already exists
-if [[ -f "$PROJECT_ROOT/docker-compose.yml" ]]; then
-    log_warning "docker-compose.yml already exists"
-    backup_file "$PROJECT_ROOT/docker-compose.yml" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+if file_exists "$PROJECT_ROOT/docker-compose.yml"; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/docker-compose.yml"
+    else
+        track_skipped "docker-compose.yml"
+        log_warning "docker-compose.yml already exists, skipping"
+    fi
 fi
 
-if [[ -f "$TEMPLATE_ROOT/docker-compose.yml" ]]; then
-    # Validate template before copying
+if file_exists "$TEMPLATE_ROOT/docker-compose.yml"; then
     validate_docker_compose_template "$TEMPLATE_ROOT/docker-compose.yml"
-
     if cp "$TEMPLATE_ROOT/docker-compose.yml" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/docker-compose.yml" || log_error "Failed to verify docker-compose.yml"
+        if verify_file "$PROJECT_ROOT/docker-compose.yml"; then
+            track_created "docker-compose.yml"
+            log_file_created "$SCRIPT_NAME" "docker-compose.yml"
+        fi
     else
-        log_error "Failed to copy docker-compose.yml"
+        log_fatal "Failed to copy docker-compose.yml"
     fi
 else
+    track_warning "docker-compose.yml template not found"
     log_warning "docker-compose.yml template not found in $TEMPLATE_ROOT"
 fi
 
@@ -238,23 +182,27 @@ fi
 log_info "Creating Dockerfile..."
 
 # Check if Dockerfile already exists
-if [[ -f "$PROJECT_ROOT/Dockerfile" ]]; then
-    log_warning "Dockerfile already exists"
-    backup_file "$PROJECT_ROOT/Dockerfile" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+if file_exists "$PROJECT_ROOT/Dockerfile"; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/Dockerfile"
+    else
+        track_skipped "Dockerfile"
+        log_warning "Dockerfile already exists, skipping"
+    fi
 fi
 
-if [[ -f "$TEMPLATE_ROOT/Dockerfile" ]]; then
-    # Validate template before copying
+if file_exists "$TEMPLATE_ROOT/Dockerfile"; then
     validate_dockerfile_template "$TEMPLATE_ROOT/Dockerfile"
-
     if cp "$TEMPLATE_ROOT/Dockerfile" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/Dockerfile" || log_error "Failed to verify Dockerfile"
+        if verify_file "$PROJECT_ROOT/Dockerfile"; then
+            track_created "Dockerfile"
+            log_file_created "$SCRIPT_NAME" "Dockerfile"
+        fi
     else
-        log_error "Failed to copy Dockerfile"
+        log_fatal "Failed to copy Dockerfile"
     fi
 else
+    track_warning "Dockerfile template not found"
     log_warning "Dockerfile template not found in $TEMPLATE_ROOT"
 fi
 
@@ -265,23 +213,27 @@ fi
 log_info "Creating .dockerignore..."
 
 # Check if .dockerignore already exists
-if [[ -f "$PROJECT_ROOT/.dockerignore" ]]; then
-    log_warning ".dockerignore already exists"
-    backup_file "$PROJECT_ROOT/.dockerignore" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+if file_exists "$PROJECT_ROOT/.dockerignore"; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.dockerignore"
+    else
+        track_skipped ".dockerignore"
+        log_warning ".dockerignore already exists, skipping"
+    fi
 fi
 
-if [[ -f "$TEMPLATE_ROOT/.dockerignore" ]]; then
-    # Validate template before copying
+if file_exists "$TEMPLATE_ROOT/.dockerignore"; then
     validate_dockerignore_template "$TEMPLATE_ROOT/.dockerignore"
-
     if cp "$TEMPLATE_ROOT/.dockerignore" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/.dockerignore" || log_error "Failed to verify .dockerignore"
+        if verify_file "$PROJECT_ROOT/.dockerignore"; then
+            track_created ".dockerignore"
+            log_file_created "$SCRIPT_NAME" ".dockerignore"
+        fi
     else
-        log_error "Failed to copy .dockerignore"
+        log_fatal "Failed to copy .dockerignore"
     fi
 else
+    track_warning ".dockerignore template not found"
     log_warning ".dockerignore template not found in $TEMPLATE_ROOT"
 fi
 
@@ -434,51 +386,22 @@ fi
 # Summary & Next Steps
 # ===================================================================
 
-echo ""
-log_success "Bootstrap complete!"
-echo ""
-
 validate_bootstrap
 
-echo ""
-log_info "Bootstrap Summary:"
-echo "  Files:"
-echo "    ├── docker-compose.yml"
-echo "    ├── Dockerfile"
-echo "    └── .dockerignore"
-echo ""
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+show_summary
+show_log_location
 
 log_info "Next steps:"
 if [[ -f "$ANSWERS_FILE" ]]; then
-    echo "  ✓ docker-compose.yml and .env.local have been customized"
-    echo "  1. Add Database Init Scripts (optional)"
-    echo "     - Create scripts/init-db.sql for database init"
-    echo "  2. Build and Start Services"
-    echo "     - Run: docker-compose build"
-    echo "     - Run: docker-compose up"
-    echo "  3. Verify Services"
-    echo "     - Check database: docker-compose exec db psql (or mysql/mongo)"
-    echo "     - Check app: docker-compose logs app"
-    echo "  4. Commit to git:"
-    echo "     git add docker-compose.yml Dockerfile .dockerignore .env.local"
-    echo "     git commit -m 'Setup Docker configuration'"
+    echo "  ✓ docker-compose.yml customized with your configuration"
+    echo "  1. Build and start: docker-compose build && docker-compose up"
+    echo "  2. Verify: docker-compose logs"
+    echo "  3. Commit: git add docker-compose.yml Dockerfile .dockerignore"
 else
-    echo "  1. Customize Configuration"
-    echo "     - Edit docker-compose.yml for your services"
-    echo "     - Update database, cache, and app configurations"
-    echo "     - Set environment variables in .env.local"
-    echo "  2. Add Database Init Scripts"
-    echo "     - Create scripts/init-db.sql for PostgreSQL init"
-    echo "     - Update docker-compose.yml to reference it"
-    echo "  3. Build and Start Services"
-    echo "     - Run: docker-compose build"
-    echo "     - Run: docker-compose up"
-    echo "  4. Verify Services"
-    echo "     - Check database: docker-compose exec db psql"
-    echo "     - Check app: docker-compose logs app"
-    echo "  5. Commit to git:"
-    echo "     git add docker-compose.yml Dockerfile .dockerignore"
-    echo "     git commit -m 'Setup Docker configuration'"
-    echo "  Tip: Run with --interactive mode for automatic customization"
+    echo "  1. Edit docker-compose.yml for your services"
+    echo "  2. Build and start: docker-compose build && docker-compose up"
+    echo "  3. Verify: docker-compose logs"
+    echo "  4. Commit: git add docker-compose.yml Dockerfile .dockerignore"
 fi
 echo ""

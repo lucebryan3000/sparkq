@@ -7,81 +7,30 @@
 # Creates .eslintrc.json, .prettierrc.json, and ignore files
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
-TEMPLATE_ROOT="${TEMPLATE_DIR}/root"
+# Source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Initialize script
+init_script "bootstrap-linting.sh"
+
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+TEMPLATE_ROOT="${TEMPLATES_DIR}/root"
+
+# Script identifier
+SCRIPT_NAME="bootstrap-linting"
 
 # ===================================================================
-# Utility Functions
+# Pre-Execution Confirmation
 # ===================================================================
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
-
-# Backup existing file
-backup_file() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        local backup="${file}.backup.$(date +%s)"
-        if cp "$file" "$backup"; then
-            log_warning "Backed up existing file to: $(basename "$backup")"
-            return 0
-        else
-            log_error "Failed to backup existing file: $file"
-        fi
-    fi
-    return 1
-}
-
-# Verify file creation
-verify_file() {
-    local file="$1"
-    if [[ ! -f "$file" ]]; then
-        log_error "Failed to create file: $file"
-    elif [[ ! -r "$file" ]]; then
-        log_error "Created file but it's not readable: $file"
-    else
-        log_success "File created and verified: $file"
-        return 0
-    fi
-    return 1
-}
-
-# Cleanup on exit
-cleanup_on_error() {
-    local exit_code=$?
-    if [[ $exit_code -ne 0 ]]; then
-        log_error "Bootstrap script failed with exit code $exit_code"
-        log_info "Check the output above for details"
-    fi
-    return $exit_code
-}
-
-trap cleanup_on_error EXIT
+pre_execution_confirm "$SCRIPT_NAME" "Linting Configuration" \
+    ".eslintrc.json" ".eslintignore" \
+    ".prettierrc.json" ".prettierignore"
 
 # ===================================================================
 # Template Validation Functions (Pre-Copy Validation)
@@ -165,15 +114,8 @@ validate_ignore_template() {
 
 log_info "Bootstrapping linting configuration..."
 
-# Verify project directory exists
-if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
-fi
-
-# Verify project directory is writable
-if [[ ! -w "$PROJECT_ROOT" ]]; then
-    log_error "Project directory is not writable: $PROJECT_ROOT"
-fi
+require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_ROOT"
+is_writable "$PROJECT_ROOT" || log_fatal "Project directory not writable: $PROJECT_ROOT"
 
 # ===================================================================
 # Create .eslintrc.json
@@ -181,23 +123,27 @@ fi
 
 log_info "Creating .eslintrc.json..."
 
-if [[ -f "$PROJECT_ROOT/.eslintrc.json" ]]; then
-    log_warning ".eslintrc.json already exists"
-    backup_file "$PROJECT_ROOT/.eslintrc.json" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+if file_exists "$PROJECT_ROOT/.eslintrc.json"; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.eslintrc.json"
+    else
+        track_skipped ".eslintrc.json"
+        log_warning ".eslintrc.json already exists, skipping"
+    fi
 fi
 
-if [[ -f "$TEMPLATE_ROOT/.eslintrc.json" ]]; then
-    # Validate template before copying
+if file_exists "$TEMPLATE_ROOT/.eslintrc.json"; then
     validate_eslint_template "$TEMPLATE_ROOT/.eslintrc.json"
-
     if cp "$TEMPLATE_ROOT/.eslintrc.json" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/.eslintrc.json" || log_error "Failed to verify .eslintrc.json"
+        if verify_file "$PROJECT_ROOT/.eslintrc.json"; then
+            track_created ".eslintrc.json"
+            log_file_created "$SCRIPT_NAME" ".eslintrc.json"
+        fi
     else
-        log_error "Failed to copy .eslintrc.json"
+        log_fatal "Failed to copy .eslintrc.json"
     fi
 else
+    track_warning ".eslintrc.json template not found"
     log_warning ".eslintrc.json template not found in $TEMPLATE_ROOT"
 fi
 
@@ -207,23 +153,27 @@ fi
 
 log_info "Creating .eslintignore..."
 
-if [[ -f "$PROJECT_ROOT/.eslintignore" ]]; then
-    log_warning ".eslintignore already exists"
-    backup_file "$PROJECT_ROOT/.eslintignore" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+if file_exists "$PROJECT_ROOT/.eslintignore"; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.eslintignore"
+    else
+        track_skipped ".eslintignore"
+        log_warning ".eslintignore already exists, skipping"
+    fi
 fi
 
-if [[ -f "$TEMPLATE_ROOT/.eslintignore" ]]; then
-    # Validate template before copying
+if file_exists "$TEMPLATE_ROOT/.eslintignore"; then
     validate_ignore_template "$TEMPLATE_ROOT/.eslintignore"
-
     if cp "$TEMPLATE_ROOT/.eslintignore" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/.eslintignore" || log_error "Failed to verify .eslintignore"
+        if verify_file "$PROJECT_ROOT/.eslintignore"; then
+            track_created ".eslintignore"
+            log_file_created "$SCRIPT_NAME" ".eslintignore"
+        fi
     else
-        log_error "Failed to copy .eslintignore"
+        log_fatal "Failed to copy .eslintignore"
     fi
 else
+    track_warning ".eslintignore template not found"
     log_warning ".eslintignore template not found in $TEMPLATE_ROOT"
 fi
 
@@ -233,23 +183,27 @@ fi
 
 log_info "Creating .prettierrc.json..."
 
-if [[ -f "$PROJECT_ROOT/.prettierrc.json" ]]; then
-    log_warning ".prettierrc.json already exists"
-    backup_file "$PROJECT_ROOT/.prettierrc.json" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+if file_exists "$PROJECT_ROOT/.prettierrc.json"; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.prettierrc.json"
+    else
+        track_skipped ".prettierrc.json"
+        log_warning ".prettierrc.json already exists, skipping"
+    fi
 fi
 
-if [[ -f "$TEMPLATE_ROOT/.prettierrc.json" ]]; then
-    # Validate template before copying
+if file_exists "$TEMPLATE_ROOT/.prettierrc.json"; then
     validate_prettier_template "$TEMPLATE_ROOT/.prettierrc.json"
-
     if cp "$TEMPLATE_ROOT/.prettierrc.json" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/.prettierrc.json" || log_error "Failed to verify .prettierrc.json"
+        if verify_file "$PROJECT_ROOT/.prettierrc.json"; then
+            track_created ".prettierrc.json"
+            log_file_created "$SCRIPT_NAME" ".prettierrc.json"
+        fi
     else
-        log_error "Failed to copy .prettierrc.json"
+        log_fatal "Failed to copy .prettierrc.json"
     fi
 else
+    track_warning ".prettierrc.json template not found"
     log_warning ".prettierrc.json template not found in $TEMPLATE_ROOT"
 fi
 
@@ -259,23 +213,27 @@ fi
 
 log_info "Creating .prettierignore..."
 
-if [[ -f "$PROJECT_ROOT/.prettierignore" ]]; then
-    log_warning ".prettierignore already exists"
-    backup_file "$PROJECT_ROOT/.prettierignore" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+if file_exists "$PROJECT_ROOT/.prettierignore"; then
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.prettierignore"
+    else
+        track_skipped ".prettierignore"
+        log_warning ".prettierignore already exists, skipping"
+    fi
 fi
 
-if [[ -f "$TEMPLATE_ROOT/.prettierignore" ]]; then
-    # Validate template before copying
+if file_exists "$TEMPLATE_ROOT/.prettierignore"; then
     validate_ignore_template "$TEMPLATE_ROOT/.prettierignore"
-
     if cp "$TEMPLATE_ROOT/.prettierignore" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/.prettierignore" || log_error "Failed to verify .prettierignore"
+        if verify_file "$PROJECT_ROOT/.prettierignore"; then
+            track_created ".prettierignore"
+            log_file_created "$SCRIPT_NAME" ".prettierignore"
+        fi
     else
-        log_error "Failed to copy .prettierignore"
+        log_fatal "Failed to copy .prettierignore"
     fi
 else
+    track_warning ".prettierignore template not found"
     log_warning ".prettierignore template not found in $TEMPLATE_ROOT"
 fi
 
@@ -356,39 +314,15 @@ validate_bootstrap() {
 # Summary & Next Steps
 # ===================================================================
 
-echo ""
-log_success "Bootstrap complete!"
-echo ""
-
 validate_bootstrap
 
-echo ""
-log_info "Bootstrap Summary:"
-echo "  Files:"
-echo "    ├── .eslintrc.json       (ESLint rules)"
-echo "    ├── .eslintignore       (ESLint exclusions)"
-echo "    ├── .prettierrc.json    (Prettier formatting)"
-echo "    └── .prettierignore     (Prettier exclusions)"
-echo ""
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+show_summary
+show_log_location
 
 log_info "Next steps:"
-echo "  1. Install Linting Tools"
-echo "     - Run: npm install --save-dev eslint prettier"
-echo "     - Run: npm install --save-dev @typescript-eslint/eslint-plugin"
-echo "     - Run: npm install --save-dev eslint-config-prettier"
-echo "  2. Customize Rules"
-echo "     - Edit .eslintrc.json to adjust strictness"
-echo "     - Edit .prettierrc.json for code style preferences"
-echo "     - Update ignore patterns as needed"
-echo "  3. Run Linters"
-echo "     - Check lint: npm run lint"
-echo "     - Fix lint: npm run lint -- --fix"
-echo "     - Format code: npm run format"
-echo "  4. Integrate with Editor"
-echo "     - Install ESLint extension (VS Code)"
-echo "     - Install Prettier extension (VS Code)"
-echo "     - Enable 'Format on Save' in VS Code settings"
-echo "  5. Commit to git:"
-echo "     git add .eslintrc.json .eslintignore .prettierrc.json .prettierignore"
-echo "     git commit -m 'Setup linting configuration'"
+echo "  1. Install: npm install --save-dev eslint prettier @typescript-eslint/eslint-plugin"
+echo "  2. Run: npm run lint && npm run format"
+echo "  3. Enable 'Format on Save' in VS Code"
+echo "  4. Commit: git add .eslintrc.json .eslintignore .prettierrc.json .prettierignore"
 echo ""

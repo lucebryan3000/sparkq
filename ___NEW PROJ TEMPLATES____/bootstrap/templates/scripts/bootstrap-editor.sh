@@ -7,81 +7,26 @@
 # Creates .editorconfig and .stylelintrc configuration files
 # ===================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
-TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_ROOT="${1:-.}"
-TEMPLATE_ROOT="${TEMPLATE_DIR}/root"
+# Source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${BOOTSTRAP_DIR}/lib/common.sh"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Initialize script
+init_script "bootstrap-editor.sh"
 
-# ===================================================================
-# Utility Functions
-# ===================================================================
+# Get project root
+PROJECT_ROOT=$(get_project_root "${1:-.}")
+TEMPLATE_ROOT="${TEMPLATES_DIR}/root"
 
-log_info() {
-    echo -e "${BLUE}→${NC} $1"
-}
+# Script identifier
+SCRIPT_NAME="bootstrap-editor"
 
-log_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}✗${NC} $1"
-    exit 1
-}
-
-# Backup existing file
-backup_file() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        local backup="${file}.backup.$(date +%s)"
-        if cp "$file" "$backup"; then
-            log_warning "Backed up existing file to: $(basename "$backup")"
-            return 0
-        else
-            log_error "Failed to backup existing file: $file"
-        fi
-    fi
-    return 1
-}
-
-# Verify file creation
-verify_file() {
-    local file="$1"
-    if [[ ! -f "$file" ]]; then
-        log_error "Failed to create file: $file"
-    elif [[ ! -r "$file" ]]; then
-        log_error "Created file but it's not readable: $file"
-    else
-        log_success "File created and verified: $file"
-        return 0
-    fi
-    return 1
-}
-
-# Cleanup on exit
-cleanup_on_error() {
-    local exit_code=$?
-    if [[ $exit_code -ne 0 ]]; then
-        log_error "Bootstrap script failed with exit code $exit_code"
-        log_info "Check the output above for details"
-    fi
-    return $exit_code
-}
-
-trap cleanup_on_error EXIT
+# Pre-execution confirmation
+pre_execution_confirm "$SCRIPT_NAME" "Editor Configuration" \
+    ".editorconfig" ".stylelintrc.json"
 
 # ===================================================================
 # Template Validation Functions (Pre-Copy Validation)
@@ -164,10 +109,12 @@ fi
 log_info "Creating .editorconfig..."
 
 if [[ -f "$PROJECT_ROOT/.editorconfig" ]]; then
-    log_warning ".editorconfig already exists"
-    backup_file "$PROJECT_ROOT/.editorconfig" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.editorconfig"
+    else
+        track_skipped ".editorconfig"
+        log_warning ".editorconfig already exists, skipping"
+    fi
 fi
 
 if [[ -f "$TEMPLATE_ROOT/.editorconfig" ]]; then
@@ -175,11 +122,15 @@ if [[ -f "$TEMPLATE_ROOT/.editorconfig" ]]; then
     validate_editorconfig_template "$TEMPLATE_ROOT/.editorconfig"
 
     if cp "$TEMPLATE_ROOT/.editorconfig" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/.editorconfig" || log_error "Failed to verify .editorconfig"
+        if verify_file "$PROJECT_ROOT/.editorconfig"; then
+            track_created ".editorconfig"
+            log_file_created "$SCRIPT_NAME" ".editorconfig"
+        fi
     else
-        log_error "Failed to copy .editorconfig"
+        log_fatal "Failed to copy .editorconfig"
     fi
 else
+    track_warning ".editorconfig template not found"
     log_warning ".editorconfig template not found in $TEMPLATE_ROOT"
 fi
 
@@ -190,10 +141,12 @@ fi
 log_info "Creating .stylelintrc..."
 
 if [[ -f "$PROJECT_ROOT/.stylelintrc" ]]; then
-    log_warning ".stylelintrc already exists"
-    backup_file "$PROJECT_ROOT/.stylelintrc" || {
-        log_warning "Proceeding without backup (file may be read-only)"
-    }
+    if is_auto_approved "backup_existing_files"; then
+        backup_file "$PROJECT_ROOT/.stylelintrc"
+    else
+        track_skipped ".stylelintrc"
+        log_warning ".stylelintrc already exists, skipping"
+    fi
 fi
 
 if [[ -f "$TEMPLATE_ROOT/.stylelintrc" ]]; then
@@ -201,11 +154,15 @@ if [[ -f "$TEMPLATE_ROOT/.stylelintrc" ]]; then
     validate_stylelint_template "$TEMPLATE_ROOT/.stylelintrc"
 
     if cp "$TEMPLATE_ROOT/.stylelintrc" "$PROJECT_ROOT/"; then
-        verify_file "$PROJECT_ROOT/.stylelintrc" || log_error "Failed to verify .stylelintrc"
+        if verify_file "$PROJECT_ROOT/.stylelintrc"; then
+            track_created ".stylelintrc"
+            log_file_created "$SCRIPT_NAME" ".stylelintrc"
+        fi
     else
-        log_error "Failed to copy .stylelintrc"
+        log_fatal "Failed to copy .stylelintrc"
     fi
 else
+    track_warning ".stylelintrc template not found"
     log_warning ".stylelintrc template not found in $TEMPLATE_ROOT"
 fi
 
@@ -291,37 +248,15 @@ validate_bootstrap() {
 # Summary & Next Steps
 # ===================================================================
 
-echo ""
-log_success "Bootstrap complete!"
-echo ""
-
 validate_bootstrap
 
-echo ""
-log_info "Bootstrap Summary:"
-echo "  Files:"
-echo "    ├── .editorconfig   (Editor settings)"
-echo "    └── .stylelintrc    (CSS/SCSS linting)"
-echo ""
+log_script_complete "$SCRIPT_NAME" "${#_BOOTSTRAP_CREATED_FILES[@]} files created"
+show_summary
+show_log_location
 
 log_info "Next steps:"
-echo "  1. Install Editor Support"
-echo "     - VS Code: Install 'EditorConfig for VS Code' extension"
-echo "     - Other editors: See https://editorconfig.org/#download"
-echo "  2. Install StyleLint Tools"
-echo "     - Run: npm install --save-dev stylelint stylelint-config-standard"
-echo "     - Run: npm install --save-dev stylelint-config-tailwindcss"
-echo "     - Run: npm install --save-dev stylelint-order"
-echo "  3. Configure StyleLint"
-echo "     - Update .stylelintrc for your CSS/SCSS style preferences"
-echo "     - Adjust rules and ignore patterns as needed"
-echo "  4. Integrate with Editor"
-echo "     - VS Code: Install 'StyleLint' extension"
-echo "     - Enable 'Format on Save' for CSS/SCSS files"
-echo "  5. Run StyleLint"
-echo "     - Check styles: npm run lint:styles"
-echo "     - Fix styles: npm run lint:styles -- --fix"
-echo "  6. Commit to git:"
-echo "     git add .editorconfig .stylelintrc"
-echo "     git commit -m 'Setup editor formatting configuration'"
+echo "  1. Install EditorConfig support in your editor"
+echo "  2. Install: npm install --save-dev stylelint stylelint-config-standard"
+echo "  3. Configure .stylelintrc for your CSS/SCSS preferences"
+echo "  4. Commit: git add .editorconfig .stylelintrc"
 echo ""
