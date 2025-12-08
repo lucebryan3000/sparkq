@@ -32,6 +32,20 @@ PROJECT_ROOT=$(get_project_root "${1:-.}")
 SCRIPT_NAME="bootstrap-monitoring"
 
 # ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "" \
+    --scripts "" \
+    --optional "curl jq"
+
+
+# ===================================================================
 # Read Configuration
 # ===================================================================
 

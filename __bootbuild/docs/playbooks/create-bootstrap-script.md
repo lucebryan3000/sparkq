@@ -231,6 +231,24 @@ PROJECT_ROOT=$(get_project_root "${1:-.}")
 SCRIPT_NAME="bootstrap-{name}"
 
 # ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies upfront (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "tool1:version:min tool2 tool3" \
+    --scripts "bootstrap-required-script" \
+    --optional "optional-tool"
+
+# Example declarations:
+# --tools "node:18.0.0:min docker git"        # Tools with version requirements
+# --scripts "bootstrap-git bootstrap-project" # Required bootstrap scripts
+# --optional "redis postgresql"               # Optional (warnings only)
+
+# ===================================================================
 # Read Configuration
 # ===================================================================
 
@@ -271,8 +289,8 @@ require_dir "$PROJECT_ROOT" || log_fatal "Project directory not found: $PROJECT_
 # Check if we can write to project
 is_writable "$PROJECT_ROOT" || log_fatal "Project directory not writable: $PROJECT_ROOT"
 
-# Check for required tools (if needed)
-# require_command "some_tool" || log_fatal "some_tool is required but not installed"
+# NOTE: Tool dependencies are now validated via declare_dependencies above
+# No need for manual require_command calls - dependency-checker handles it
 
 log_success "Environment validated"
 
@@ -342,9 +360,10 @@ show_log_location
 - [ ] Header comment with purpose, creates, config
 - [ ] Setup section: SCRIPT_DIR, BOOTSTRAP_DIR, source lib/common.sh
 - [ ] Initialization: init_script, get_project_root, SCRIPT_NAME
+- [ ] **Dependency validation: source dependency-checker.sh, declare_dependencies call**
 - [ ] Configuration reading: config_get calls
 - [ ] Pre-execution: pre_execution_confirm with FILES_TO_CREATE
-- [ ] Validation: require_dir, is_writable, require_command as needed
+- [ ] Validation: require_dir, is_writable (tools now via declare_dependencies)
 - [ ] File operations: copy_template, log_file_created, track_created
 - [ ] Directory creation: ensure_dir, log_dir_created
 - [ ] Summary: log_script_complete, show_summary, show_log_location

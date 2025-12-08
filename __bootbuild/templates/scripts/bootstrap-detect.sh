@@ -42,6 +42,20 @@ PROJECT_ROOT=$(get_project_root "${1:-.}")
 SCRIPT_NAME="bootstrap-detect"
 
 # ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "python3" \
+    --scripts "" \
+    --optional ""
+
+
+# ===================================================================
 # Configuration
 # ===================================================================
 
@@ -408,6 +422,199 @@ track_created "logs/bootstrap-detect-${TIMESTAMP}.json"
 log_success "Detection report created"
 
 # ===================================================================
+# Generate Script Recommendations
+# ===================================================================
+
+log_info "Generating script recommendations..."
+
+# Source script registry if available
+if [[ -f "${BOOTSTRAP_DIR}/lib/script-registry.sh" ]]; then
+    source "${BOOTSTRAP_DIR}/lib/script-registry.sh"
+    REGISTRY_AVAILABLE=true
+else
+    REGISTRY_AVAILABLE=false
+    log_warning "Script registry not available - skipping recommendations"
+fi
+
+# Generate recommendations based on detection results
+generate_recommendations() {
+    local run_scripts=""
+    local optional_scripts=""
+    local skip_scripts=""
+    local warnings=""
+
+    # Helper to add to comma-separated list
+    add_to_list() {
+        local var_name="$1"
+        local value="$2"
+        local current="${!var_name}"
+        if [[ -z "$current" ]]; then
+            eval "$var_name=\"\\\"$value\\\"\""
+        else
+            eval "$var_name=\"$current, \\\"$value\\\"\""
+        fi
+    }
+
+    add_warning() {
+        local script="$1"
+        local message="$2"
+        local entry="{\"script\": \"$script\", \"message\": \"$message\"}"
+        if [[ -z "$warnings" ]]; then
+            warnings="$entry"
+        else
+            warnings="$warnings, $entry"
+        fi
+    }
+
+    # Check each detection and map to scripts
+
+    # Git detection
+    if [[ "$(get_bool "$GIT_REPO")" == "false" ]]; then
+        add_to_list run_scripts "git"
+    else
+        add_to_list skip_scripts "git"
+    fi
+
+    # Claude Code detection
+    if [[ "$(get_bool "$CLAUDE_DIR")" == "false" ]]; then
+        add_to_list run_scripts "claude"
+    else
+        add_to_list optional_scripts "claude"
+    fi
+
+    # Package.json detection
+    if [[ "$(get_bool "$PACKAGE_JSON")" == "false" ]]; then
+        add_to_list run_scripts "packages"
+    else
+        add_to_list optional_scripts "packages"
+    fi
+
+    # TypeScript detection
+    if [[ "$(get_bool "$TSCONFIG")" == "false" ]]; then
+        if [[ "$(get_bool "$PACKAGE_JSON")" == "true" ]]; then
+            add_to_list run_scripts "typescript"
+        else
+            add_to_list optional_scripts "typescript"
+        fi
+    else
+        add_to_list skip_scripts "typescript"
+    fi
+
+    # Docker detection
+    if [[ "$(get_bool "$DOCKERFILE")" == "false" ]]; then
+        if [[ "$(get_bool "$DOCKER_RUNNING")" == "true" ]]; then
+            add_to_list optional_scripts "docker"
+        else
+            add_to_list optional_scripts "docker"
+            if [[ "$(get_bool "$DOCKER_RESULT")" == "true" ]]; then
+                add_warning "docker" "Docker installed but not running"
+            else
+                add_warning "docker" "Docker not installed"
+            fi
+        fi
+    else
+        add_to_list skip_scripts "docker"
+    fi
+
+    # Linting - always recommend if package.json exists
+    if [[ "$(get_bool "$PACKAGE_JSON")" == "true" ]]; then
+        local eslint_exists=$(detect_file ".eslintrc.json")
+        local prettier_exists=$(detect_file ".prettierrc")
+        if [[ "$(get_bool "$eslint_exists")" == "false" ]]; then
+            add_to_list run_scripts "linting"
+        else
+            add_to_list skip_scripts "linting"
+        fi
+    fi
+
+    # Testing - recommend if package.json exists
+    if [[ "$(get_bool "$PACKAGE_JSON")" == "true" ]]; then
+        local jest_exists=$(detect_file "jest.config.js")
+        local vitest_exists=$(detect_file "vitest.config.ts")
+        if [[ "$(get_bool "$jest_exists")" == "false" && "$(get_bool "$vitest_exists")" == "false" ]]; then
+            add_to_list optional_scripts "testing"
+        else
+            add_to_list skip_scripts "testing"
+        fi
+    fi
+
+    # GitHub - recommend if git repo
+    if [[ "$(get_bool "$GIT_REPO")" == "true" ]]; then
+        local github_dir=$(detect_file ".github")
+        if [[ "$(get_bool "$github_dir")" == "false" ]]; then
+            add_to_list optional_scripts "github"
+        else
+            add_to_list skip_scripts "github"
+        fi
+    fi
+
+    # Database - optional based on docker
+    if [[ "$(get_bool "$DOCKERFILE")" == "true" || "$(get_bool "$DOCKER_COMPOSE")" == "true" ]]; then
+        add_to_list optional_scripts "database"
+    fi
+
+    # VSCode - always optional
+    local vscode_dir=$(detect_file ".vscode")
+    if [[ "$(get_bool "$vscode_dir")" == "false" ]]; then
+        add_to_list optional_scripts "vscode"
+    else
+        add_to_list skip_scripts "vscode"
+    fi
+
+    # Husky - recommend if git and package.json
+    if [[ "$(get_bool "$GIT_REPO")" == "true" && "$(get_bool "$PACKAGE_JSON")" == "true" ]]; then
+        local husky_dir=$(detect_file ".husky")
+        if [[ "$(get_bool "$husky_dir")" == "false" ]]; then
+            add_to_list optional_scripts "husky"
+        else
+            add_to_list skip_scripts "husky"
+        fi
+    fi
+
+    # Security - optional for Node projects
+    if [[ "$(get_bool "$PACKAGE_JSON")" == "true" ]]; then
+        add_to_list optional_scripts "security"
+    fi
+
+    # Output JSON
+    cat << EOFJSON
+{
+  "generated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "recommendations": {
+    "run": [${run_scripts}],
+    "optional": [${optional_scripts}],
+    "skip": [${skip_scripts}],
+    "warnings": [${warnings}]
+  },
+  "detection_summary": {
+    "has_git_repo": $(get_bool "$GIT_REPO"),
+    "has_package_json": $(get_bool "$PACKAGE_JSON"),
+    "has_tsconfig": $(get_bool "$TSCONFIG"),
+    "has_dockerfile": $(get_bool "$DOCKERFILE"),
+    "has_claude_dir": $(get_bool "$CLAUDE_DIR"),
+    "docker_running": $(echo "$DOCKER_RUNNING" | cut -d'|' -f1),
+    "node_available": $(echo "$NODE_RESULT" | cut -d'|' -f1),
+    "git_available": $(echo "$GIT_RESULT" | cut -d'|' -f1)
+  }
+}
+EOFJSON
+}
+
+# Generate and save recommendations
+RECOMMENDATIONS_FILE="${LOGS_DIR}/bootstrap-recommendations.json"
+if [[ "$REGISTRY_AVAILABLE" == "true" ]]; then
+    generate_recommendations > "$RECOMMENDATIONS_FILE"
+    log_success "Recommendations saved to: $RECOMMENDATIONS_FILE"
+
+    # Also update cache if cache manager available
+    if [[ -f "${BOOTSTRAP_DIR}/lib/cache-manager.sh" ]]; then
+        source "${BOOTSTRAP_DIR}/lib/cache-manager.sh"
+        cache_write "recommendations.json" "$(cat "$RECOMMENDATIONS_FILE")"
+        log_info "Recommendations cached for menu"
+    fi
+fi
+
+# ===================================================================
 # Display Summary
 # ===================================================================
 
@@ -459,5 +666,43 @@ echo "  - Get Node version: jq -r '.tools.runtime.node' __bootbuild/logs/bootstr
 echo "  - Check Docker:     jq -r '.tools.containers.docker_running' __bootbuild/logs/bootstrap-detect-latest.json"
 echo "  - List files:       jq '.project.files' __bootbuild/logs/bootstrap-detect-latest.json"
 echo ""
+
+# Show recommendations if generated
+if [[ -f "$RECOMMENDATIONS_FILE" ]]; then
+    echo "Script Recommendations:"
+    echo "───────────────────────"
+
+    # Parse and display recommendations
+    if command -v jq &>/dev/null; then
+        run_count=$(jq -r '.recommendations.run | length' "$RECOMMENDATIONS_FILE")
+        optional_count=$(jq -r '.recommendations.optional | length' "$RECOMMENDATIONS_FILE")
+        skip_count=$(jq -r '.recommendations.skip | length' "$RECOMMENDATIONS_FILE")
+        warning_count=$(jq -r '.recommendations.warnings | length' "$RECOMMENDATIONS_FILE")
+
+        if [[ "$run_count" -gt 0 ]]; then
+            echo -e "  ${COLOR_GREEN}Recommended to run:${COLOR_RESET}"
+            jq -r '.recommendations.run[]' "$RECOMMENDATIONS_FILE" | while read script; do
+                echo "    • $script"
+            done
+        fi
+
+        if [[ "$optional_count" -gt 0 ]]; then
+            echo -e "  ${COLOR_YELLOW}Optional:${COLOR_RESET}"
+            jq -r '.recommendations.optional[]' "$RECOMMENDATIONS_FILE" | while read script; do
+                echo "    • $script"
+            done
+        fi
+
+        if [[ "$warning_count" -gt 0 ]]; then
+            echo -e "  ${COLOR_RED}Warnings:${COLOR_RESET}"
+            jq -r '.recommendations.warnings[] | "    ⚠ \(.script): \(.message)"' "$RECOMMENDATIONS_FILE"
+        fi
+
+        echo ""
+        echo "  View full recommendations:"
+        echo "    jq '.' __bootbuild/logs/bootstrap-recommendations.json"
+    fi
+    echo ""
+fi
 
 show_log_location

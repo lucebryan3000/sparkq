@@ -30,6 +30,20 @@ K8S_TEMPLATE_DIR="${TEMPLATE_ROOT}/kubernetes"
 
 # Script identifier and answers file
 SCRIPT_NAME="bootstrap-kubernetes"
+
+# ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "kubectl docker" \
+    --scripts "bootstrap-docker" \
+    --optional "helm"
+
 ANSWERS_FILE=".bootstrap-answers.env"
 
 # ===================================================================

@@ -24,6 +24,20 @@ TEMPLATE_ROOT="${TEMPLATES_DIR}/root/api"
 # Script identifier
 SCRIPT_NAME="bootstrap-api"
 
+# ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "node npm" \
+    --scripts "bootstrap-project bootstrap-typescript" \
+    --optional ""
+
+
 # Pre-execution confirmation
 pre_execution_confirm "$SCRIPT_NAME" "API Configuration" \
     "openapi.yaml" "graphql/schema.graphql" \

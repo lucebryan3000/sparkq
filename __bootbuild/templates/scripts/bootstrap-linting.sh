@@ -25,6 +25,18 @@ TEMPLATE_ROOT="${TEMPLATES_DIR}/root"
 SCRIPT_NAME="bootstrap-linting"
 
 # ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "python3" \
+    --optional "node npm eslint prettier"
+
+# ===================================================================
 # Pre-Execution Confirmation
 # ===================================================================
 

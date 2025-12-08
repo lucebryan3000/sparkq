@@ -28,6 +28,20 @@ TEMPLATE_ROOT="${TEMPLATES_DIR}/root"
 
 # Script identifier and answers file
 SCRIPT_NAME="bootstrap-ssl"
+
+# ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "" \
+    --scripts "bootstrap-project" \
+    --optional "openssl mkcert"
+
 ANSWERS_FILE=".bootstrap-answers.env"
 
 # ===================================================================

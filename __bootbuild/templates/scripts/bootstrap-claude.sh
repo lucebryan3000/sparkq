@@ -35,6 +35,20 @@ ANSWERS_FILE=".bootstrap-answers.env"
 SCRIPT_NAME="bootstrap-claude"
 
 # ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "" \
+    --scripts "" \
+    --optional "node"
+
+
+# ===================================================================
 # Pre-Execution Confirmation
 # ===================================================================
 

@@ -30,6 +30,20 @@ PROJECT_ROOT=$(get_project_root "${1:-.}")
 # Script identifier for logging
 SCRIPT_NAME="bootstrap-husky"
 
+# ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "git node npm" \
+    --scripts "bootstrap-git bootstrap-packages" \
+    --optional ""
+
+
 # Template directory
 TEMPLATE_ROOT="${BOOTSTRAP_DIR}/templates/root/husky"
 

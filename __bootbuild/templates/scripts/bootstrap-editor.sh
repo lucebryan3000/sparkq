@@ -24,6 +24,20 @@ TEMPLATE_ROOT="${TEMPLATES_DIR}/root"
 # Script identifier
 SCRIPT_NAME="bootstrap-editor"
 
+# ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "" \
+    --scripts "" \
+    --optional "node python3"
+
+
 # Pre-execution confirmation
 pre_execution_confirm "$SCRIPT_NAME" "Editor Configuration" \
     ".editorconfig" ".stylelintrc.json"

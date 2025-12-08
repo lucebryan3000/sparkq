@@ -1,1 +1,369 @@
-{"paths": {"BOOTSTRAP_DIR": ".", "MANIFEST_FILE": "config/bootstrap-manifest.json", "CONFIG_FILE": "config/bootstrap.config", "CONFIG_DIR": "config", "LIB_DIR": "lib", "SCRIPTS_DIR": "scripts", "TEMPLATES_DIR": "templates", "DOCS_DIR": "docs", "PLAYBOOKS_DIR": "docs/playbooks", "BOOTSTRAPSCRIPTS_DIR": "docs/playbooks/bootstrapscripts", "REFERENCES_DIR": "docs/references", "KB_ROOT": "kb-bootstrap", "LOGS_DIR": "logs", "LOGS_KB_DIR": "logs/kb", "TEMPLATES_CLAUDE": "templates/.claude", "TEMPLATES_VSCODE": "templates/.vscode", "TEMPLATES_GITHUB": "templates/.github", "TEMPLATES_DEVCONTAINER": "templates/.devcontainer", "TEMPLATES_SCRIPTS": "templates/scripts", "KB_MANIFEST_FILE": "kb-bootstrap/kb-manifest.json", "KB_SCAN_REPORT": "kb-bootstrap/scan-report.json"},"libraries": {"common": {"file": "lib/common.sh", "description": "==================================================================="},"config-manager": {"file": "lib/config-manager.sh", "description": "==================================================================="},"json-validator": {"file": "lib/json-validator.sh", "description": "==================================================================="},"manifest-cache": {"file": "lib/manifest-cache.sh", "description": "==================================================================="},"manifest-schema-validator": {"file": "lib/manifest-schema-validator.sh", "description": "==================================================================="},"paths-compat": {"file": "lib/paths-compat.sh", "description": "==================================================================="},"paths": {"file": "lib/paths.sh", "description": "==================================================================="},"template-utils": {"file": "lib/template-utils.sh", "description": "==================================================================="},"validation-common": {"file": "lib/validation-common.sh", "description": "==================================================================="}},"scripts": {"bootstrap-helper": {"file": "scripts/bootstrap-helper.sh", "description": "===================================================================", "usage": ""},"bootstrap-kb-sync": {"file": "scripts/bootstrap-kb-sync.sh", "description": "===================================================================", "usage": ""},"bootstrap-menu": {"file": "scripts/bootstrap-menu.sh", "description": "===================================================================", "usage": ""},"bootstrap-paths-validate": {"file": "scripts/bootstrap-paths-validate.sh", "description": "bootstrap-paths-validate.sh", "usage": "./bootstrap-paths-validate.sh [options]"},"nvidia_docker_fix": {"file": "scripts/nvidia_docker_fix.sh", "description": "NVIDIA Container Toolkit for Ubuntu 25.04 (workaround)", "usage": ""}},"templates": {"docs": {"directory": "templates/docs", "files": 3, "size": "72K"},"OmniForge": {"directory": "templates/OmniForge", "files": 0, "size": "36K"},"root": {"directory": "templates/root", "files": 31, "size": "140K"},"scripts": {"directory": "templates/scripts", "files": 12, "size": "176K"},"tools": {"directory": "templates/tools", "files": 2, "size": "16K"}},"generated": "2025-12-07T20:10:40Z","version": "1.0"}
+{
+  "version": "2.0",
+  "generated": "2025-12-07T21:00:00Z",
+
+  "paths": {
+    "BOOTSTRAP_DIR": ".",
+    "MANIFEST_FILE": "config/bootstrap-manifest.json",
+    "CONFIG_FILE": "config/bootstrap.config",
+    "QUESTIONS_FILE": "config/bootstrap-questions.json",
+    "CONFIG_DIR": "config",
+    "LIB_DIR": "lib",
+    "SCRIPTS_DIR": "scripts",
+    "TEMPLATES_DIR": "templates",
+    "TEMPLATES_ROOT": "templates/root",
+    "TEMPLATES_SCRIPTS": "templates/scripts",
+    "TEMPLATES_CLAUDE": "templates/.claude",
+    "TEMPLATES_VSCODE": "templates/.vscode",
+    "TEMPLATES_GITHUB": "templates/.github",
+    "TEMPLATES_DEVCONTAINER": "templates/.devcontainer",
+    "DOCS_DIR": "docs",
+    "PLAYBOOKS_DIR": "docs/playbooks",
+    "KB_ROOT": "kb-bootstrap",
+    "LOGS_DIR": "logs",
+    "CACHE_DIR": ".cache"
+  },
+
+  "phases": {
+    "1": {
+      "name": "AI Development Toolkit",
+      "description": "Core AI and development setup - run first",
+      "color": "red",
+      "icon": "rocket"
+    },
+    "2": {
+      "name": "Infrastructure",
+      "description": "Docker, databases, and services",
+      "color": "red",
+      "icon": "server"
+    },
+    "3": {
+      "name": "Code Quality",
+      "description": "Linting, testing, and quality gates",
+      "color": "yellow",
+      "icon": "check"
+    },
+    "4": {
+      "name": "CI/CD & Deployment",
+      "description": "GitHub Actions, Kubernetes, monitoring",
+      "color": "green",
+      "icon": "cloud"
+    }
+  },
+
+  "scripts": {
+    "claude": {
+      "file": "bootstrap-claude.sh",
+      "phase": 1,
+      "category": "ai",
+      "description": "Claude Code configuration (.claude/, CLAUDE.md, agents, commands)",
+      "templates": [".claude/", "project/CLAUDE.md", "project/.claudeignore"],
+      "questions": "claude",
+      "detects": ["has_claude_dir"],
+      "depends": []
+    },
+    "git": {
+      "file": "bootstrap-git.sh",
+      "phase": 1,
+      "category": "vcs",
+      "description": "Git repository setup (.gitignore, .gitattributes, hooks)",
+      "templates": ["project/.gitignore", "project/.gitattributes"],
+      "questions": "git",
+      "detects": ["has_git_repo"],
+      "depends": []
+    },
+    "vscode": {
+      "file": "bootstrap-vscode.sh",
+      "phase": 1,
+      "category": "editor",
+      "description": "VS Code workspace settings and extensions",
+      "templates": [".vscode/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "codex": {
+      "file": "bootstrap-codex.sh",
+      "phase": 1,
+      "category": "ai",
+      "description": "Codex AI context optimization",
+      "templates": [".claude/codex.md", ".claude/codex_prompt.md"],
+      "questions": null,
+      "detects": [],
+      "depends": ["claude"]
+    },
+    "packages": {
+      "file": "bootstrap-packages.sh",
+      "phase": 1,
+      "category": "nodejs",
+      "description": "Package manager setup (npm/pnpm/yarn, .nvmrc, .npmrc)",
+      "templates": ["nodejs/.nvmrc", "nodejs/.npmrc", "nodejs/package.json"],
+      "questions": "packages",
+      "detects": ["has_package_json"],
+      "depends": []
+    },
+    "typescript": {
+      "file": "bootstrap-typescript.sh",
+      "phase": 1,
+      "category": "nodejs",
+      "description": "TypeScript configuration (tsconfig.json, strict mode)",
+      "templates": ["typescript/tsconfig.json"],
+      "questions": "typescript",
+      "detects": ["has_tsconfig"],
+      "depends": ["packages"]
+    },
+    "environment": {
+      "file": "bootstrap-environment.sh",
+      "phase": 1,
+      "category": "config",
+      "description": "Environment files (.env.example, .envrc)",
+      "templates": ["secrets/.env.example"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "project": {
+      "file": "bootstrap-project.sh",
+      "phase": 1,
+      "category": "core",
+      "description": "Project scaffolding (README, .editorconfig, .tool-versions)",
+      "templates": ["project/README.md", "project/.editorconfig", "project/.tool-versions"],
+      "questions": "project",
+      "detects": [],
+      "depends": []
+    },
+    "docker": {
+      "file": "bootstrap-docker.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Docker and docker-compose configuration",
+      "templates": ["docker/"],
+      "questions": "docker",
+      "detects": ["docker_installed", "docker_running"],
+      "depends": []
+    },
+    "database": {
+      "file": "bootstrap-database.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Database setup (Postgres/MySQL init scripts, migrations)",
+      "templates": ["database/"],
+      "questions": "database",
+      "detects": [],
+      "depends": ["docker"]
+    },
+    "secrets": {
+      "file": "bootstrap-secrets.sh",
+      "phase": 2,
+      "category": "security",
+      "description": "Secrets management (.vault, credential templates)",
+      "templates": ["secrets/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "linting": {
+      "file": "bootstrap-linting.sh",
+      "phase": 3,
+      "category": "quality",
+      "description": "Linting setup (ESLint, Prettier, Stylelint)",
+      "templates": ["linting/"],
+      "questions": "linting",
+      "detects": [],
+      "depends": ["packages"]
+    },
+    "editor": {
+      "file": "bootstrap-editor.sh",
+      "phase": 3,
+      "category": "editor",
+      "description": "Editor integration (format on save, lint on save)",
+      "templates": [],
+      "questions": null,
+      "detects": [],
+      "depends": ["linting", "vscode"]
+    },
+    "husky": {
+      "file": "bootstrap-husky.sh",
+      "phase": 3,
+      "category": "quality",
+      "description": "Git hooks with Husky (pre-commit, commit-msg)",
+      "templates": ["husky/"],
+      "questions": "husky",
+      "detects": [],
+      "depends": ["git", "packages"]
+    },
+    "testing": {
+      "file": "bootstrap-testing.sh",
+      "phase": 3,
+      "category": "quality",
+      "description": "Testing framework setup (Vitest/Jest, Playwright)",
+      "templates": ["testing/"],
+      "questions": "testing",
+      "detects": [],
+      "depends": ["packages", "typescript"]
+    },
+    "quality": {
+      "file": "bootstrap-quality.sh",
+      "phase": 3,
+      "category": "quality",
+      "description": "Code quality gates (SonarQube, CodeClimate)",
+      "templates": ["quality/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["testing"]
+    },
+    "security": {
+      "file": "bootstrap-security.sh",
+      "phase": 3,
+      "category": "security",
+      "description": "Security scanning (npm audit, Snyk, license checks)",
+      "templates": ["security/"],
+      "questions": "security",
+      "detects": [],
+      "depends": ["packages"]
+    },
+    "github": {
+      "file": "bootstrap-github.sh",
+      "phase": 4,
+      "category": "cicd",
+      "description": "GitHub configuration (Actions, templates, CODEOWNERS)",
+      "templates": [".github/"],
+      "questions": "github",
+      "detects": [],
+      "depends": ["git"]
+    },
+    "ci-cd": {
+      "file": "bootstrap-ci-cd.sh",
+      "phase": 4,
+      "category": "cicd",
+      "description": "CI/CD pipelines (GitLab CI, Jenkins, Azure)",
+      "templates": ["cicd/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "docs": {
+      "file": "bootstrap-docs.sh",
+      "phase": 4,
+      "category": "documentation",
+      "description": "Documentation setup (API docs, architecture)",
+      "templates": [],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "api": {
+      "file": "bootstrap-api.sh",
+      "phase": 4,
+      "category": "backend",
+      "description": "API scaffolding (OpenAPI, routes, middleware)",
+      "templates": ["api/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["typescript"]
+    },
+    "ssl": {
+      "file": "bootstrap-ssl.sh",
+      "phase": 4,
+      "category": "security",
+      "description": "SSL/TLS certificate setup (local dev certs)",
+      "templates": ["ssl/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "kubernetes": {
+      "file": "bootstrap-kubernetes.sh",
+      "phase": 4,
+      "category": "deployment",
+      "description": "Kubernetes manifests (deployments, services, ingress)",
+      "templates": ["kubernetes/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["docker"]
+    },
+    "monitoring": {
+      "file": "bootstrap-monitoring.sh",
+      "phase": 4,
+      "category": "observability",
+      "description": "Monitoring setup (Prometheus, Datadog, Sentry)",
+      "templates": ["monitoring/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "detect": {
+      "file": "bootstrap-detect.sh",
+      "phase": 0,
+      "category": "system",
+      "description": "System detection and environment scanning",
+      "templates": [],
+      "questions": null,
+      "detects": [],
+      "depends": [],
+      "hidden": true
+    }
+  },
+
+  "profiles": {
+    "minimal": {
+      "description": "Bare minimum for AI-assisted development",
+      "scripts": ["claude", "git", "packages"]
+    },
+    "standard": {
+      "description": "Recommended setup for most projects",
+      "scripts": ["claude", "git", "vscode", "packages", "typescript", "environment", "linting", "editor"]
+    },
+    "full": {
+      "description": "Complete setup including CI/CD",
+      "scripts": ["claude", "git", "vscode", "codex", "packages", "typescript", "environment", "docker", "linting", "editor", "testing", "security", "github"]
+    },
+    "api": {
+      "description": "Backend API development",
+      "scripts": ["claude", "git", "packages", "typescript", "environment", "docker", "database", "testing", "security"]
+    },
+    "frontend": {
+      "description": "Frontend web development",
+      "scripts": ["claude", "git", "vscode", "packages", "typescript", "linting", "editor", "testing"]
+    },
+    "library": {
+      "description": "NPM package/library development",
+      "scripts": ["claude", "git", "packages", "typescript", "linting", "testing", "github"]
+    }
+  },
+
+  "libraries": {
+    "common": {
+      "file": "lib/common.sh",
+      "description": "Shared logging, file ops, validation helpers"
+    },
+    "paths": {
+      "file": "lib/paths.sh",
+      "description": "Centralized path initialization"
+    },
+    "config-manager": {
+      "file": "lib/config-manager.sh",
+      "description": "INI config file read/write"
+    },
+    "script-registry": {
+      "file": "lib/script-registry.sh",
+      "description": "Script discovery and manifest queries"
+    },
+    "question-engine": {
+      "file": "lib/question-engine.sh",
+      "description": "Interactive Q&A and config persistence"
+    },
+    "cache-manager": {
+      "file": "lib/cache-manager.sh",
+      "description": "Menu state and scan result caching"
+    },
+    "template-utils": {
+      "file": "lib/template-utils.sh",
+      "description": "Template copying and variable substitution"
+    },
+    "validation-common": {
+      "file": "lib/validation-common.sh",
+      "description": "Input validation helpers"
+    }
+  }
+}

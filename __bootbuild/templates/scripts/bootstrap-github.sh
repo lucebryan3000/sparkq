@@ -26,6 +26,20 @@ TEMPLATE_GITHUB="${TEMPLATES_DIR}/.github"
 # Script identifier
 SCRIPT_NAME="bootstrap-github"
 
+# ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "git" \
+    --scripts "bootstrap-git bootstrap-project" \
+    --optional ""
+
+
 # Pre-execution confirmation
 pre_execution_confirm "$SCRIPT_NAME" "GitHub Configuration" \
     ".github/ISSUE_TEMPLATE/" ".github/PULL_REQUEST_TEMPLATE.md" \

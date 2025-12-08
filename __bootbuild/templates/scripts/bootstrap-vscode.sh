@@ -26,6 +26,20 @@ TEMPLATE_VSCODE="${TEMPLATES_DIR}/.vscode"
 # Script identifier
 SCRIPT_NAME="bootstrap-vscode"
 
+# ===================================================================
+# Dependency Validation
+# ===================================================================
+
+# Source dependency checker
+source "${BOOTSTRAP_DIR}/lib/dependency-checker.sh"
+
+# Declare all dependencies (MANDATORY - fails if not met)
+declare_dependencies \
+    --tools "" \
+    --scripts "" \
+    --optional "node python3"
+
+
 # Pre-execution confirmation
 pre_execution_confirm "$SCRIPT_NAME" "VS Code Configuration" \
     ".vscode/settings.json" ".vscode/extensions.json" \

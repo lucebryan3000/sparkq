@@ -1,0 +1,192 @@
+{
+  "version": "2.0",
+  "description": "20% Developer Decisions - Questions that require project-specific input. 80% of settings use industry defaults from bootstrap.config.",
+
+  "philosophy": {
+    "80_percent": "Industry standard defaults in bootstrap.config - never ask",
+    "20_percent": "Project-specific decisions below - must ask per project"
+  },
+
+  "quick_start": {
+    "description": "Essential questions for any project (shown in config preview)",
+    "questions": [
+      {
+        "key": "project.name",
+        "prompt": "Project name",
+        "type": "text",
+        "default": "${detected.directory_name}",
+        "required": true,
+        "help": "Used for package.json, docker-compose, database names"
+      },
+      {
+        "key": "project.description",
+        "prompt": "Short description",
+        "type": "text",
+        "default": "",
+        "required": false,
+        "help": "One-line description for package.json and README"
+      },
+      {
+        "key": "project.phase",
+        "prompt": "Project phase",
+        "type": "choice",
+        "options": ["POC", "MVP", "Production"],
+        "default": "POC",
+        "help": "POC=experimental, MVP=features first, Production=quality gates"
+      }
+    ]
+  },
+
+  "technology_choices": {
+    "description": "Core technology decisions that affect multiple scripts",
+    "questions": [
+      {
+        "key": "packages.package_manager",
+        "prompt": "Package manager",
+        "type": "choice",
+        "options": ["pnpm", "npm", "yarn"],
+        "default": "pnpm",
+        "help": "pnpm recommended for speed and disk efficiency"
+      },
+      {
+        "key": "docker.enabled",
+        "prompt": "Enable Docker",
+        "type": "yesno",
+        "default": true,
+        "help": "Creates docker-compose.yml with database services"
+      },
+      {
+        "key": "docker.database_type",
+        "prompt": "Database type",
+        "type": "choice",
+        "options": ["postgres", "mysql", "mongodb", "none"],
+        "default": "postgres",
+        "depends_on": "docker.enabled",
+        "help": "postgres recommended for most projects"
+      },
+      {
+        "key": "testing.framework",
+        "prompt": "Testing framework",
+        "type": "choice",
+        "options": ["vitest", "jest"],
+        "default": "vitest",
+        "help": "vitest recommended for Vite/modern projects, jest for legacy"
+      },
+      {
+        "key": "testing.e2e_framework",
+        "prompt": "E2E testing framework",
+        "type": "choice",
+        "options": ["playwright", "cypress", "none"],
+        "default": "playwright",
+        "help": "playwright recommended for modern cross-browser testing"
+      },
+      {
+        "key": "husky.enabled",
+        "prompt": "Enable git hooks (Husky)",
+        "type": "yesno",
+        "default": false,
+        "help": "Pre-commit linting and conventional commit enforcement"
+      }
+    ]
+  },
+
+  "advanced": {
+    "description": "Optional overrides for power users (shown only with --advanced flag)",
+    "show_condition": "advanced_mode",
+    "questions": [
+      {
+        "key": "docker_defaults.app_port",
+        "prompt": "Application port",
+        "type": "number",
+        "default": 3000,
+        "min": 1024,
+        "max": 65535,
+        "help": "Default: 3000 (industry standard)"
+      },
+      {
+        "key": "docker_defaults.database_port",
+        "prompt": "Database port",
+        "type": "number",
+        "default": 5432,
+        "help": "Default: 5432 (PostgreSQL), 3306 (MySQL), 27017 (MongoDB)"
+      },
+      {
+        "key": "testing_defaults.coverage_threshold",
+        "prompt": "Coverage threshold %",
+        "type": "number",
+        "default": 80,
+        "min": 0,
+        "max": 100,
+        "help": "Default: 80% (industry standard)"
+      },
+      {
+        "key": "nodejs.version",
+        "prompt": "Node.js version",
+        "type": "choice",
+        "options": ["18", "20", "22"],
+        "default": "20",
+        "help": "Default: 20 LTS (recommended for production)"
+      }
+    ]
+  },
+
+  "config_preview": {
+    "description": "Keys to show in the 80% defaults preview before Q&A",
+    "sections": [
+      {
+        "title": "TypeScript",
+        "keys": ["typescript.strict", "typescript.target", "typescript.module"]
+      },
+      {
+        "title": "Linting",
+        "keys": ["linting.eslint", "linting.prettier", "prettier.single_quote", "prettier.semi", "prettier.tab_width"]
+      },
+      {
+        "title": "Testing",
+        "keys": ["testing_defaults.coverage_threshold", "testing_defaults.branch_coverage"]
+      },
+      {
+        "title": "Git",
+        "keys": ["git.default_branch", "git.init_repo"]
+      },
+      {
+        "title": "Editor",
+        "keys": ["editor.indent_style", "editor.indent_size", "editor.charset"]
+      },
+      {
+        "title": "Security",
+        "keys": ["security.npm_audit", "security.audit_level", "security.fail_on_critical"]
+      }
+    ]
+  },
+
+  "script_mappings": {
+    "description": "Maps scripts to which questions they need",
+    "mappings": {
+      "bootstrap-project": ["quick_start"],
+      "bootstrap-claude": ["quick_start"],
+      "bootstrap-packages": ["packages.package_manager"],
+      "bootstrap-docker": ["docker.enabled", "docker.database_type"],
+      "bootstrap-database": ["docker.database_type"],
+      "bootstrap-testing": ["testing.framework", "testing.e2e_framework"],
+      "bootstrap-husky": ["husky.enabled"],
+      "bootstrap-git": [],
+      "bootstrap-typescript": [],
+      "bootstrap-linting": [],
+      "bootstrap-vscode": [],
+      "bootstrap-editor": [],
+      "bootstrap-github": [],
+      "bootstrap-security": [],
+      "bootstrap-environment": [],
+      "bootstrap-codex": [],
+      "bootstrap-quality": [],
+      "bootstrap-api": [],
+      "bootstrap-docs": [],
+      "bootstrap-secrets": [],
+      "bootstrap-monitoring": [],
+      "bootstrap-kubernetes": [],
+      "bootstrap-ci-cd": [],
+      "bootstrap-ssl": []
+    }
+  }
+}
