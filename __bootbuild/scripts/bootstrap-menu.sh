@@ -668,7 +668,8 @@ display_phase_menu() {
 
         # Format category name (capitalize first letter of each word)
         local display_category=$(echo "$category" | sed 's/\b\(.\)/\u\1/g')
-        echo -e "  ${GREEN}${counter}.${NC} ${display_category} (${script_count})"
+        # Show script names for this category
+        echo -e "  ${GREEN}${counter}.${NC} ${display_category} (${script_count}) ${GREY}${scripts}${NC}"
     done
 
     echo ""
@@ -707,8 +708,10 @@ display_category_menu() {
 
             if registry_script_file_exists "$script"; then
                 echo -e "  ${GREEN}${counter}.${NC} ${script}${q_indicator}"
+                echo -e "       ${GREY}${desc:0:60}${NC}"
             else
                 echo -e "  ${GREY}${counter}. ${script} (coming soon)${NC}"
+                echo -e "       ${GREY}${desc:0:60}${NC}"
             fi
         fi
     done
@@ -810,6 +813,11 @@ run_category_menu() {
 
                 if [[ -n "$selected_script" ]]; then
                     if registry_script_file_exists "$selected_script"; then
+                        local script_desc=$(registry_get_script_field "$selected_script" "description")
+                        echo ""
+                        echo -e "${BLUE}$selected_script${NC}"
+                        echo "$script_desc"
+                        echo ""
                         if [[ "$AUTO_YES" == "true" ]] || confirm "Run $selected_script?"; then
                             run_script "$selected_script"
                         else
