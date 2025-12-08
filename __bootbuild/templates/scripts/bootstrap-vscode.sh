@@ -32,113 +32,13 @@ pre_execution_confirm "$SCRIPT_NAME" "VS Code Configuration" \
     ".vscode/tasks.json" ".vscode/launch.json"
 
 # ===================================================================
-# Template Validation Functions (Pre-Copy Validation)
-# ===================================================================
-
-# Validates settings.json structure
-# Official: https://code.visualstudio.com/docs/getstarted/settings
-validate_settings_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Validate JSON syntax
-    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
-        log_warning "Settings template has invalid JSON syntax"
-        return 1
-    fi
-
-    # Validate root is an object
-    if ! python3 -c "import json; data=json.load(open('$template_file')); assert isinstance(data, dict)" 2>/dev/null; then
-        log_warning "Settings template root must be a JSON object"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates extensions.json structure
-# Official: https://code.visualstudio.com/docs/editor/extension-marketplace#_share-extensions
-validate_extensions_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Validate JSON syntax
-    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
-        log_warning "Extensions template has invalid JSON syntax"
-        return 1
-    fi
-
-    # Validate has recommendations array
-    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'recommendations' in data and isinstance(data['recommendations'], list)" 2>/dev/null; then
-        log_warning "Extensions template must have 'recommendations' array"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates tasks.json structure
-# Official: https://code.visualstudio.com/docs/editor/tasks
-validate_tasks_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Validate JSON syntax
-    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
-        log_warning "Tasks template has invalid JSON syntax"
-        return 1
-    fi
-
-    # Validate has tasks array
-    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'tasks' in data and isinstance(data['tasks'], list)" 2>/dev/null; then
-        log_warning "Tasks template must have 'tasks' array"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates launch.json structure
-# Official: https://code.visualstudio.com/docs/editor/debugging
-validate_launch_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Validate JSON syntax
-    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
-        log_warning "Launch template has invalid JSON syntax"
-        return 1
-    fi
-
-    # Validate has configurations array
-    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'configurations' in data and isinstance(data['configurations'], list)" 2>/dev/null; then
-        log_warning "Launch template must have 'configurations' array"
-        return 1
-    fi
-
-    return 0
-}
-
-# ===================================================================
 # Validation
 # ===================================================================
 
 log_info "Bootstrapping VS Code configuration..."
 
 if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
+    log_fatal "Project directory not found: $PROJECT_ROOT"
 fi
 
 # ===================================================================
@@ -165,8 +65,6 @@ if [[ -f "$VSCODE_DIR/settings.json" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_VSCODE/settings.json" ]]; then
-    # Validate template before copying
-    validate_settings_template "$TEMPLATE_VSCODE/settings.json"
     if cp "$TEMPLATE_VSCODE/settings.json" "$VSCODE_DIR/"; then
         track_created ".vscode/settings.json"
         log_file_created "$SCRIPT_NAME" ".vscode/settings.json"
@@ -234,8 +132,6 @@ if [[ -f "$VSCODE_DIR/extensions.json" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_VSCODE/extensions.json" ]]; then
-    # Validate template before copying
-    validate_extensions_template "$TEMPLATE_VSCODE/extensions.json"
     if cp "$TEMPLATE_VSCODE/extensions.json" "$VSCODE_DIR/"; then
         track_created ".vscode/extensions.json"
         log_file_created "$SCRIPT_NAME" ".vscode/extensions.json"
@@ -278,8 +174,6 @@ if [[ -f "$VSCODE_DIR/tasks.json" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_VSCODE/tasks.json" ]]; then
-    # Validate template before copying
-    validate_tasks_template "$TEMPLATE_VSCODE/tasks.json"
     if cp "$TEMPLATE_VSCODE/tasks.json" "$VSCODE_DIR/"; then
         track_created ".vscode/tasks.json"
         log_file_created "$SCRIPT_NAME" ".vscode/tasks.json"
@@ -385,8 +279,6 @@ if [[ -f "$VSCODE_DIR/launch.json" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_VSCODE/launch.json" ]]; then
-    # Validate template before copying
-    validate_launch_template "$TEMPLATE_VSCODE/launch.json"
     if cp "$TEMPLATE_VSCODE/launch.json" "$VSCODE_DIR/"; then
         track_created ".vscode/launch.json"
         log_file_created "$SCRIPT_NAME" ".vscode/launch.json"
@@ -451,7 +343,7 @@ validate_bootstrap() {
     if [[ -d "$VSCODE_DIR" ]]; then
         log_success "Directory: .vscode exists"
     else
-        log_error "Missing directory: .vscode"
+        log_fatal "Missing directory: .vscode"
         errors=$((errors + 1))
     fi
 
@@ -461,7 +353,7 @@ validate_bootstrap() {
         if [[ -f "$VSCODE_DIR/$file" ]]; then
             log_success "File: .vscode/$file exists"
         else
-            log_error "Missing file: .vscode/$file"
+            log_fatal "Missing file: .vscode/$file"
             errors=$((errors + 1))
         fi
     done
@@ -532,7 +424,7 @@ validate_bootstrap() {
         log_success "All validation checks passed!"
         return 0
     else
-        log_error "Validation found $errors error(s)"
+        log_fatal "Validation found $errors error(s)"
         return 1
     fi
 }

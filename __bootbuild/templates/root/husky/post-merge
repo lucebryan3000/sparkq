@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Post-merge hook: Run after successful merge
+# Checks if dependencies changed and prompts for install
+
+echo "Post-merge: Checking for dependency changes..."
+
+# Check if package.json or package-lock.json changed
+CHANGED_FILES=$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD)
+
+if echo "$CHANGED_FILES" | grep -qE "package(-lock)?.json|yarn.lock|pnpm-lock.yaml"; then
+  echo ""
+  echo "⚠️  Dependencies may have changed!"
+  echo ""
+  echo "Changed files:"
+  echo "$CHANGED_FILES" | grep -E "package(-lock)?.json|yarn.lock|pnpm-lock.yaml"
+  echo ""
+  echo "Consider running:"
+
+  if [ -f "pnpm-lock.yaml" ]; then
+    echo "  pnpm install"
+  elif [ -f "yarn.lock" ]; then
+    echo "  yarn install"
+  else
+    echo "  npm install"
+  fi
+
+  echo ""
+fi
+
+# Check if migrations or schema changed (for database projects)
+if echo "$CHANGED_FILES" | grep -qE "migrations/|schema\.(prisma|sql)"; then
+  echo ""
+  echo "⚠️  Database schema may have changed!"
+  echo "Consider running migrations or regenerating Prisma client"
+  echo ""
+fi
+
+exit 0

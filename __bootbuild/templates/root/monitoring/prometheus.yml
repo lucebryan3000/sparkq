@@ -1,0 +1,46 @@
+# Prometheus Configuration
+# Documentation: https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+
+global:
+  scrape_interval: {{PROMETHEUS_SCRAPE_INTERVAL}}
+  evaluation_interval: {{PROMETHEUS_EVAL_INTERVAL}}
+  external_labels:
+    monitor: '{{PROJECT_NAME}}'
+    environment: '{{ENVIRONMENT}}'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - localhost:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node exporter (system metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  # Application metrics
+  - job_name: 'app'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['localhost:{{APP_PORT}}']
+        labels:
+          app: '{{PROJECT_NAME}}'
+          env: '{{ENVIRONMENT}}'
+
+  # Docker metrics (if using Docker)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['localhost:9323']

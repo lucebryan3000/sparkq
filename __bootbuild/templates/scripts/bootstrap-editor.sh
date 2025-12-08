@@ -29,64 +29,6 @@ pre_execution_confirm "$SCRIPT_NAME" "Editor Configuration" \
     ".editorconfig" ".stylelintrc.json"
 
 # ===================================================================
-# Template Validation Functions (Pre-Copy Validation)
-# ===================================================================
-
-# Validates EditorConfig structure against official specs
-# Official: https://editorconfig.org/
-validate_editorconfig_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Check file is not empty
-    if [[ ! -s "$template_file" ]]; then
-        log_warning ".editorconfig template is empty"
-        return 1
-    fi
-
-    # Must have root = true declaration
-    if ! grep -q "root = true" "$template_file"; then
-        log_warning ".editorconfig must declare 'root = true'"
-        return 1
-    fi
-
-    # Should have at least one section
-    if ! grep -q "^\[" "$template_file"; then
-        log_warning ".editorconfig should have at least one section"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates StyleLint configuration structure
-# Official: https://stylelint.io/user-guide/configure
-validate_stylelint_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Validate JSON syntax
-    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
-        log_warning ".stylelintrc template has invalid JSON syntax"
-        return 1
-    fi
-
-    # Check for extends or rules (at least one required config)
-    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'extends' in data or 'rules' in data or 'plugins' in data" 2>/dev/null; then
-        log_warning ".stylelintrc should have extends, rules, or plugins"
-        return 1
-    fi
-
-    return 0
-}
-
-# ===================================================================
 # Validation
 # ===================================================================
 
@@ -94,12 +36,12 @@ log_info "Bootstrapping editor configuration..."
 
 # Verify project directory exists
 if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
+    log_fatal "Project directory not found: $PROJECT_ROOT"
 fi
 
 # Verify project directory is writable
 if [[ ! -w "$PROJECT_ROOT" ]]; then
-    log_error "Project directory is not writable: $PROJECT_ROOT"
+    log_fatal "Project directory is not writable: $PROJECT_ROOT"
 fi
 
 # ===================================================================
@@ -118,9 +60,6 @@ if [[ -f "$PROJECT_ROOT/.editorconfig" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_ROOT/.editorconfig" ]]; then
-    # Validate template before copying
-    validate_editorconfig_template "$TEMPLATE_ROOT/.editorconfig"
-
     if cp "$TEMPLATE_ROOT/.editorconfig" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/.editorconfig"; then
             track_created ".editorconfig"
@@ -150,9 +89,6 @@ if [[ -f "$PROJECT_ROOT/.stylelintrc" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_ROOT/.stylelintrc" ]]; then
-    # Validate template before copying
-    validate_stylelint_template "$TEMPLATE_ROOT/.stylelintrc"
-
     if cp "$TEMPLATE_ROOT/.stylelintrc" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/.stylelintrc"; then
             track_created ".stylelintrc"

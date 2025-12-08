@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "description": "Security scanning thresholds and policies",
+
+  "vulnerabilities": {
+    "critical": {
+      "allowedCount": 0,
+      "failBuild": true,
+      "description": "Critical vulnerabilities must be addressed immediately"
+    },
+    "high": {
+      "allowedCount": 0,
+      "failBuild": true,
+      "description": "High severity vulnerabilities block deployment"
+    },
+    "medium": {
+      "allowedCount": 5,
+      "failBuild": false,
+      "description": "Medium severity vulnerabilities should be addressed"
+    },
+    "low": {
+      "allowedCount": 10,
+      "failBuild": false,
+      "description": "Low severity vulnerabilities tracked but don't block"
+    }
+  },
+
+  "licenses": {
+    "allowed": [
+      "MIT",
+      "Apache-2.0",
+      "BSD-2-Clause",
+      "BSD-3-Clause",
+      "ISC",
+      "CC0-1.0",
+      "Unlicense",
+      "0BSD"
+    ],
+    "flagForReview": [
+      "LGPL-2.1",
+      "LGPL-3.0",
+      "MPL-2.0",
+      "EPL-1.0",
+      "EPL-2.0",
+      "CDDL-1.0"
+    ],
+    "disallowed": [
+      "GPL-2.0",
+      "GPL-3.0",
+      "AGPL-1.0",
+      "AGPL-3.0",
+      "SSPL-1.0"
+    ],
+    "failOnDisallowed": true
+  },
+
+  "supplyChain": {
+    "checkPackageIntegrity": true,
+    "verifySignatures": true,
+    "detectMaliciousPackages": true,
+    "checkForTyposquatting": true
+  },
+
+  "scanning": {
+    "schedule": "daily",
+    "scanOnInstall": true,
+    "scanOnCommit": false,
+    "autoFix": {
+      "enabled": true,
+      "maxSeverity": "medium",
+      "createPR": false
+    }
+  },
+
+  "reporting": {
+    "outputFormats": ["json", "html", "text"],
+    "notifyOn": ["critical", "high"],
+    "slackWebhook": "",
+    "emailRecipients": []
+  },
+
+  "exemptions": {
+    "packages": [],
+    "vulnerabilities": []
+  }
+}

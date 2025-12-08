@@ -33,82 +33,6 @@ pre_execution_confirm "$SCRIPT_NAME" "Linting Configuration" \
     ".prettierrc.json" ".prettierignore"
 
 # ===================================================================
-# Template Validation Functions (Pre-Copy Validation)
-# ===================================================================
-
-# Validates ESLint configuration structure
-# Official: https://eslint.org/docs/latest/use/configure/configuration-files
-validate_eslint_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Validate JSON syntax
-    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
-        log_warning ".eslintrc.json template has invalid JSON syntax"
-        return 1
-    fi
-
-    # Check for required fields
-    if ! python3 -c "import json; data=json.load(open('$template_file')); assert 'env' in data or 'extends' in data or 'rules' in data" 2>/dev/null; then
-        log_warning ".eslintrc.json should have env, extends, or rules"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates Prettier configuration structure
-# Official: https://prettier.io/docs/en/configuration.html
-validate_prettier_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Validate JSON syntax
-    if ! python3 -c "import json; json.load(open('$template_file'))" 2>/dev/null; then
-        log_warning ".prettierrc.json template has invalid JSON syntax"
-        return 1
-    fi
-
-    # Check for valid format options (should have at least one)
-    if ! python3 -c "import json; data=json.load(open('$template_file')); assert len(data) > 0" 2>/dev/null; then
-        log_warning ".prettierrc.json is empty"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates ignore file structure
-validate_ignore_template() {
-    local template_file="$1"
-    local file_name=$(basename "$template_file")
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Check file is not empty
-    if [[ ! -s "$template_file" ]]; then
-        log_warning "$file_name template is empty"
-        return 1
-    fi
-
-    # Should contain at least some patterns
-    if ! grep -q "^[^#]" "$template_file"; then
-        log_warning "$file_name contains only comments"
-        return 1
-    fi
-
-    return 0
-}
-
-# ===================================================================
 # Validation
 # ===================================================================
 
@@ -133,7 +57,6 @@ if file_exists "$PROJECT_ROOT/.eslintrc.json"; then
 fi
 
 if file_exists "$TEMPLATE_ROOT/.eslintrc.json"; then
-    validate_eslint_template "$TEMPLATE_ROOT/.eslintrc.json"
     if cp "$TEMPLATE_ROOT/.eslintrc.json" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/.eslintrc.json"; then
             track_created ".eslintrc.json"
@@ -163,7 +86,6 @@ if file_exists "$PROJECT_ROOT/.eslintignore"; then
 fi
 
 if file_exists "$TEMPLATE_ROOT/.eslintignore"; then
-    validate_ignore_template "$TEMPLATE_ROOT/.eslintignore"
     if cp "$TEMPLATE_ROOT/.eslintignore" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/.eslintignore"; then
             track_created ".eslintignore"
@@ -193,7 +115,6 @@ if file_exists "$PROJECT_ROOT/.prettierrc.json"; then
 fi
 
 if file_exists "$TEMPLATE_ROOT/.prettierrc.json"; then
-    validate_prettier_template "$TEMPLATE_ROOT/.prettierrc.json"
     if cp "$TEMPLATE_ROOT/.prettierrc.json" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/.prettierrc.json"; then
             track_created ".prettierrc.json"
@@ -223,7 +144,6 @@ if file_exists "$PROJECT_ROOT/.prettierignore"; then
 fi
 
 if file_exists "$TEMPLATE_ROOT/.prettierignore"; then
-    validate_ignore_template "$TEMPLATE_ROOT/.prettierignore"
     if cp "$TEMPLATE_ROOT/.prettierignore" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/.prettierignore"; then
             track_created ".prettierignore"

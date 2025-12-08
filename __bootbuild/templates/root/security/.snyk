@@ -1,0 +1,44 @@
+# Snyk (https://snyk.io) policy file
+# Snyk vulnerability database and scanning configuration
+
+# Configuration
+version: v1.25.0
+
+# Package Manager Settings
+language-settings:
+  node:
+    packageManager: npm
+    # Auto-fix vulnerabilities when possible
+    autoFix: true
+
+# Ignore specific vulnerabilities (with expiration)
+# Format:
+#   ignore:
+#     SNYK-XXX-XXX-XXX:
+#       - '*':
+#           reason: Explanation why ignored
+#           expires: YYYY-MM-DD
+
+ignore: {}
+
+# Patch vulnerabilities when patches available
+# Patches are applied automatically by Snyk
+patch: {}
+
+# Exclude paths from scanning
+exclude:
+  global:
+    - node_modules
+    - dist
+    - build
+    - coverage
+    - .next
+    - .vite
+    - .turbo
+    - '*.test.ts'
+    - '*.test.js'
+    - '*.spec.ts'
+    - '*.spec.js'
+    - __tests__
+    - test
+    - tests

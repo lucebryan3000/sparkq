@@ -1,0 +1,136 @@
+# Bitbucket Pipelines Configuration
+# https://support.atlassian.com/bitbucket-cloud/docs/configure-bitbucket-pipelinesyml/
+
+image: node:20
+
+definitions:
+  caches:
+    npm: ~/.npm
+
+  services:
+    postgres:
+      image: postgres:15
+      variables:
+        POSTGRES_DB: test_db
+        POSTGRES_USER: test_user
+        POSTGRES_PASSWORD: test_password
+
+  steps:
+    - step: &install
+        name: Install dependencies
+        caches:
+          - npm
+          - node
+        script:
+          - npm ci
+        artifacts:
+          - node_modules/**
+
+    - step: &lint
+        name: Lint code
+        caches:
+          - node
+        script:
+          - npm run lint
+
+    - step: &typecheck
+        name: Type check
+        caches:
+          - node
+        script:
+          - npm run typecheck
+
+    - step: &test-unit
+        name: Unit tests
+        caches:
+          - node
+        script:
+          - npm run test:unit
+        artifacts:
+          - coverage/**
+          - junit.xml
+
+    - step: &test-integration
+        name: Integration tests
+        services:
+          - postgres
+        caches:
+          - node
+        script:
+          - export DATABASE_URL="postgresql://test_user:test_password@localhost:5432/test_db"
+          - npm run test:integration
+
+    - step: &build
+        name: Build application
+        caches:
+          - node
+        script:
+          - npm run build
+        artifacts:
+          - dist/**
+          - build/**
+
+    - step: &deploy-staging
+        name: Deploy to staging
+        deployment: staging
+        script:
+          - echo "Deploying to staging environment"
+          # Add your deployment commands here
+
+    - step: &deploy-production
+        name: Deploy to production
+        deployment: production
+        trigger: manual
+        script:
+          - echo "Deploying to production environment"
+          # Add your deployment commands here
+
+pipelines:
+  default:
+    - step: *install
+    - parallel:
+        - step: *lint
+        - step: *typecheck
+        - step: *test-unit
+    - step: *build
+
+  branches:
+    develop:
+      - step: *install
+      - parallel:
+          - step: *lint
+          - step: *typecheck
+          - step: *test-unit
+          - step: *test-integration
+      - step: *build
+      - step: *deploy-staging
+
+    main:
+      - step: *install
+      - parallel:
+          - step: *lint
+          - step: *typecheck
+          - step: *test-unit
+          - step: *test-integration
+      - step: *build
+      - step: *deploy-production
+
+  pull-requests:
+    '**':
+      - step: *install
+      - parallel:
+          - step: *lint
+          - step: *typecheck
+          - step: *test-unit
+      - step: *build
+
+  tags:
+    'v*':
+      - step: *install
+      - parallel:
+          - step: *lint
+          - step: *typecheck
+          - step: *test-unit
+          - step: *test-integration
+      - step: *build
+      - step: *deploy-production

@@ -30,82 +30,6 @@ pre_execution_confirm "$SCRIPT_NAME" "Testing Configuration" \
     "tests/ directory"
 
 # ===================================================================
-# Template Validation Functions (Pre-Copy Validation)
-# ===================================================================
-
-# Validates Jest configuration structure
-# Official: https://jestjs.io/docs/configuration
-validate_jest_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Basic JS/TS syntax check: should have export
-    if ! grep -q "export" "$template_file"; then
-        log_warning "jest.config.js should have export statement"
-        return 1
-    fi
-
-    # Should have testEnvironment or testMatch defined
-    if ! grep -qE "testEnvironment|testMatch" "$template_file"; then
-        log_warning "jest.config.js should define testEnvironment or testMatch"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates Pytest configuration structure
-# Official: https://docs.pytest.org/en/stable/reference.html#ini-options
-validate_pytest_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # INI format: should have [pytest] section
-    if ! grep -q "^\[pytest\]" "$template_file"; then
-        log_warning "pytest.ini must have [pytest] section"
-        return 1
-    fi
-
-    # Should define testpaths or python_files
-    if ! grep -qE "testpaths|python_files" "$template_file"; then
-        log_warning "pytest.ini should define testpaths or python_files"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates Coverage configuration structure
-# Official: https://coverage.readthedocs.io/en/latest/config.html
-validate_coverage_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # INI format: should have [run] section
-    if ! grep -q "^\[run\]" "$template_file"; then
-        log_warning ".coveragerc must have [run] section"
-        return 1
-    fi
-
-    # Should have source or omit configured
-    if ! grep -qE "source|omit" "$template_file"; then
-        log_warning ".coveragerc should have source or omit configuration"
-        return 1
-    fi
-
-    return 0
-}
-
-# ===================================================================
 # Validation
 # ===================================================================
 
@@ -113,12 +37,12 @@ log_info "Bootstrapping testing configuration..."
 
 # Verify project directory exists
 if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
+    log_fatal "Project directory not found: $PROJECT_ROOT"
 fi
 
 # Verify project directory is writable
 if [[ ! -w "$PROJECT_ROOT" ]]; then
-    log_error "Project directory is not writable: $PROJECT_ROOT"
+    log_fatal "Project directory is not writable: $PROJECT_ROOT"
 fi
 
 # ===================================================================
@@ -137,9 +61,6 @@ if [[ -f "$PROJECT_ROOT/jest.config.js" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_ROOT/jest.config.js" ]]; then
-    # Validate template before copying
-    validate_jest_template "$TEMPLATE_ROOT/jest.config.js"
-
     if cp "$TEMPLATE_ROOT/jest.config.js" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/jest.config.js"; then
             track_created "jest.config.js"
@@ -169,9 +90,6 @@ if [[ -f "$PROJECT_ROOT/pytest.ini" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_ROOT/pytest.ini" ]]; then
-    # Validate template before copying
-    validate_pytest_template "$TEMPLATE_ROOT/pytest.ini"
-
     if cp "$TEMPLATE_ROOT/pytest.ini" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/pytest.ini"; then
             track_created "pytest.ini"
@@ -201,9 +119,6 @@ if [[ -f "$PROJECT_ROOT/.coveragerc" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_ROOT/.coveragerc" ]]; then
-    # Validate template before copying
-    validate_coverage_template "$TEMPLATE_ROOT/.coveragerc"
-
     if cp "$TEMPLATE_ROOT/.coveragerc" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/.coveragerc"; then
             track_created ".coveragerc"

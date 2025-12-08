@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Quality gate thresholds and rules"
+  },
+  "gates": {
+    "coverage": {
+      "enabled": true,
+      "threshold": 80,
+      "unit": "percentage",
+      "description": "Minimum code coverage percentage"
+    },
+    "complexity": {
+      "enabled": true,
+      "threshold": 10,
+      "unit": "cyclomatic_complexity",
+      "description": "Maximum cyclomatic complexity per function"
+    },
+    "duplication": {
+      "enabled": true,
+      "threshold": 3,
+      "unit": "percentage",
+      "description": "Maximum code duplication percentage"
+    },
+    "maintainability": {
+      "enabled": true,
+      "threshold": "B",
+      "unit": "grade",
+      "description": "Minimum maintainability grade (A-F)"
+    },
+    "security": {
+      "enabled": true,
+      "threshold": 0,
+      "unit": "vulnerabilities",
+      "description": "Maximum number of high/critical security vulnerabilities"
+    },
+    "reliability": {
+      "enabled": true,
+      "threshold": 0,
+      "unit": "bugs",
+      "description": "Maximum number of critical bugs"
+    }
+  },
+  "rules": {
+    "fail_on_violation": true,
+    "warning_threshold": 0.9,
+    "block_pr_on_failure": true
+  }
+}

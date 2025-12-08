@@ -1,0 +1,85 @@
+# SSL Certificate Information
+# Generated: {{TIMESTAMP}}
+# Method: {{METHOD}}
+
+## Certificate Details
+- Common Name: localhost
+- Organization: Local Development
+- Validity: {{VALIDITY_DAYS}} days
+- Key Size: 2048 bits
+- Algorithm: RSA
+
+## Files Created
+- localhost.crt - Certificate file
+- localhost.key - Private key file
+- localhost.pem - Combined PEM file (optional)
+
+## Usage in Applications
+
+### Node.js/Express
+```javascript
+const https = require('https');
+const fs = require('fs');
+
+const options = {
+  key: fs.readFileSync('ssl/localhost.key'),
+  cert: fs.readFileSync('ssl/localhost.crt')
+};
+
+https.createServer(options, app).listen(3000);
+```
+
+### Vite/React
+```javascript
+// vite.config.js
+export default {
+  server: {
+    https: {
+      key: fs.readFileSync('ssl/localhost.key'),
+      cert: fs.readFileSync('ssl/localhost.crt')
+    }
+  }
+}
+```
+
+### Python/Flask
+```python
+if __name__ == '__main__':
+    app.run(
+        ssl_context=('ssl/localhost.crt', 'ssl/localhost.key'),
+        port=5000
+    )
+```
+
+## Trust Certificate (Manual Steps)
+
+### macOS
+```bash
+sudo security add-trusted-cert -d -r trustRoot \
+  -k /Library/Keychains/System.keychain ssl/localhost.crt
+```
+
+### Linux (Ubuntu/Debian)
+```bash
+sudo cp ssl/localhost.crt /usr/local/share/ca-certificates/
+sudo update-ca-certificates
+```
+
+### Windows
+```powershell
+Import-Certificate -FilePath ssl\localhost.crt -CertStoreLocation Cert:\LocalMachine\Root
+```
+
+### Firefox (all platforms)
+1. Open Firefox Preferences
+2. Privacy & Security > Certificates > View Certificates
+3. Authorities tab > Import
+4. Select ssl/localhost.crt
+5. Trust for identifying websites
+
+## Security Notes
+- These certificates are for LOCAL DEVELOPMENT ONLY
+- Never use self-signed certificates in production
+- Keep private keys (.key files) secure and out of version control
+- Add ssl/*.key to .gitignore
+- Regenerate certificates every 365 days

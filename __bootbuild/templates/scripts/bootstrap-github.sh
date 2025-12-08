@@ -32,112 +32,17 @@ pre_execution_confirm "$SCRIPT_NAME" "GitHub Configuration" \
     ".github/workflows/"
 
 # ===================================================================
-# Template Validation Functions (Pre-Copy Validation)
-# ===================================================================
-
-# Validates GitHub issue template structure against official specs
-# Official: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
-validate_issue_template() {
-    local template_file="$1"
-    local template_name=$(basename "$template_file")
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0  # Not a template validation failure, just missing template
-    fi
-
-    # Check for YAML frontmatter
-    if ! grep -q "^---$" "$template_file"; then
-        log_warning "Issue template '$template_name' missing YAML frontmatter"
-        return 1
-    fi
-
-    # Check for required YAML fields in frontmatter using grep
-    local required_fields=("name:" "about:" "title:" "labels:" "assignees:")
-    local missing=0
-    for field in "${required_fields[@]}"; do
-        if ! sed -n '1,/^---$/p' "$template_file" | grep -q "^$field"; then
-            missing=$((missing + 1))
-        fi
-    done
-
-    if [[ $missing -gt 0 ]]; then
-        log_warning "Issue template '$template_name' missing required YAML fields (name, about, title, labels, assignees)"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates GitHub Actions workflow structure against official specs
-# Official: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions
-validate_workflow_template() {
-    local workflow_file="$1"
-    local workflow_name=$(basename "$workflow_file")
-
-    if [[ ! -f "$workflow_file" ]]; then
-        return 0
-    fi
-
-    # Check for required workflow fields
-    if ! grep -q "^name:" "$workflow_file"; then
-        log_warning "Workflow '$workflow_name' missing 'name' field"
-        return 1
-    fi
-
-    if ! grep -q "^on:" "$workflow_file"; then
-        log_warning "Workflow '$workflow_name' missing 'on' field (event trigger)"
-        return 1
-    fi
-
-    if ! grep -q "^jobs:" "$workflow_file"; then
-        log_warning "Workflow '$workflow_name' missing 'jobs' field"
-        return 1
-    fi
-
-    # Validate YAML syntax using Python
-    if ! python3 -c "import yaml; yaml.safe_load(open('$workflow_file'))" 2>/dev/null; then
-        log_warning "Workflow '$workflow_name' has invalid YAML syntax"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates issue template config.yml against official specs
-validate_config_template() {
-    local config_file="$1"
-
-    if [[ ! -f "$config_file" ]]; then
-        return 0
-    fi
-
-    # Check for required config fields
-    if ! grep -q "^blank_issues_enabled:" "$config_file"; then
-        log_warning "Config missing 'blank_issues_enabled' field"
-        return 1
-    fi
-
-    # Validate YAML syntax
-    if ! python3 -c "import yaml; yaml.safe_load(open('$config_file'))" 2>/dev/null; then
-        log_warning "Config has invalid YAML syntax"
-        return 1
-    fi
-
-    return 0
-}
-
-# ===================================================================
 # Validation
 # ===================================================================
 
 log_info "Bootstrapping GitHub configuration..."
 
 if [[ ! -d "$PROJECT_ROOT" ]]; then
-    log_error "Project directory not found: $PROJECT_ROOT"
+    log_fatal "Project directory not found: $PROJECT_ROOT"
 fi
 
 if [[ ! -d "$TEMPLATE_GITHUB" ]]; then
-    log_error "Template .github directory not found: $TEMPLATE_GITHUB"
+    log_fatal "Template .github directory not found: $TEMPLATE_GITHUB"
 fi
 
 # ===================================================================
@@ -227,8 +132,6 @@ if [[ -f "$GITHUB_DIR/ISSUE_TEMPLATE/bug_report.md" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md" ]]; then
-    # Validate template before copying
-    validate_issue_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md"
     if cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/bug_report.md" "$GITHUB_DIR/ISSUE_TEMPLATE/"; then
         track_created ".github/ISSUE_TEMPLATE/bug_report.md"
         log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/bug_report.md"
@@ -293,8 +196,6 @@ if [[ -f "$GITHUB_DIR/ISSUE_TEMPLATE/feature_request.md" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md" ]]; then
-    # Validate template before copying
-    validate_issue_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md"
     if cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/feature_request.md" "$GITHUB_DIR/ISSUE_TEMPLATE/"; then
         track_created ".github/ISSUE_TEMPLATE/feature_request.md"
         log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/feature_request.md"
@@ -341,8 +242,6 @@ if [[ -f "$GITHUB_DIR/ISSUE_TEMPLATE/config.yml" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml" ]]; then
-    # Validate config before copying
-    validate_config_template "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml"
     if cp "$TEMPLATE_GITHUB/ISSUE_TEMPLATE/config.yml" "$GITHUB_DIR/ISSUE_TEMPLATE/"; then
         track_created ".github/ISSUE_TEMPLATE/config.yml"
         log_file_created "$SCRIPT_NAME" ".github/ISSUE_TEMPLATE/config.yml"
@@ -379,8 +278,6 @@ if [[ -f "$GITHUB_DIR/workflows/ci.yml" ]]; then
 fi
 
 if [[ -f "$TEMPLATE_GITHUB/workflows/ci.yml" ]]; then
-    # Validate workflow before copying
-    validate_workflow_template "$TEMPLATE_GITHUB/workflows/ci.yml"
     if cp "$TEMPLATE_GITHUB/workflows/ci.yml" "$GITHUB_DIR/workflows/"; then
         track_created ".github/workflows/ci.yml"
         log_file_created "$SCRIPT_NAME" ".github/workflows/ci.yml"
@@ -462,7 +359,7 @@ validate_bootstrap() {
         if [[ -d "$GITHUB_DIR/$dir" ]]; then
             log_success "Directory: .github/$dir exists"
         else
-            log_error "Missing directory: .github/$dir"
+            log_fatal "Missing directory: .github/$dir"
             errors=$((errors + 1))
         fi
     done
@@ -473,7 +370,7 @@ validate_bootstrap() {
         if [[ -f "$GITHUB_DIR/$file" ]]; then
             log_success "File: .github/$file exists"
         else
-            log_error "Missing file: .github/$file"
+            log_fatal "Missing file: .github/$file"
             errors=$((errors + 1))
         fi
     done
@@ -506,7 +403,7 @@ validate_bootstrap() {
         log_success "All validation checks passed!"
         return 0
     else
-        log_error "Validation found $errors error(s)"
+        log_fatal "Validation found $errors error(s)"
         return 1
     fi
 }

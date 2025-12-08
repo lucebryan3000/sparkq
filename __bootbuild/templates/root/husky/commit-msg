@@ -1,0 +1,49 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Commit message validation hook
+# Validates commit messages follow conventional commit format
+# Format: type(scope): description
+# Example: feat(api): add user authentication
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Skip if commit message starts with "Merge" or is from rebase/cherry-pick
+if echo "$COMMIT_MSG" | grep -qE "^(Merge|Revert|Rebase|fixup!|squash!)"; then
+  exit 0
+fi
+
+# Conventional commit pattern
+# type(scope)?: description
+# Valid types: feat, fix, docs, style, refactor, test, chore, perf, ci, build
+PATTERN="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\(.+\))?: .{1,}"
+
+if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+  echo ""
+  echo "❌ Invalid commit message format"
+  echo ""
+  echo "Commit message must follow conventional commits format:"
+  echo "  type(scope): description"
+  echo ""
+  echo "Valid types:"
+  echo "  feat:     New feature"
+  echo "  fix:      Bug fix"
+  echo "  docs:     Documentation changes"
+  echo "  style:    Code style changes (formatting, semicolons, etc.)"
+  echo "  refactor: Code refactoring"
+  echo "  test:     Adding or updating tests"
+  echo "  chore:    Maintenance tasks"
+  echo "  perf:     Performance improvements"
+  echo "  ci:       CI/CD changes"
+  echo "  build:    Build system changes"
+  echo ""
+  echo "Examples:"
+  echo "  feat(auth): add user login endpoint"
+  echo "  fix(ui): resolve button alignment issue"
+  echo "  docs: update installation instructions"
+  echo ""
+  exit 1
+fi
+
+exit 0

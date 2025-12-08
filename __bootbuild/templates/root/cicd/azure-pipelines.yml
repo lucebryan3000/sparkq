@@ -1,0 +1,189 @@
+# Azure Pipelines Configuration
+# https://docs.microsoft.com/azure/devops/pipelines/
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - docs/*
+      - README.md
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  nodeVersion: '20.x'
+  npm_config_cache: $(Pipeline.Workspace)/.npm
+
+stages:
+  - stage: Install
+    displayName: 'Install Dependencies'
+    jobs:
+      - job: InstallDependencies
+        displayName: 'Install npm dependencies'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: 'Install Node.js'
+
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: $(npm_config_cache)
+            displayName: 'Cache npm'
+
+          - script: npm ci
+            displayName: 'npm ci'
+
+          - publish: $(System.DefaultWorkingDirectory)/node_modules
+            artifact: node_modules
+
+  - stage: Lint
+    displayName: 'Lint and Type Check'
+    dependsOn: Install
+    jobs:
+      - job: Lint
+        displayName: 'Run linter'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - download: current
+            artifact: node_modules
+
+          - script: npm run lint
+            displayName: 'Run ESLint'
+
+      - job: TypeCheck
+        displayName: 'Type checking'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - download: current
+            artifact: node_modules
+
+          - script: npm run typecheck
+            displayName: 'Run TypeScript compiler'
+
+  - stage: Test
+    displayName: 'Run Tests'
+    dependsOn: Lint
+    jobs:
+      - job: UnitTests
+        displayName: 'Unit tests'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - download: current
+            artifact: node_modules
+
+          - script: npm run test:unit
+            displayName: 'Run unit tests'
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              failTaskOnFailedTests: true
+
+          - task: PublishCodeCoverageResults@1
+            condition: succeededOrFailed()
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml'
+
+      - job: IntegrationTests
+        displayName: 'Integration tests'
+        condition: in(variables['Build.SourceBranch'], 'refs/heads/main', 'refs/heads/develop')
+        services:
+          postgres: postgres
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - download: current
+            artifact: node_modules
+
+          - script: npm run test:integration
+            displayName: 'Run integration tests'
+            env:
+              DATABASE_URL: 'postgresql://test_user:test_password@localhost:5432/test_db'
+
+  - stage: Build
+    displayName: 'Build Application'
+    dependsOn: Test
+    jobs:
+      - job: Build
+        displayName: 'Build project'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - download: current
+            artifact: node_modules
+
+          - script: npm run build
+            displayName: 'Build application'
+
+          - publish: $(System.DefaultWorkingDirectory)/dist
+            artifact: dist
+
+  - stage: DeployStaging
+    displayName: 'Deploy to Staging'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+    jobs:
+      - deployment: DeployStaging
+        displayName: 'Deploy to staging'
+        environment: 'staging'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: dist
+
+                - script: |
+                    echo "Deploying to staging environment"
+                    # Add your deployment commands here
+                  displayName: 'Deploy to staging'
+
+  - stage: DeployProduction
+    displayName: 'Deploy to Production'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployProduction
+        displayName: 'Deploy to production'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: dist
+
+                - script: |
+                    echo "Deploying to production environment"
+                    # Add your deployment commands here
+                  displayName: 'Deploy to production'

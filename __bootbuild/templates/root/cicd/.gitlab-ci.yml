@@ -1,0 +1,137 @@
+# GitLab CI/CD Pipeline Configuration
+# https://docs.gitlab.com/ee/ci/yaml/
+
+stages:
+  - install
+  - lint
+  - test
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "20"
+  NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/.npm"
+  POSTGRES_DB: test_db
+  POSTGRES_USER: test_user
+  POSTGRES_PASSWORD: test_password
+
+# Cache node modules between jobs
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+    - .npm/
+
+# Install dependencies
+install:
+  stage: install
+  image: node:${NODE_VERSION}
+  script:
+    - npm ci --prefer-offline
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
+
+# Linting job
+lint:
+  stage: lint
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install
+  script:
+    - npm run lint
+  allow_failure: false
+
+# Type checking job
+typecheck:
+  stage: lint
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install
+  script:
+    - npm run typecheck
+  allow_failure: false
+
+# Unit tests
+test:unit:
+  stage: test
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install
+  script:
+    - npm run test:unit
+  coverage: '/Lines\s*:\s*(\d+\.\d+)%/'
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+      junit: junit.xml
+    paths:
+      - coverage/
+    expire_in: 30 days
+
+# Integration tests
+test:integration:
+  stage: test
+  image: node:${NODE_VERSION}
+  services:
+    - postgres:15
+  dependencies:
+    - install
+  variables:
+    DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
+  script:
+    - npm run test:integration
+  allow_failure: false
+
+# Build application
+build:
+  stage: build
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+      - build/
+    expire_in: 7 days
+
+# Deploy to staging
+deploy:staging:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build
+  script:
+    - echo "Deploying to staging environment"
+    - echo "Deploy your application here"
+  environment:
+    name: staging
+    url: https://staging.example.com
+  only:
+    - develop
+    - dev
+
+# Deploy to production
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build
+  script:
+    - echo "Deploying to production environment"
+    - echo "Deploy your application here"
+  environment:
+    name: production
+    url: https://example.com
+  only:
+    - main
+    - master
+  when: manual

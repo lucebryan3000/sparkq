@@ -1,0 +1,177 @@
+# CircleCI Configuration
+# https://circleci.com/docs/configuration-reference/
+
+version: 2.1
+
+orbs:
+  node: circleci/node@5.1.0
+
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:20.0
+    working_directory: ~/project
+
+  node-postgres:
+    docker:
+      - image: cimg/node:20.0
+      - image: cimg/postgres:15.0
+        environment:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+    working_directory: ~/project
+
+jobs:
+  install:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+            - v1-dependencies-
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - node_modules
+
+  lint:
+    executor: node-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Run linter
+          command: npm run lint
+
+  typecheck:
+    executor: node-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Run type checking
+          command: npm run typecheck
+
+  test:
+    executor: node-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Run unit tests
+          command: npm run test:unit
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: coverage
+          destination: coverage
+
+  test-integration:
+    executor: node-postgres
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Wait for PostgreSQL
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Run integration tests
+          command: npm run test:integration
+          environment:
+            DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+
+  build:
+    executor: node-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Build application
+          command: npm run build
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - dist
+            - build
+      - store_artifacts:
+          path: dist
+          destination: dist
+
+  deploy-staging:
+    executor: node-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Deploy to staging
+          command: |
+            echo "Deploying to staging environment"
+            # Add your deployment commands here
+
+  deploy-production:
+    executor: node-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Deploy to production
+          command: |
+            echo "Deploying to production environment"
+            # Add your deployment commands here
+
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - install
+      - lint:
+          requires:
+            - install
+      - typecheck:
+          requires:
+            - install
+      - test:
+          requires:
+            - install
+      - test-integration:
+          requires:
+            - install
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+      - build:
+          requires:
+            - lint
+            - typecheck
+            - test
+      - deploy-staging:
+          requires:
+            - build
+          filters:
+            branches:
+              only: develop
+      - deploy-production:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main

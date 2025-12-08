@@ -1,6 +1,6 @@
 # Codex Prompt Generator (/-codex_prompt)
 
-**PURPOSE**: Automatically refactor ANY implementation plan into a Codex-optimized execution spec using the **Complete Orchestration Pattern** from `.claude/playbooks/codex-optimization.md` (Section 2.5).
+**PURPOSE**: Automatically refactor ANY implementation plan into a Codex-optimized execution spec using the **Complete Orchestration Pattern** from `_build/playbooks/codex-optimization.md` (Section 2.5).
 
 **CRITICAL**: This command is NOT optional guidance. When invoked, you MUST:
 1. ✅ Read the playbook (Section 2.5: Complete Orchestration Pattern)
@@ -18,7 +18,7 @@
 When user invokes: `/-codex_prompt refactor @<file_path>`
 
 ### Step 1: READ THE PLAYBOOK (Section 2.5)
-- Read: `/home/luce/apps/sparkq/.claude/playbooks/codex-optimization.md`
+- Read: `/home/luce/apps/sparkq/_build/playbooks/codex-optimization.md`
 - Focus: Section 2.5 "The Complete Orchestration Pattern (SparkQ Implementation)"
 - Extract: The 3-step workflow (Sonnet → Codex → Haiku)
 - Extract: Token cost structure and execution model
@@ -101,7 +101,7 @@ wait
 
 **CRITICAL**: Before asking the user to test, YOU must test programmatically first.
 
-**Reference**: See `.claude/playbooks/self-testing-protocol.md` for detailed testing procedures.
+**Reference**: See `_build/playbooks/self-testing-protocol.md` for detailed testing procedures.
 
 ### Automated Testing Checklist
 

@@ -1,0 +1,47 @@
+{
+  "complexity": {
+    "cyclomatic": {
+      "max_function": 10,
+      "max_class": 50,
+      "max_file": 100,
+      "description": "Cyclomatic complexity thresholds"
+    },
+    "cognitive": {
+      "max_function": 15,
+      "max_class": 50,
+      "description": "Cognitive complexity thresholds"
+    },
+    "nesting": {
+      "max_depth": 4,
+      "description": "Maximum nesting depth"
+    }
+  },
+  "size": {
+    "lines_of_code": {
+      "max_function": 50,
+      "max_class": 300,
+      "max_file": 500,
+      "description": "Lines of code limits"
+    },
+    "parameters": {
+      "max_count": 5,
+      "description": "Maximum function parameters"
+    }
+  },
+  "maintainability": {
+    "index": {
+      "min_score": 65,
+      "range": "0-100",
+      "description": "Maintainability index minimum score"
+    }
+  },
+  "excluded_patterns": [
+    "**/*.test.js",
+    "**/*.spec.js",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/test_*.py",
+    "**/__tests__/**",
+    "**/tests/**"
+  ]
+}

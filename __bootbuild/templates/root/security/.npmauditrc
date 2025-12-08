@@ -1,0 +1,30 @@
+# npm audit configuration
+# Controls behavior of npm audit command
+
+# Audit levels to report
+# Options: info, low, moderate, high, critical
+audit-level=moderate
+
+# Exclude development dependencies from audit
+# Set to true for production-only audits
+omit=dev
+
+# Registry to check packages against
+registry=https://registry.npmjs.org/
+
+# Output format
+# Options: json, text
+format=json
+
+# Additional npm audit flags
+# Uncomment to enable specific behaviors
+
+# Only audit production dependencies
+# production=true
+
+# Generate detailed report
+# verbose=true
+
+# Exit with error code 0 even if vulnerabilities found
+# (useful for CI/CD where you want to report but not fail)
+# no-bail=false

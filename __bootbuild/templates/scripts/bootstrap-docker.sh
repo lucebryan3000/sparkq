@@ -39,93 +39,8 @@ pre_execution_confirm "$SCRIPT_NAME" "Docker Configuration" \
     "Dockerfile" \
     ".dockerignore"
 
-# ===================================================================
-# Template Validation Functions (Pre-Copy Validation)
-# ===================================================================
-
-# Validates docker-compose.yml structure against official specs
-# Official: https://docs.docker.com/compose/compose-file/
-validate_docker_compose_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Validate YAML syntax using Python
-    if ! python3 -c "import yaml; yaml.safe_load(open('$template_file'))" 2>/dev/null; then
-        log_warning "docker-compose.yml template has invalid YAML syntax"
-        return 1
-    fi
-
-    # Check for services definition
-    if ! grep -q "^services:" "$template_file"; then
-        log_warning "docker-compose.yml must define services"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates Dockerfile structure against official specs
-# Official: https://docs.docker.com/engine/reference/builder/
-validate_dockerfile_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Check for FROM instruction (required)
-    if ! grep -q "^FROM" "$template_file"; then
-        log_warning "Dockerfile must start with FROM instruction"
-        return 1
-    fi
-
-    # Check for WORKDIR instruction
-    if ! grep -q "^WORKDIR" "$template_file"; then
-        log_warning "Dockerfile should define WORKDIR"
-        return 1
-    fi
-
-    # Check for valid Dockerfile instructions (non-exhaustive)
-    # This prevents obviously malformed Dockerfiles without requiring a full build
-    local valid_instructions=0
-    if grep -qE "^(FROM|WORKDIR|RUN|COPY|EXPOSE|CMD|ENV)" "$template_file"; then
-        valid_instructions=1
-    fi
-
-    if [[ $valid_instructions -eq 0 ]]; then
-        log_warning "Dockerfile has no recognized instructions"
-        return 1
-    fi
-
-    return 0
-}
-
-# Validates .dockerignore structure
-# Official: https://docs.docker.com/engine/reference/builder/#dockerignore-file
-validate_dockerignore_template() {
-    local template_file="$1"
-
-    if [[ ! -f "$template_file" ]]; then
-        return 0
-    fi
-
-    # Check file is not empty
-    if [[ ! -s "$template_file" ]]; then
-        log_warning ".dockerignore template is empty"
-        return 1
-    fi
-
-    # Should contain at least some patterns
-    if ! grep -q "^[^#]" "$template_file"; then
-        log_warning ".dockerignore contains only comments"
-        return 1
-    fi
-
-    return 0
-}
+# Note: Template validation functions have been removed (standardization)
+# They should be called from lib/validation-common.sh if needed
 
 # ===================================================================
 # Validation
@@ -161,7 +76,6 @@ if file_exists "$PROJECT_ROOT/docker-compose.yml"; then
 fi
 
 if file_exists "$TEMPLATE_ROOT/docker-compose.yml"; then
-    validate_docker_compose_template "$TEMPLATE_ROOT/docker-compose.yml"
     if cp "$TEMPLATE_ROOT/docker-compose.yml" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/docker-compose.yml"; then
             track_created "docker-compose.yml"
@@ -192,7 +106,6 @@ if file_exists "$PROJECT_ROOT/Dockerfile"; then
 fi
 
 if file_exists "$TEMPLATE_ROOT/Dockerfile"; then
-    validate_dockerfile_template "$TEMPLATE_ROOT/Dockerfile"
     if cp "$TEMPLATE_ROOT/Dockerfile" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/Dockerfile"; then
             track_created "Dockerfile"
@@ -223,7 +136,6 @@ if file_exists "$PROJECT_ROOT/.dockerignore"; then
 fi
 
 if file_exists "$TEMPLATE_ROOT/.dockerignore"; then
-    validate_dockerignore_template "$TEMPLATE_ROOT/.dockerignore"
     if cp "$TEMPLATE_ROOT/.dockerignore" "$PROJECT_ROOT/"; then
         if verify_file "$PROJECT_ROOT/.dockerignore"; then
             track_created ".dockerignore"

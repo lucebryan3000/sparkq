@@ -1,0 +1,54 @@
+## Datadog Agent Configuration
+## Documentation: https://docs.datadoghq.com/agent/guide/agent-configuration-files/
+
+# API key for authentication
+api_key: {{DATADOG_API_KEY}}
+
+# Site (US: datadoghq.com, EU: datadoghq.eu)
+site: {{DATADOG_SITE}}
+
+# Hostname override (optional)
+# hostname: {{HOSTNAME}}
+
+# Environment tag
+env: {{ENVIRONMENT}}
+
+# Service tag
+service: {{PROJECT_NAME}}
+
+# Logs collection
+logs_enabled: {{DATADOG_LOGS_ENABLED}}
+
+# APM (Application Performance Monitoring)
+apm_config:
+  enabled: {{DATADOG_APM_ENABLED}}
+  env: {{ENVIRONMENT}}
+  service: {{PROJECT_NAME}}
+  # Sample rate (0.0 to 1.0)
+  analyzed_rate_by_service:
+    "{{PROJECT_NAME}}": {{DATADOG_APM_SAMPLE_RATE}}
+
+# Process monitoring
+process_config:
+  enabled: {{DATADOG_PROCESS_ENABLED}}
+
+# Network Performance Monitoring
+network_config:
+  enabled: {{DATADOG_NETWORK_ENABLED}}
+
+# Tags applied to all metrics, events, and service checks
+tags:
+  - env:{{ENVIRONMENT}}
+  - service:{{PROJECT_NAME}}
+  - team:{{TEAM_NAME}}
+
+# Log processing
+logs_config:
+  container_collect_all: true
+  processing_rules:
+    - type: exclude_at_match
+      name: exclude_healthcheck
+      pattern: healthcheck
+
+# Integrations
+# Add integration-specific configuration below
