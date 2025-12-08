@@ -435,7 +435,7 @@ edit_section() {
                 for key in "${keys[@]}"; do
                     edit_config_key "$section" "$key" "$config_file"
                 done
-                return 0
+                continue
                 ;;
 
             r|R)
@@ -447,13 +447,14 @@ edit_section() {
                     # For now, just notify user to run init again
                     echo "To reset to defaults, delete config and re-run bootstrap"
                 fi
-                return 0
+                continue
                 ;;
 
             [0-9]|[0-9][0-9])
                 if [[ $choice -ge 1 && $choice -le ${#keys[@]} ]]; then
                     local key="${keys[$((choice-1))]}"
                     edit_config_key "$section" "$key" "$config_file"
+                    continue
                 else
                     echo "Invalid number. Choose 1-${#keys[@]}"
                 fi
