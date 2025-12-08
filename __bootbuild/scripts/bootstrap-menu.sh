@@ -723,7 +723,6 @@ display_menu() {
         echo -e "   ${RED}⚠ ${MISSING_SCRIPTS_COUNT} script(s) missing files${NC}"
     fi
 
-    echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
     echo ""
 
     local counter=0
