@@ -93,9 +93,9 @@ Do you want to...?
 ### Reference Materials
 
 After using these playbooks, refer to:
-- [REFERENCE_LIBRARY.md](../references/REFERENCE_LIBRARY.md) - Complete function reference for lib/common.sh
-- [REFERENCE_CONFIG.md](../references/REFERENCE_CONFIG.md) - Configuration file format and options
-- [REFERENCE_SCRIPT_CATALOG.md](../references/REFERENCE_SCRIPT_CATALOG.md) - Inventory of all bootstrap scripts
+- [LIBRARY.md](../references/LIBRARY.md) - Complete function reference for lib/common.sh
+- [CONFIG.md](../references/CONFIG.md) - Configuration file format and options
+- [SCRIPT_CATALOG.md](../references/SCRIPT_CATALOG.md) - Inventory of all bootstrap scripts
 
 ---
 

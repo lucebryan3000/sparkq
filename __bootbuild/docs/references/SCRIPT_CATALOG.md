@@ -605,7 +605,7 @@ head -20 __bootbuild/scripts/bootstrap-git.sh
 
 To create a new bootstrap script:
 
-1. Read [PLAYBOOK_CREATING_SCRIPTS.md](../playbooks/PLAYBOOK_CREATING_SCRIPTS.md)
+1. Read [create-bootstrap-script.md](../playbooks/create-bootstrap-script.md)
 2. Use template structure from existing scripts
 3. Source `lib/common.sh` for standard functions
 4. Register in `bootstrap-menu.sh`
@@ -617,10 +617,10 @@ To create a new bootstrap script:
 ## Support
 
 For detailed execution instructions, see:
-- [PLAYBOOK_RUNNING.md](../playbooks/PLAYBOOK_RUNNING.md) - How to run scripts
-- [REFERENCE_LIBRARY.md](REFERENCE_LIBRARY.md) - Available functions
-- [REFERENCE_CONFIG.md](REFERENCE_CONFIG.md) - Configuration options
+- [run-bootstrap-scripts.md](../playbooks/run-bootstrap-scripts.md) - How to run scripts
+- [LIBRARY.md](LIBRARY.md) - Available functions
+- [CONFIG.md](CONFIG.md) - Configuration options
 
 For creating new scripts:
-- [PLAYBOOK_CREATING_SCRIPTS.md](../playbooks/PLAYBOOK_CREATING_SCRIPTS.md) - Step-by-step guide
-- [PLAYBOOK_MIGRATING_SCRIPTS.md](../playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md) - Standardizing existing scripts
+- [create-bootstrap-script.md](../playbooks/create-bootstrap-script.md) - Step-by-step guide
+- [standardize-bootstrap-script.md](../playbooks/standardize-bootstrap-script.md) - Standardizing existing scripts

@@ -4,8 +4,8 @@ aliases: ["create bootstrap script", "write new script", "bootstrap development"
 related:
   - ./standardize-bootstrap-script.md
   - ./run-bootstrap-scripts.md
-  - ../references/REFERENCE_LIBRARY.md
-  - ../references/REFERENCE_CONFIG.md
+  - ../references/LIBRARY.md
+  - ../references/CONFIG.md
 review_cycle: quarterly
 version: 2.0
 ---
@@ -550,7 +550,7 @@ Add your script to the bootstrap documentation:
 
 ### Update Reference Files
 
-Add an entry to `docs/references/REFERENCE_SCRIPT_CATALOG.md`:
+Add an entry to `docs/references/SCRIPT_CATALOG.md`:
 
 ```markdown
 ### bootstrap-{name}.sh
@@ -567,7 +567,7 @@ Add an entry to `docs/references/REFERENCE_SCRIPT_CATALOG.md`:
 
 ### Documentation Checklist
 
-- [ ] Added to REFERENCE_SCRIPT_CATALOG.md
+- [ ] Added to SCRIPT_CATALOG.md
 - [ ] Purpose is clear and concise
 - [ ] Dependencies listed correctly
 - [ ] Files created are documented
@@ -611,7 +611,7 @@ Use this to verify everything is complete:
 - [ ] Pre-execution confirmation works
 
 ### Documentation
-- [ ] Added to REFERENCE_SCRIPT_CATALOG.md
+- [ ] Added to SCRIPT_CATALOG.md
 - [ ] Config options documented
 - [ ] Success criteria documented
 

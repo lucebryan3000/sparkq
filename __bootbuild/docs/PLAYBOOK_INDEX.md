@@ -15,7 +15,7 @@ Navigation hub for all bootstrap system documentation, playbooks, and references
 
 **New to bootstrap?** Start here:
 
-1. **[PLAYBOOK_RUNNING.md](playbooks/PLAYBOOK_RUNNING.md)** - How to execute bootstrap scripts
+1. **[run-bootstrap-scripts.md](playbooks/run-bootstrap-scripts.md)** - How to execute bootstrap scripts
    - Prerequisites and setup
    - Running individual scripts or full phases
    - Troubleshooting common issues
@@ -35,13 +35,13 @@ Navigation hub for all bootstrap system documentation, playbooks, and references
 
 Detailed workflows for specific tasks:
 
-- **[PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md)** - Create new bootstrap scripts
+- **[create-bootstrap-script.md](playbooks/create-bootstrap-script.md)** - Create new bootstrap scripts
   - 9-step guide from scope to testing
   - Template and checklist
   - Standardization requirements
   - Real-world example (bootstrap-redis.sh)
 
-- **[PLAYBOOK_RUNNING.md](playbooks/PLAYBOOK_RUNNING.md)** - Execute bootstrap scripts
+- **[run-bootstrap-scripts.md](playbooks/run-bootstrap-scripts.md)** - Execute bootstrap scripts
   - Prerequisites verification
   - Running individual scripts
   - Running multiple scripts
@@ -50,7 +50,7 @@ Detailed workflows for specific tasks:
   - Post-execution steps
   - Rollback procedures
 
-- **[PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md)** - Standardize existing scripts
+- **[standardize-bootstrap-script.md](playbooks/standardize-bootstrap-script.md)** - Standardize existing scripts
   - 13-step transformation guide
   - Pattern migration checklist
   - Function reference mappings
@@ -63,19 +63,19 @@ Detailed workflows for specific tasks:
 
 Comprehensive lookup tables and command references:
 
-- **[REFERENCE_SCRIPT_CATALOG.md](references/SCRIPT_CATALOG.md)** - All bootstrap scripts
+- **[SCRIPT_CATALOG.md](references/SCRIPT_CATALOG.md)** - All bootstrap scripts
   - Organized by phase (1-4)
   - Purpose, status, dependencies
   - Files created and configuration sections
   - Usage patterns and examples
 
-- **[REFERENCE_CONFIG.md](references/CONFIG.md)** - Configuration and environment variables
+- **[CONFIG.md](references/CONFIG.md)** - Configuration and environment variables
   - Configuration file sections and options
   - Environment variable reference
   - Configuration precedence rules
   - Validation procedures
 
-- **[REFERENCE_LIBRARY.md](references/LIBRARY.md)** - Bootstrap library functions
+- **[LIBRARY.md](references/LIBRARY.md)** - Bootstrap library functions
   - Complete function reference from `lib/common.sh`
   - Organized by category (logging, files, validation, etc.)
   - Syntax, examples, return values
@@ -88,13 +88,13 @@ Comprehensive lookup tables and command references:
 ### I want to...
 
 **Run bootstrap scripts on my project**
-→ [PLAYBOOK_RUNNING.md](playbooks/PLAYBOOK_RUNNING.md)
+→ [run-bootstrap-scripts.md](playbooks/run-bootstrap-scripts.md)
 
 **Create a new bootstrap script**
-→ [PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md)
+→ [create-bootstrap-script.md](playbooks/create-bootstrap-script.md)
 
 **Standardize an existing script**
-→ [PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md)
+→ [standardize-bootstrap-script.md](playbooks/standardize-bootstrap-script.md)
 
 **See what scripts are available**
 → [SCRIPT_CATALOG.md](references/SCRIPT_CATALOG.md)
@@ -106,7 +106,7 @@ Comprehensive lookup tables and command references:
 → [LIBRARY.md](references/LIBRARY.md)
 
 **Find troubleshooting help**
-→ [PLAYBOOK_RUNNING.md - Troubleshooting](playbooks/PLAYBOOK_RUNNING.md#common-issues--troubleshooting)
+→ [run-bootstrap-scripts.md - Troubleshooting](playbooks/run-bootstrap-scripts.md#common-issues--troubleshooting)
 
 ---
 
@@ -115,22 +115,22 @@ Comprehensive lookup tables and command references:
 ### I'm a Developer
 
 Use these to bootstrap your project:
-- [PLAYBOOK_RUNNING.md](playbooks/PLAYBOOK_RUNNING.md) - How to run bootstrap scripts
+- [run-bootstrap-scripts.md](playbooks/run-bootstrap-scripts.md) - How to run bootstrap scripts
 - [SCRIPT_CATALOG.md](references/SCRIPT_CATALOG.md) - What scripts do
 - [CONFIG.md](references/CONFIG.md) - Configuration options
 
 ### I'm a DevOps/Infrastructure
 
 Use these to extend bootstrap:
-- [PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md) - Create new scripts
+- [create-bootstrap-script.md](playbooks/create-bootstrap-script.md) - Create new scripts
 - [LIBRARY.md](references/LIBRARY.md) - Available functions
-- [PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md) - Standardization
+- [standardize-bootstrap-script.md](playbooks/standardize-bootstrap-script.md) - Standardization
 
 ### I'm Maintaining Bootstrap System
 
 Use these for system maintenance:
-- [PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md) - Script creation guide
-- [PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md) - Standardization guide
+- [create-bootstrap-script.md](playbooks/create-bootstrap-script.md) - Script creation guide
+- [standardize-bootstrap-script.md](playbooks/standardize-bootstrap-script.md) - Standardization guide
 - [LIBRARY.md](references/LIBRARY.md) - Function reference
 
 ---
@@ -144,9 +144,9 @@ __bootbuild/docs/
 ├── PLAYBOOK_INDEX.md          # You are here
 ├── DECISION_LOG.md            # Implementation decisions
 ├── playbooks/
-│   ├── PLAYBOOK_CREATING_SCRIPTS.md
-│   ├── PLAYBOOK_RUNNING.md
-│   └── PLAYBOOK_MIGRATING_SCRIPTS.md
+│   ├── create-bootstrap-script.md
+│   ├── run-bootstrap-scripts.md
+│   └── standardize-bootstrap-script.md
 ├── references/
 │   ├── SCRIPT_CATALOG.md
 │   ├── CONFIG.md
@@ -167,14 +167,14 @@ __bootbuild/docs/
 ## Quick Links
 
 **Common Tasks:**
-- [Quick Start (5 minutes)](playbooks/PLAYBOOK_RUNNING.md#quick-start-5-minutes)
-- [Running Individual Scripts](playbooks/PLAYBOOK_RUNNING.md#running-individual-scripts)
-- [Configuration & Environment Variables](playbooks/PLAYBOOK_RUNNING.md#configuration--environment-variables)
+- [Quick Start (5 minutes)](playbooks/run-bootstrap-scripts.md#quick-start-5-minutes)
+- [Running Individual Scripts](playbooks/run-bootstrap-scripts.md#running-individual-scripts)
+- [Configuration & Environment Variables](playbooks/run-bootstrap-scripts.md#configuration--environment-variables)
 
 **Common Issues:**
-- [Permission Denied](playbooks/PLAYBOOK_RUNNING.md#issue-1-permission-denied-when-running-script)
-- [Library Not Found](playbooks/PLAYBOOK_RUNNING.md#issue-2-libcommonsh-not-found)
-- [Config File Not Found](playbooks/PLAYBOOK_RUNNING.md#issue-3-bootstrap-config-file-not-found)
+- [Permission Denied](playbooks/run-bootstrap-scripts.md#issue-1-permission-denied-when-running-script)
+- [Library Not Found](playbooks/run-bootstrap-scripts.md#issue-2-libcommonsh-not-found)
+- [Config File Not Found](playbooks/run-bootstrap-scripts.md#issue-3-bootstrap-config-file-not-found)
 
 **Function Lookup:**
 - [Logging Functions](references/LIBRARY.md#logging-functions)
@@ -195,9 +195,9 @@ __bootbuild/docs/
 | File | Version | Status | Updated |
 |------|---------|--------|---------|
 | PLAYBOOK_INDEX.md | 1.0 | Active | 2025-12-07 |
-| PLAYBOOK_CREATING_SCRIPTS.md | 1.0 | Active | 2025-12-07 |
-| PLAYBOOK_RUNNING.md | 1.0 | Active | 2025-12-07 |
-| PLAYBOOK_MIGRATING_SCRIPTS.md | 1.0 | Active | 2025-12-07 |
+| playbooks/create-bootstrap-script.md | 1.0 | Active | 2025-12-07 |
+| playbooks/run-bootstrap-scripts.md | 1.0 | Active | 2025-12-07 |
+| playbooks/standardize-bootstrap-script.md | 1.0 | Active | 2025-12-07 |
 | references/SCRIPT_CATALOG.md | 1.0 | Active | 2025-12-07 |
 | references/CONFIG.md | 1.0 | Active | 2025-12-07 |
 | references/LIBRARY.md | 1.0 | Active | 2025-12-07 |
@@ -215,7 +215,7 @@ Bootstrap documentation follows a **single-source-of-truth** architecture:
 - **Playbooks** define workflows and step-by-step procedures
 - **References** provide complete lookup tables and function documentation
 - **Slash commands** reference playbooks (not duplicate content)
-- **Scripts** follow standardized patterns from PLAYBOOK_CREATING_SCRIPTS.md
+- **Scripts** follow standardized patterns from create-bootstrap-script.md
 
 This design eliminates documentation drift and ensures consistency.
 
@@ -227,16 +227,16 @@ For updates, issues, or contributions:
 
 1. **Found an error?** Check [DECISION_LOG.md](DECISION_LOG.md) for known issues
 2. **Need clarification?** Review the specific playbook or reference
-3. **Want to add content?** See [PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md)
-4. **Standardizing scripts?** See [PLAYBOOK_MIGRATING_SCRIPTS.md](playbooks/PLAYBOOK_MIGRATING_SCRIPTS.md)
+3. **Want to add content?** See [create-bootstrap-script.md](playbooks/create-bootstrap-script.md)
+4. **Standardizing scripts?** See [standardize-bootstrap-script.md](playbooks/standardize-bootstrap-script.md)
 
 ---
 
 ## Next Steps
 
-- **First time?** → [PLAYBOOK_RUNNING.md - Quick Start](playbooks/PLAYBOOK_RUNNING.md#quick-start-5-minutes)
-- **Create scripts?** → [PLAYBOOK_CREATING_SCRIPTS.md](playbooks/PLAYBOOK_CREATING_SCRIPTS.md)
-- **Need help?** → [PLAYBOOK_RUNNING.md - Troubleshooting](playbooks/PLAYBOOK_RUNNING.md#common-issues--troubleshooting)
+- **First time?** → [run-bootstrap-scripts.md - Quick Start](playbooks/run-bootstrap-scripts.md#quick-start-5-minutes)
+- **Create scripts?** → [create-bootstrap-script.md](playbooks/create-bootstrap-script.md)
+- **Need help?** → [run-bootstrap-scripts.md - Troubleshooting](playbooks/run-bootstrap-scripts.md#common-issues--troubleshooting)
 
 ---
 

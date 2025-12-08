@@ -698,6 +698,7 @@ show_list() {
 }
 
 display_menu() {
+    clear
     read_scan_cache
 
     local project_name=$(config_get "project.name" "Project" "$BOOTSTRAP_CONFIG")
@@ -915,6 +916,8 @@ run_menu() {
                     ENABLE_SUGGESTIONS=true
                     log_success "Suggestions enabled"
                 fi
+                echo ""
+                sleep 0.5
                 display_menu
                 ;;
 
@@ -976,6 +979,7 @@ run_menu() {
                 launch_background_scan
                 wait_for_scan
                 read_scan_cache
+                sleep 0.5
                 display_menu
                 ;;
 

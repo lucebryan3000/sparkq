@@ -1133,7 +1133,7 @@ Remember:
 - **Keep backups** until you're certain everything works correctly
 
 For more information:
-- See [PLAYBOOK_CREATING_SCRIPTS.md](PLAYBOOK_CREATING_SCRIPTS.md) for creating new bootstrap scripts
-- See [PLAYBOOK_MIGRATING_SCRIPTS.md](PLAYBOOK_MIGRATING_SCRIPTS.md) for standardizing existing scripts
-- See [REFERENCE_LIBRARY.md](../references/REFERENCE_LIBRARY.md) for function documentation
-- See [REFERENCE_CONFIG.md](../references/REFERENCE_CONFIG.md) for configuration options
+- See [create-bootstrap-script.md](create-bootstrap-script.md) for creating new bootstrap scripts
+- See [standardize-bootstrap-script.md](standardize-bootstrap-script.md) for standardizing existing scripts
+- See [LIBRARY.md](../references/LIBRARY.md) for function documentation
+- See [CONFIG.md](../references/CONFIG.md) for configuration options

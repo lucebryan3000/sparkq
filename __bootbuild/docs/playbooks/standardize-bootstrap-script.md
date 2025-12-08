@@ -2,8 +2,8 @@
 title: "Migrating Bootstrap Scripts to Standardized Pattern"
 aliases: ["standardize bootstrap script", "migrate script", "update bootstrap"]
 related:
-  - ../references/REFERENCE_LIBRARY.md
-  - ../references/REFERENCE_CONFIG.md
+  - ../references/LIBRARY.md
+  - ../references/CONFIG.md
 review_cycle: quarterly
 version: 2.0
 ---
@@ -825,9 +825,9 @@ log_file_created "$SCRIPT_NAME" ".gitignore"
 
 ## Additional Resources
 
-- **[REFERENCE_LIBRARY.md](../references/REFERENCE_LIBRARY.md)** - Complete function reference
-- **[REFERENCE_CONFIG.md](../references/REFERENCE_CONFIG.md)** - Configuration options
-- **[REFERENCE_SCRIPT_CATALOG.md](../references/REFERENCE_SCRIPT_CATALOG.md)** - Available scripts
+- **[LIBRARY.md](../references/LIBRARY.md)** - Complete function reference
+- **[CONFIG.md](../references/CONFIG.md)** - Configuration options
+- **[SCRIPT_CATALOG.md](../references/SCRIPT_CATALOG.md)** - Available scripts
 
 ---
 

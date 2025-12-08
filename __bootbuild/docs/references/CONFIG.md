@@ -734,9 +734,9 @@ grep -A 20 "^\[packages\]" __bootbuild/config/bootstrap.config
 
 ## Reference Links
 
-- [PLAYBOOK_RUNNING.md](../playbooks/PLAYBOOK_RUNNING.md) - How to run scripts with config
-- [REFERENCE_LIBRARY.md](REFERENCE_LIBRARY.md) - Functions that read config
-- [REFERENCE_SCRIPT_CATALOG.md](REFERENCE_SCRIPT_CATALOG.md) - Script-specific configuration
+- [run-bootstrap-scripts.md](../playbooks/run-bootstrap-scripts.md) - How to run scripts with config
+- [LIBRARY.md](LIBRARY.md) - Functions that read config
+- [SCRIPT_CATALOG.md](SCRIPT_CATALOG.md) - Script-specific configuration
 
 ---
 

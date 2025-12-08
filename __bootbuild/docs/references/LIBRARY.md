@@ -1083,4 +1083,4 @@ log_script_complete "script_name" "summary"
 show_summary
 ```
 
-For more information, see [PLAYBOOK_CREATING_SCRIPTS.md](../playbooks/PLAYBOOK_CREATING_SCRIPTS.md).
+For more information, see [create-bootstrap-script.md](../playbooks/create-bootstrap-script.md).

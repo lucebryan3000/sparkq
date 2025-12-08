@@ -298,7 +298,7 @@ After running scripts, customize:
 
 ## File Inventory
 
-See [BOOTSTRAP_MENU_STRUCTURE.md](BOOTSTRAP_MENU_STRUCTURE.md) for:
+See [MENU_STRUCTURE.md](references/MENU_STRUCTURE.md) for:
 - Complete list of all files created by each script
 - Detailed setup strategy and philosophy
 - File categorization by phase
@@ -329,8 +329,7 @@ claude "Update my TypeScript config to be stricter"
 
 ## See Also
 
-- [BOOTSTRAP_MENU_STRUCTURE.md](BOOTSTRAP_MENU_STRUCTURE.md) - Detailed setup strategy
-- [../../00_BOOTSTRAP_TEMPLATES_README.md](../../00_BOOTSTRAP_TEMPLATES_README.md) - Complete template documentation
+- [MENU_STRUCTURE.md](references/MENU_STRUCTURE.md) - Detailed setup strategy
 
 ## Project Philosophy
 
