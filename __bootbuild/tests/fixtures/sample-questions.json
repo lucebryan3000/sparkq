@@ -1,0 +1,39 @@
+{
+  "questions": [
+    {
+      "id": "project_name",
+      "type": "text",
+      "prompt": "What is your project name?",
+      "config_key": "project.name",
+      "default": "my-project",
+      "validator": "validate_project_name",
+      "var_name": "PROJECT_NAME"
+    },
+    {
+      "id": "node_version",
+      "type": "choice",
+      "prompt": "Which Node.js version?",
+      "config_key": "packages.node_version",
+      "options": ["18", "20", "22"],
+      "default_index": 2,
+      "var_name": "NODE_VERSION"
+    },
+    {
+      "id": "enable_tests",
+      "type": "yes_no",
+      "prompt": "Enable automated testing?",
+      "config_key": "testing.enabled",
+      "default": "Y",
+      "var_name": "ENABLE_TESTS"
+    },
+    {
+      "id": "owner_email",
+      "type": "validated_text",
+      "prompt": "Project owner email?",
+      "config_key": "project.owner_email",
+      "default": "user@example.com",
+      "validator": "validate_email",
+      "var_name": "OWNER_EMAIL"
+    }
+  ]
+}

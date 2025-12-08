@@ -1,0 +1,36 @@
+{
+  "name": "test-bootstrap",
+  "version": "1.0.0",
+  "description": "Sample manifest for testing",
+  "scripts": [
+    {
+      "id": "init",
+      "name": "Initialize Project",
+      "path": "scripts/bootstrap-init.sh",
+      "category": "core"
+    },
+    {
+      "id": "git",
+      "name": "Git Configuration",
+      "path": "scripts/bootstrap-git.sh",
+      "category": "core",
+      "dependencies": ["init"]
+    }
+  ],
+  "templates": {
+    "root": [
+      ".gitignore",
+      ".editorconfig"
+    ],
+    "vscode": [
+      "settings.json",
+      "extensions.json"
+    ]
+  },
+  "config": {
+    "auto_approve": {
+      "create_directories": true,
+      "copy_templates": true
+    }
+  }
+}
