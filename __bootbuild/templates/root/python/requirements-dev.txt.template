@@ -1,0 +1,26 @@
+# Development and testing dependencies
+# Installation:
+#   pip install -r requirements-dev.txt
+#
+# Includes: testing, linting, type checking, debugging
+
+# Testing
+pytest>=7.4
+pytest-cov>=4.1
+pytest-asyncio>=0.21
+pytest-mock>=3.12
+
+# Linting & Formatting
+black>=23.0
+ruff>=0.1
+isort>=5.13
+
+# Type Checking
+mypy>=1.7
+types-requests>=2.31
+types-toml>=0.10
+
+# Utilities
+python-dotenv>=1.0
+ipython>=8.17
+ipdb>=0.13

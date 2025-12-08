@@ -1,0 +1,19 @@
+# Auto-generated requirements.txt template
+# Add your project dependencies below
+#
+# Installation:
+#   pip install -r requirements.txt
+#
+# Examples:
+#   requests>=2.31.0
+#   python-dotenv>=1.0.0
+#   sqlalchemy>=2.0.0
+#   pydantic>=2.0.0
+#   FastAPI>=0.104.0
+#
+# Pin versions for reproducibility:
+#   package==1.0.0       # Exact version
+#   package>=1.0.0       # Minimum version
+#   package>=1.0,<2.0    # Version range
+
+# Add your dependencies here:

@@ -104,6 +104,17 @@
       "depends": [],
       "requires": { "tools": ["node", "npm"], "optional": ["pnpm", "yarn"] }
     },
+    "python": {
+      "file": "bootstrap-python.sh",
+      "phase": 1,
+      "category": "runtime",
+      "description": "Python virtual environment and dependency management (.venv, requirements.txt, pyproject.toml)",
+      "templates": ["python/"],
+      "questions": null,
+      "detects": ["has_pyproject_toml", "has_requirements_txt"],
+      "depends": ["project"],
+      "requires": { "tools": ["python3"], "optional": ["pyenv"] }
+    },
     "typescript": {
       "file": "bootstrap-typescript.sh",
       "phase": 1,
@@ -357,6 +368,14 @@
     "library": {
       "description": "NPM package/library development",
       "scripts": ["claude", "git", "packages", "typescript", "linting", "testing", "github"]
+    },
+    "python-backend": {
+      "description": "Python backend development",
+      "scripts": ["claude", "git", "python", "environment", "docker", "database", "testing", "security"]
+    },
+    "python-cli": {
+      "description": "Python CLI tool development",
+      "scripts": ["claude", "git", "python", "environment", "testing", "security", "github"]
     }
   },
 
