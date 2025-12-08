@@ -620,6 +620,218 @@ show_questions_preview() {
 }
 
 # ===================================================================
+# Submenu Functions
+# ===================================================================
+get_categories_for_phase() {
+    local phase="$1"
+    registry_get_phase_scripts "$phase" | while read script; do
+        registry_get_script_field "$script" "category"
+    done | sort | uniq
+}
+
+display_phase_menu() {
+    local phase="$1"
+    clear
+
+    local phase_name=$(registry_get_phase_name "$phase")
+    local phase_color=$(registry_get_phase_color "$phase")
+    local color_code="$BLUE"
+    case "$phase_color" in
+        red) color_code="$RED" ;;
+        yellow) color_code="$YELLOW" ;;
+        green) color_code="$GREEN" ;;
+    esac
+
+    echo ""
+    echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${BLUE}   Phase $phase: ${phase_name}${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+    echo ""
+
+    local counter=0
+    local -a categories=($(get_categories_for_phase "$phase"))
+
+    for category in "${categories[@]}"; do
+        counter=$((counter + 1))
+        local scripts=""
+        local script_count=0
+
+        for script in $(registry_get_phase_scripts "$phase"); do
+            if [[ "$(registry_get_script_field "$script" "category")" == "$category" ]]; then
+                if [[ -n "$scripts" ]]; then
+                    scripts+=", "
+                fi
+                scripts+="$script"
+                script_count=$((script_count + 1))
+            fi
+        done
+
+        # Format category name (capitalize first letter of each word)
+        local display_category=$(echo "$category" | sed 's/\b\(.\)/\u\1/g')
+        echo -e "  ${GREEN}${counter}.${NC} ${display_category} (${script_count})"
+    done
+
+    echo ""
+    echo -e "${YELLOW}Commands:${NC}"
+    echo "  1-${counter}   Select category"
+    echo "  m         Main menu"
+    echo "  q         Quit"
+    echo ""
+}
+
+display_category_menu() {
+    local phase="$1"
+    local category="$2"
+    clear
+
+    local phase_name=$(registry_get_phase_name "$phase")
+    local display_category=$(echo "$category" | sed 's/\b\(.\)/\u\1/g')
+
+    echo ""
+    echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${BLUE}   Phase $phase: ${display_category}${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+    echo ""
+
+    local counter=0
+    local -a scripts=()
+
+    for script in $(registry_get_phase_scripts "$phase"); do
+        if [[ "$(registry_get_script_field "$script" "category")" == "$category" ]]; then
+            counter=$((counter + 1))
+            scripts+=("$script")
+
+            local q_indicator=""
+            registry_has_questions "$script" && q_indicator=" ${YELLOW}[Q]${NC}"
+            local desc=$(registry_get_script_field "$script" "description")
+
+            if registry_script_file_exists "$script"; then
+                echo -e "  ${GREEN}${counter}.${NC} ${script}${q_indicator}"
+            else
+                echo -e "  ${GREY}${counter}. ${script} (coming soon)${NC}"
+            fi
+        fi
+    done
+
+    echo ""
+    echo -e "${YELLOW}Commands:${NC}"
+    echo "  1-${counter}   Run script"
+    echo "  b         Back to phase"
+    echo "  m         Main menu"
+    echo "  q         Quit"
+    echo ""
+}
+
+run_phase_menu() {
+    local phase="$1"
+    local total_categories=$(get_categories_for_phase "$phase" | wc -l)
+
+    while true; do
+        display_phase_menu "$phase"
+        read -p "Selection: " -r choice || continue
+
+        [[ -z "$choice" || "$choice" == " " ]] && continue
+
+        case "$choice" in
+            m|M)
+                return 0
+                ;;
+            q|Q|x|X)
+                show_session_summary
+                exit 0
+                ;;
+            [0-9]|[0-9][0-9])
+                if [[ "$choice" -lt 1 || "$choice" -gt "$total_categories" ]]; then
+                    log_error "Invalid selection: $choice (1-$total_categories)"
+                    echo ""
+                    sleep 1
+                    continue
+                fi
+
+                local selected_category=$(get_categories_for_phase "$phase" | sed -n "${choice}p")
+                run_category_menu "$phase" "$selected_category" || true
+                ;;
+            *)
+                log_error "Unknown command: $choice"
+                echo ""
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+run_category_menu() {
+    local phase="$1"
+    local category="$2"
+    local total_scripts=0
+
+    for script in $(registry_get_phase_scripts "$phase"); do
+        if [[ "$(registry_get_script_field "$script" "category")" == "$category" ]]; then
+            total_scripts=$((total_scripts + 1))
+        fi
+    done
+
+    while true; do
+        display_category_menu "$phase" "$category"
+        read -p "Selection: " -r choice || continue
+
+        [[ -z "$choice" || "$choice" == " " ]] && continue
+
+        case "$choice" in
+            b|B)
+                return 0
+                ;;
+            m|M)
+                return 1
+                ;;
+            q|Q|x|X)
+                show_session_summary
+                exit 0
+                ;;
+            [0-9]|[0-9][0-9])
+                if [[ "$choice" -lt 1 || "$choice" -gt "$total_scripts" ]]; then
+                    log_error "Invalid selection: $choice (1-$total_scripts)"
+                    echo ""
+                    sleep 1
+                    continue
+                fi
+
+                local selected_script=""
+                local counter=0
+                for script in $(registry_get_phase_scripts "$phase"); do
+                    if [[ "$(registry_get_script_field "$script" "category")" == "$category" ]]; then
+                        counter=$((counter + 1))
+                        if [[ "$counter" -eq "$choice" ]]; then
+                            selected_script="$script"
+                            break
+                        fi
+                    fi
+                done
+
+                if [[ -n "$selected_script" ]]; then
+                    if registry_script_file_exists "$selected_script"; then
+                        if [[ "$AUTO_YES" == "true" ]] || confirm "Run $selected_script?"; then
+                            run_script "$selected_script"
+                        else
+                            ((SCRIPTS_SKIPPED++))
+                        fi
+                    else
+                        log_warning "Script not available: $selected_script"
+                    fi
+                fi
+                echo ""
+                sleep 0.5
+                ;;
+            *)
+                log_error "Unknown command: $choice"
+                echo ""
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# ===================================================================
 # Display Functions
 # ===================================================================
 show_status() {
@@ -724,12 +936,14 @@ display_menu() {
     fi
 
     echo ""
+    echo -e "${YELLOW}Phases:${NC}"
 
     local counter=0
-
     for phase in $(registry_get_phases); do
+        counter=$((counter + 1))
         local phase_name=$(registry_get_phase_name "$phase")
         local phase_color=$(registry_get_phase_color "$phase")
+        local script_count=$(registry_get_phase_count "$phase")
 
         # Set color and icon
         local color_code="$BLUE"
@@ -740,26 +954,12 @@ display_menu() {
             green) color_code="$GREEN"; icon="🟢" ;;
         esac
 
-        echo -e "${color_code}${icon} PHASE $phase: ${phase_name}${NC}"
-        echo -e "${color_code}$(printf '─%.0s' {1..45})${NC}"
-
-        for script in $(registry_get_phase_scripts "$phase"); do
-            counter=$((counter + 1))
-
-            if registry_script_file_exists "$script"; then
-                local q_indicator=""
-                registry_has_questions "$script" && q_indicator=" ${YELLOW}[Q]${NC}"
-                echo -e "  ${GREEN}${counter}.${NC} ${script}${q_indicator}"
-            else
-                echo -e "  ${GREY}${counter}. ${script} (coming soon)${NC}"
-            fi
-        done
-        echo ""
+        echo -e "  ${GREEN}${counter}.${NC} ${icon} Phase $counter: ${phase_name} (${script_count} scripts)"
     done
 
+    echo ""
     echo -e "${YELLOW}Commands:${NC}"
-    echo "  1-${counter}     Run script by number"
-    echo "  p1-p4    Run entire phase"
+    echo "  1-4      Select phase"
     echo "  all      Run all scripts"
     echo "  d        Defaults (80% industry standards)"
     echo "  v        Validation report (pre-flight check)"
@@ -771,6 +971,7 @@ display_menu() {
     echo "  e        Edit config"
     echo "  sg       Toggle suggestions (currently: $([ "$ENABLE_SUGGESTIONS" == "true" ] && echo "ON" || echo "OFF"))"
     echo "  r        Refresh"
+    echo "  l        List all scripts"
     echo "  h        Help"
     echo "  q        Quit"
     echo ""
@@ -781,20 +982,19 @@ display_menu() {
 # ===================================================================
 validate_menu_command() {
     local cmd="$1"
-    local max_scripts="$2"
 
     # Empty input is OK (skip)
     [[ -z "$cmd" || "$cmd" == " " ]] && return 0
 
-    # Number validation FIRST (before length checks, since numbers can be 1-2+ digits)
+    # Number validation FIRST (for phase selection 1-4)
     if [[ "$cmd" =~ ^-?[0-9]+$ ]]; then
         if [[ "$cmd" -lt 1 ]]; then
             log_error "Invalid number: $cmd (must be positive)"
-            echo "Valid range: 1-$max_scripts"
+            echo "Valid range: 1-4"
             return 1
-        elif [[ "$cmd" -gt "$max_scripts" ]]; then
+        elif [[ "$cmd" -gt 4 ]]; then
             log_error "Number out of range: $cmd"
-            echo "Valid range: 1-$max_scripts"
+            echo "Valid range: 1-4"
             return 1
         else
             return 0
@@ -849,15 +1049,13 @@ validate_menu_command() {
 # Menu Loop
 # ===================================================================
 run_menu() {
-    local total_scripts=$(registry_get_script_count)
-
     display_menu
 
     while true; do
         read -p "Selection: " -r choice || continue
 
         # Validate input before processing
-        if ! validate_menu_command "$choice" "$total_scripts"; then
+        if ! validate_menu_command "$choice"; then
             echo ""
             continue
         fi
@@ -1010,22 +1208,15 @@ run_menu() {
                 show_session_summary
                 ;;
 
-            [0-9]|[0-9][0-9])
-                local script_name=$(registry_get_script_by_number "$choice")
+            1|2|3|4)
+                # Phase selection - route to phase menu
+                run_phase_menu "$choice"
+                ;;
 
-                if [[ -n "$script_name" ]]; then
-                    if registry_script_file_exists "$script_name"; then
-                        if [[ "$AUTO_YES" == "true" ]] || confirm "Run $script_name?"; then
-                            run_script "$script_name"
-                        else
-                            ((SCRIPTS_SKIPPED++))
-                        fi
-                    else
-                        log_warning "Script not available: $script_name"
-                    fi
-                else
-                    log_error "Invalid number: $choice (1-$total_scripts)"
-                fi
+            [0-9]|[0-9][0-9])
+                log_error "Invalid selection: $choice (1-4)"
+                echo ""
+                sleep 1
                 ;;
 
             *)
