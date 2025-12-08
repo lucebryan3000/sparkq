@@ -26,6 +26,41 @@ UPDATE_MODE=false
 FORCE_MODE=false
 VALIDATE=false
 PRETTY_PRINT=false
+DRY_RUN=false
+VERIFY_CHANGES=false
+
+# Show usage
+usage() {
+  cat << EOF
+Usage: bootstrap-manifest-gen.sh [OPTIONS]
+
+Auto-generate bootstrap-manifest.json by scanning filesystem.
+
+OPTIONS:
+  --update           Update existing manifest (keeps existing metadata)
+  --force            Force regenerate from scratch
+  --validate         Validate manifest after generation
+  --pretty           Pretty-print JSON output
+  --dry-run          Show what would be generated without writing files
+  --verify-changes   Show changes and ask for confirmation before proceeding
+  -h, --help         Show this help message
+
+EXAMPLES:
+  # Generate manifest from scratch
+  ./bootstrap-manifest-gen.sh
+
+  # Update existing manifest
+  ./bootstrap-manifest-gen.sh --update --pretty
+
+  # Dry run to see what would be generated
+  ./bootstrap-manifest-gen.sh --dry-run
+
+  # Verify changes before applying
+  ./bootstrap-manifest-gen.sh --verify-changes
+
+EOF
+  exit 0
+}
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -33,7 +68,10 @@ while [[ $# -gt 0 ]]; do
     --force) FORCE_MODE=true; UPDATE_MODE=false; shift ;;
     --validate) VALIDATE=true; shift ;;
     --pretty) PRETTY_PRINT=true; shift ;;
-    *) echo "Unknown option: $1"; exit 1 ;;
+    --dry-run) DRY_RUN=true; shift ;;
+    --verify-changes) VERIFY_CHANGES=true; shift ;;
+    -h|--help) usage ;;
+    *) echo "Unknown option: $1"; usage ;;
   esac
 done
 
@@ -161,7 +199,11 @@ EOF
 
 # Main generation function
 generate_manifest() {
-  echo -e "${BLUE}Generating bootstrap manifest...${NC}"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo -e "${BLUE}[DRY RUN] Would generate bootstrap manifest...${NC}"
+  else
+    echo -e "${BLUE}Generating bootstrap manifest...${NC}"
+  fi
 
   local existing=$(load_existing_metadata)
 
@@ -183,7 +225,36 @@ generate_manifest() {
 
   # Pretty print if requested
   if [[ "$PRETTY_PRINT" == true || -t 1 ]]; then
-    manifest=$(echo "$manifest" | jq '.')
+    if command -v jq &> /dev/null; then
+      manifest=$(echo "$manifest" | jq '.')
+    fi
+  fi
+
+  # Handle dry run
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo -e "${BLUE}[DRY RUN] Would write manifest to: $MANIFEST_FILE${NC}"
+    echo -e "${GREY}Preview (first 20 lines):${NC}"
+    echo "$manifest" | head -20
+    echo -e "${GREY}... (truncated)${NC}"
+    return 0
+  fi
+
+  # Handle verify changes
+  if [[ "$VERIFY_CHANGES" == "true" ]]; then
+    echo -e "${YELLOW}Files that will be modified:${NC}"
+    echo "  • $MANIFEST_FILE"
+    if [[ -f "$MANIFEST_FILE" ]]; then
+      echo "    (existing file will be overwritten)"
+    else
+      echo "    (new file will be created)"
+    fi
+    echo ""
+    read -p "Proceed with these changes? (y/N): " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo -e "${YELLOW}Operation cancelled by user${NC}"
+      exit 0
+    fi
   fi
 
   # Write manifest
@@ -235,15 +306,19 @@ validate_manifest() {
 
 # Display statistics
 show_stats() {
-  local script_count=$(find "${SCRIPTS_DIR}" -maxdepth 1 -name "*.sh" -type f | wc -l)
-  local lib_count=$(find "${LIB_DIR}" -maxdepth 1 -name "*.sh" -type f | wc -l)
-  local template_count=$(find "${TEMPLATES_DIR}" -maxdepth 1 -type d | tail -n +2 | wc -l)
+  local script_count=$(find "${SCRIPTS_DIR}" -maxdepth 1 -name "*.sh" -type f 2>/dev/null | wc -l)
+  local lib_count=$(find "${LIB_DIR}" -maxdepth 1 -name "*.sh" -type f 2>/dev/null | wc -l)
+  local template_count=$(find "${TEMPLATES_DIR}" -maxdepth 1 -type d 2>/dev/null | tail -n +2 | wc -l)
 
   echo -e "${BLUE}Statistics:${NC}"
   echo "  Scripts:   $script_count"
   echo "  Libraries: $lib_count"
   echo "  Templates: $template_count"
-  echo "  Generated: $(date)"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "  Mode:      DRY RUN (no files modified)"
+  else
+    echo "  Generated: $(date)"
+  fi
 }
 
 # Main execution
@@ -256,7 +331,13 @@ main() {
   generate_manifest
   show_stats
 
-  echo -e "${GREEN}✓ Manifest generation complete${NC}"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo ""
+    echo -e "${GREEN}✓ Dry run complete - no files were modified${NC}"
+    echo -e "${GREY}To execute changes, run without --dry-run flag${NC}"
+  else
+    echo -e "${GREEN}✓ Manifest generation complete${NC}"
+  fi
 }
 
 main "$@"

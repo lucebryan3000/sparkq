@@ -57,12 +57,76 @@ DETECT_LATEST="${LOGS_DIR}/bootstrap-detect-latest.json"
 # Config file path
 CONFIG_FILE="${BOOTSTRAP_DIR}/config/bootstrap.config"
 
+# Options
+DRY_RUN=false
+VERIFY_CHANGES=false
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        --verify-changes)
+            VERIFY_CHANGES=true
+            shift
+            ;;
+        -h|--help)
+            cat << EOF
+Usage: bootstrap-detect.sh [OPTIONS] [PROJECT_ROOT]
+
+Detect system tools, project files, and environment capabilities.
+
+OPTIONS:
+  --dry-run          Show what would be detected without writing files
+  --verify-changes   Show changes and ask for confirmation before proceeding
+  -h, --help         Show this help message
+
+ARGUMENTS:
+  PROJECT_ROOT       Directory to scan (default: current directory)
+
+OUTPUT:
+  - __bootbuild/logs/bootstrap-detect-*.json (detection report)
+  - __bootbuild/config/bootstrap.config [detected] section updated
+
+EXAMPLES:
+  # Run detection
+  ./bootstrap-detect.sh
+
+  # Dry run to see what would be detected
+  ./bootstrap-detect.sh --dry-run
+
+  # Verify before making changes
+  ./bootstrap-detect.sh --verify-changes
+
+  # Detect in specific directory
+  ./bootstrap-detect.sh /path/to/project
+
+EOF
+            exit 0
+            ;;
+        -*)
+            log_error "Unknown option: $1"
+            echo "Use -h or --help for usage information"
+            exit 1
+            ;;
+        *)
+            # Treat as PROJECT_ROOT
+            PROJECT_ROOT=$(get_project_root "$1")
+            shift
+            ;;
+    esac
+done
+
 # ===================================================================
 # Pre-Execution Confirmation
 # ===================================================================
 
-pre_execution_confirm "$SCRIPT_NAME" "System Detection & Analysis" \
-    "__bootbuild/logs/bootstrap-detect-*.json and [detected] section in config"
+if [[ "$DRY_RUN" != "true" ]]; then
+    pre_execution_confirm "$SCRIPT_NAME" "System Detection & Analysis" \
+        "__bootbuild/logs/bootstrap-detect-*.json and [detected] section in config"
+fi
 
 # ===================================================================
 # Validation
@@ -235,6 +299,11 @@ update_config_value() {
     local key="$1"
     local value="$2"
 
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log_verbose "[DRY RUN] Would update config: ${key}=${value}"
+        return 0
+    fi
+
     if grep -q "^${key}=" "$CONFIG_FILE" 2>/dev/null; then
         sed -i "s|^${key}=.*|${key}=${value}|" "$CONFIG_FILE"
     else
@@ -262,13 +331,21 @@ update_config_value "has_tsconfig" "$(get_bool "$TSCONFIG")"
 CLAUDE_DIR=$(detect_file ".claude")
 update_config_value "has_claude_dir" "$(get_bool "$CLAUDE_DIR")"
 
-log_success "Bootstrap config updated (project-level facts only)"
+if [[ "$DRY_RUN" == "true" ]]; then
+    log_info "[DRY RUN] Would update bootstrap config (project-level facts)"
+else
+    log_success "Bootstrap config updated (project-level facts only)"
+fi
 
 # ===================================================================
 # Create Detection Report
 # ===================================================================
 
-log_info "Creating detection report..."
+if [[ "$DRY_RUN" == "true" ]]; then
+    log_info "[DRY RUN] Would create detection report at: $DETECT_OUTPUT"
+else
+    log_info "Creating detection report..."
+fi
 
 # Escape special characters for JSON
 escape_json() {
@@ -280,7 +357,14 @@ escape_json() {
 }
 
 # Use Python to generate valid JSON (more robust than sed)
-if command -v python3 &> /dev/null; then
+if [[ "$DRY_RUN" == "true" ]]; then
+    log_verbose "[DRY RUN] Detection summary:"
+    log_verbose "  OS: $OS_TYPE ($ARCH)"
+    log_verbose "  Node.js: $NODE_RESULT"
+    log_verbose "  Docker: $DOCKER_RESULT"
+    log_verbose "  Git: $GIT_REPO"
+    log_verbose "  Package.json: $PACKAGE_JSON"
+elif command -v python3 &> /dev/null; then
     python3 << EOFPYTHON > "$DETECT_OUTPUT"
 import json
 from datetime import datetime
@@ -370,68 +454,93 @@ else
 EOFJSON
 fi
 
-verify_file "$DETECT_OUTPUT" || log_fatal "Failed to create detection report"
+if [[ "$DRY_RUN" != "true" ]]; then
+    verify_file "$DETECT_OUTPUT" || log_fatal "Failed to create detection report"
+fi
 
 # Validate JSON if possible
-if command -v python3 &> /dev/null; then
-    if python3 -c "import json; json.load(open('$DETECT_OUTPUT'))" 2>/dev/null; then
-        log_success "JSON validation passed"
-    else
-        log_warning "JSON validation failed - report may be malformed"
-        track_warning "Generated JSON failed validation"
+if [[ "$DRY_RUN" != "true" ]]; then
+    if command -v python3 &> /dev/null; then
+        if python3 -c "import json; json.load(open('$DETECT_OUTPUT'))" 2>/dev/null; then
+            log_success "JSON validation passed"
+        else
+            log_warning "JSON validation failed - report may be malformed"
+            track_warning "Generated JSON failed validation"
+        fi
     fi
-fi
 
-# Create symlink to latest
-ln -sf "bootstrap-detect-${TIMESTAMP}.json" "$DETECT_LATEST"
-log_success "Created symlink: bootstrap-detect-latest.json"
+    # Create symlink to latest
+    ln -sf "bootstrap-detect-${TIMESTAMP}.json" "$DETECT_LATEST"
+    log_success "Created symlink: bootstrap-detect-latest.json"
 
-# Cleanup old detection files (keep last 10)
-log_info "Cleaning up old detection files..."
-DETECTION_FILES=$(find "$LOGS_DIR" -name "bootstrap-detect-*.json" -type f | sort -r)
-FILE_COUNT=$(echo "$DETECTION_FILES" | wc -l)
+    # Cleanup old detection files (keep last 10)
+    log_info "Cleaning up old detection files..."
+    DETECTION_FILES=$(find "$LOGS_DIR" -name "bootstrap-detect-*.json" -type f | sort -r)
+    FILE_COUNT=$(echo "$DETECTION_FILES" | wc -l)
 
-if [[ $FILE_COUNT -gt 10 ]]; then
-    FILES_TO_DELETE=$(echo "$DETECTION_FILES" | tail -n +11)
-    echo "$FILES_TO_DELETE" | while read -r file; do
-        rm -f "$file"
-        log_info "Removed old detection file: $(basename "$file")"
-    done
-    DELETED_COUNT=$((FILE_COUNT - 10))
-    log_success "Cleaned up $DELETED_COUNT old detection file(s)"
+    if [[ $FILE_COUNT -gt 10 ]]; then
+        FILES_TO_DELETE=$(echo "$DETECTION_FILES" | tail -n +11)
+        echo "$FILES_TO_DELETE" | while read -r file; do
+            rm -f "$file"
+            log_info "Removed old detection file: $(basename "$file")"
+        done
+        DELETED_COUNT=$((FILE_COUNT - 10))
+        log_success "Cleaned up $DELETED_COUNT old detection file(s)"
+    else
+        log_info "No cleanup needed (only $FILE_COUNT file(s))"
+    fi
+
+    log_file_created "$SCRIPT_NAME" "logs/bootstrap-detect-${TIMESTAMP}.json"
+    track_created "logs/bootstrap-detect-${TIMESTAMP}.json"
+    log_success "Detection report created"
 else
-    log_info "No cleanup needed (only $FILE_COUNT file(s))"
+    log_info "[DRY RUN] Would create symlink: bootstrap-detect-latest.json"
+    log_info "[DRY RUN] Would cleanup old detection files (keep last 10)"
 fi
-
-log_file_created "$SCRIPT_NAME" "logs/bootstrap-detect-${TIMESTAMP}.json"
-track_created "logs/bootstrap-detect-${TIMESTAMP}.json"
-log_success "Detection report created"
 
 # ===================================================================
 # Display Summary
 # ===================================================================
 
-log_script_complete "$SCRIPT_NAME" "System detection complete"
-
-show_summary
+if [[ "$DRY_RUN" != "true" ]]; then
+    log_script_complete "$SCRIPT_NAME" "System detection complete"
+    show_summary
+fi
 
 echo ""
-log_success "System detection complete!"
-echo ""
+if [[ "$DRY_RUN" == "true" ]]; then
+    log_success "Dry run complete - no files were modified!"
+    echo ""
+    echo "Files that would be created/modified:"
+    echo "  • __bootbuild/config/bootstrap.config [detected] section"
+    echo "  • __bootbuild/logs/bootstrap-detect-${TIMESTAMP}.json"
+    echo "  • __bootbuild/logs/bootstrap-detect-latest.json (symlink)"
+    echo ""
+else
+    log_success "System detection complete!"
+    echo ""
+fi
+
 echo "Detection Summary:"
 echo "  System: $OS_TYPE ($ARCH)"
 echo "  Node.js: $(echo "$NODE_RESULT" | cut -d'|' -f1)"
 echo "  Docker: $(echo "$DOCKER_RESULT" | cut -d'|' -f1)"
 echo "  Git: $(echo "$GIT_RESULT" | cut -d'|' -f1)"
 echo ""
-echo "Files Updated:"
-echo "  Config:      __bootbuild/config/bootstrap.config [detected] section"
-echo "               (project-level facts: has_package_json, has_git_repo, etc.)"
-echo "  Full Report: __bootbuild/logs/bootstrap-detect-latest.json"
-echo "               (host-level detections: git_installed, node_installed, etc.)"
-echo "  This Run:    __bootbuild/logs/bootstrap-detect-${TIMESTAMP}.json"
-echo "  History:     Last 10 detection runs kept in logs/"
-echo ""
+
+if [[ "$DRY_RUN" != "true" ]]; then
+    echo "Files Updated:"
+    echo "  Config:      __bootbuild/config/bootstrap.config [detected] section"
+    echo "               (project-level facts: has_package_json, has_git_repo, etc.)"
+    echo "  Full Report: __bootbuild/logs/bootstrap-detect-latest.json"
+    echo "               (host-level detections: git_installed, node_installed, etc.)"
+    echo "  This Run:    __bootbuild/logs/bootstrap-detect-${TIMESTAMP}.json"
+    echo "  History:     Last 10 detection runs kept in logs/"
+    echo ""
+else
+    echo "To execute detection, run without --dry-run flag"
+    echo ""
+fi
 echo "Next steps:"
 echo "  1. Review host environment capabilities:"
 echo "     jq '.' __bootbuild/logs/bootstrap-detect-latest.json"

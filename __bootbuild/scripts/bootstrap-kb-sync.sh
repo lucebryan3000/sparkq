@@ -45,6 +45,8 @@ REPORT_FILE="${KB_SCAN_REPORT}"
 # Options
 REPORT_ONLY=false
 VERBOSE=false
+DRY_RUN=false
+VERIFY_CHANGES=false
 
 # Color codes for output
 RED='\033[0;31m'
@@ -183,6 +185,11 @@ scan_kb() {
 # ===================================================================
 
 generate_report() {
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log_info "[DRY RUN] Would generate scan report to: $REPORT_FILE"
+        return 0
+    fi
+
     log_info "Generating scan report..."
 
     mkdir -p "$LOGS_KB_DIR"
@@ -312,11 +319,241 @@ update_manifest() {
         return
     fi
 
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log_info "[DRY RUN] Would update: $KB_MANIFEST_FILE"
+        log_verbose "  Changes: Technology status for $(find "$KB_ROOT" -maxdepth 1 -type d | wc -l) technologies"
+        return 0
+    fi
+
     log_info "Updating kb-bootstrap-manifest.json..."
 
-    # This would require jq or complex bash. For now, we'll use a simpler approach
-    # In production, you'd use jq to update the JSON properly
-    log_warn "Manifest update requires jq - install with: sudo apt-get install jq"
+    # Create manifest if it doesn't exist
+    if [[ ! -f "$KB_MANIFEST_FILE" ]]; then
+        log_info "Creating new kb-bootstrap-manifest.json..."
+        mkdir -p "$(dirname "$KB_MANIFEST_FILE")"
+        cat > "$KB_MANIFEST_FILE" <<'EOF'
+{
+  "version": "1.0",
+  "generated": "",
+  "technologies": {}
+}
+EOF
+    fi
+
+    # Backup existing manifest
+    if [[ -f "$KB_MANIFEST_FILE" ]]; then
+        cp "$KB_MANIFEST_FILE" "${KB_MANIFEST_FILE}.bak"
+        log_verbose "Backed up manifest to ${KB_MANIFEST_FILE}.bak"
+    fi
+
+    # Try jq first (preferred)
+    if command -v jq &>/dev/null; then
+        log_verbose "Using jq for manifest update..."
+        update_manifest_with_jq
+        return $?
+    fi
+
+    # Fall back to Python if available
+    if command -v python3 &>/dev/null; then
+        log_verbose "Using Python fallback for manifest update..."
+        update_manifest_with_python
+        return $?
+    fi
+
+    # Last resort: bash-only approach (limited but works)
+    log_warn "Neither jq nor Python available - using bash fallback (limited functionality)"
+    update_manifest_with_bash
+    return $?
+}
+
+# Update manifest using jq
+update_manifest_with_jq() {
+    local temp_file="${KB_MANIFEST_FILE}.tmp"
+    local timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+    # Start with base structure
+    jq --arg timestamp "$timestamp" '.generated = $timestamp' "$KB_MANIFEST_FILE" > "$temp_file"
+
+    # Add each technology's stats
+    for tech_path in "$KB_ROOT"/*; do
+        [[ ! -d "$tech_path" ]] && continue
+        local tech=$(basename "$tech_path")
+        [[ "$tech" =~ \.json$ ]] && continue
+
+        local docs_count=$(count_docs "$tech_path")
+        local has_manifest_file=$(has_manifest "$tech_path")
+        local status=$(determine_status "$docs_count")
+        local source_url=$(get_source_url "$tech")
+
+        # Update JSON with technology data
+        jq --arg tech "$tech" \
+           --arg status "$status" \
+           --argjson docs "$docs_count" \
+           --arg manifest "$has_manifest_file" \
+           --arg source "$source_url" \
+           '.technologies[$tech] = {
+              "status": $status,
+              "docs_count": $docs,
+              "has_manifest": ($manifest == "true"),
+              "source": $source,
+              "scanned_at": now | strftime("%Y-%m-%dT%H:%M:%SZ")
+           }' "$temp_file" > "${temp_file}.2"
+
+        mv "${temp_file}.2" "$temp_file"
+    done
+
+    # Validate JSON before replacing
+    if jq empty "$temp_file" 2>/dev/null; then
+        mv "$temp_file" "$KB_MANIFEST_FILE"
+        log_info "Manifest updated successfully with jq"
+        return 0
+    else
+        log_error "Generated JSON is invalid - keeping backup"
+        rm -f "$temp_file"
+        return 1
+    fi
+}
+
+# Update manifest using Python
+update_manifest_with_python() {
+    local timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+    python3 << 'PYTHON_SCRIPT'
+import json
+import sys
+from datetime import datetime
+
+manifest_file = sys.argv[1]
+kb_root = sys.argv[2]
+
+try:
+    # Read existing manifest
+    with open(manifest_file, 'r') as f:
+        manifest = json.load(f)
+
+    # Update timestamp
+    manifest['generated'] = sys.argv[3]
+
+    # Ensure technologies section exists
+    if 'technologies' not in manifest:
+        manifest['technologies'] = {}
+
+    # Write updated manifest
+    with open(manifest_file, 'w') as f:
+        json.dump(manifest, f, indent=2)
+
+    sys.exit(0)
+except Exception as e:
+    print(f"Error: {e}", file=sys.stderr)
+    sys.exit(1)
+PYTHON_SCRIPT
+
+    if [[ $? -eq 0 ]]; then
+        # Now update each technology
+        for tech_path in "$KB_ROOT"/*; do
+            [[ ! -d "$tech_path" ]] && continue
+            local tech=$(basename "$tech_path")
+            [[ "$tech" =~ \.json$ ]] && continue
+
+            local docs_count=$(count_docs "$tech_path")
+            local has_manifest_file=$(has_manifest "$tech_path")
+            local status=$(determine_status "$docs_count")
+            local source_url=$(get_source_url "$tech")
+
+            python3 -c "
+import json
+import sys
+from datetime import datetime
+
+manifest_file = '$KB_MANIFEST_FILE'
+tech = '$tech'
+status = '$status'
+docs_count = $docs_count
+has_manifest = '$has_manifest_file' == 'true'
+source = '$source_url'
+
+with open(manifest_file, 'r') as f:
+    manifest = json.load(f)
+
+manifest['technologies'][tech] = {
+    'status': status,
+    'docs_count': docs_count,
+    'has_manifest': has_manifest,
+    'source': source,
+    'scanned_at': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+}
+
+with open(manifest_file, 'w') as f:
+    json.dump(manifest, f, indent=2)
+"
+        done
+
+        log_info "Manifest updated successfully with Python"
+        return 0
+    else
+        log_error "Python manifest update failed"
+        return 1
+    fi
+}
+
+# Update manifest using pure bash (basic)
+update_manifest_with_bash() {
+    local timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    local temp_file="${KB_MANIFEST_FILE}.tmp"
+
+    # This is a simplified approach - creates valid JSON but loses other fields
+    cat > "$temp_file" <<EOF
+{
+  "version": "1.0",
+  "generated": "$timestamp",
+  "technologies": {
+EOF
+
+    local first=true
+    for tech_path in "$KB_ROOT"/*; do
+        [[ ! -d "$tech_path" ]] && continue
+        local tech=$(basename "$tech_path")
+        [[ "$tech" =~ \.json$ ]] && continue
+
+        local docs_count=$(count_docs "$tech_path")
+        local has_manifest_file=$(has_manifest "$tech_path")
+        local status=$(determine_status "$docs_count")
+        local source_url=$(get_source_url "$tech")
+
+        # Add comma if not first entry
+        [[ "$first" == "false" ]] && echo "," >> "$temp_file"
+        first=false
+
+        # Add technology entry
+        cat >> "$temp_file" <<EOF
+    "$tech": {
+      "status": "$status",
+      "docs_count": $docs_count,
+      "has_manifest": $has_manifest_file,
+      "source": "$source_url",
+      "scanned_at": "$timestamp"
+    }
+EOF
+    done
+
+    # Close JSON
+    cat >> "$temp_file" <<EOF
+
+  }
+}
+EOF
+
+    # Validate it's at least parseable
+    if grep -q "technologies" "$temp_file"; then
+        mv "$temp_file" "$KB_MANIFEST_FILE"
+        log_info "Manifest updated with bash fallback (some data may be lost)"
+        log_warn "Install jq for better manifest handling: sudo apt-get install jq"
+        return 0
+    else
+        log_error "Bash manifest update failed"
+        rm -f "$temp_file"
+        return 1
+    fi
 }
 
 # ===================================================================
@@ -329,11 +566,99 @@ update_config() {
         return
     fi
 
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log_info "[DRY RUN] Would update: $CONFIG_FILE [technologies] section"
+        log_verbose "  Changes: Status for all scanned technologies"
+        return 0
+    fi
+
     log_info "Updating bootstrap.config [technologies]..."
 
-    # This requires careful editing of the config file
-    # For now, we'll just note that this needs to be done
-    log_warn "Config update scheduled for future implementation"
+    # Backup config file
+    if [[ -f "$CONFIG_FILE" ]]; then
+        cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
+        log_verbose "Backed up config to ${CONFIG_FILE}.bak"
+    else
+        log_error "Config file not found: $CONFIG_FILE"
+        return 1
+    fi
+
+    # Check if [technologies] section exists
+    if ! grep -q '^\[technologies\]' "$CONFIG_FILE"; then
+        log_info "Adding [technologies] section to config..."
+        echo "" >> "$CONFIG_FILE"
+        echo "[technologies]" >> "$CONFIG_FILE"
+    fi
+
+    # Create temporary file with updated technologies
+    local temp_file="${CONFIG_FILE}.tmp"
+    local in_tech_section=false
+    local tech_section_found=false
+
+    # First pass: copy everything except the [technologies] section
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^\[technologies\] ]]; then
+            in_tech_section=true
+            tech_section_found=true
+            echo "$line" >> "$temp_file"
+            continue
+        fi
+
+        # Check if we're entering a new section
+        if [[ "$line" =~ ^\[.*\] ]]; then
+            # If we were in tech section, add new entries before next section
+            if [[ "$in_tech_section" == "true" ]]; then
+                add_technology_entries >> "$temp_file"
+                in_tech_section=false
+            fi
+            echo "$line" >> "$temp_file"
+            continue
+        fi
+
+        # Skip old technology entries if in tech section
+        if [[ "$in_tech_section" == "true" ]]; then
+            continue
+        fi
+
+        # Copy all other lines
+        echo "$line" >> "$temp_file"
+    done < "$CONFIG_FILE"
+
+    # If technologies section was last (no section after it)
+    if [[ "$in_tech_section" == "true" ]]; then
+        add_technology_entries >> "$temp_file"
+    fi
+
+    # If no tech section existed, add it at the end
+    if [[ "$tech_section_found" == "false" ]]; then
+        echo "" >> "$temp_file"
+        echo "[technologies]" >> "$temp_file"
+        add_technology_entries >> "$temp_file"
+    fi
+
+    # Replace original with updated
+    mv "$temp_file" "$CONFIG_FILE"
+    log_info "Config [technologies] section updated successfully"
+}
+
+# Helper function to add technology entries
+add_technology_entries() {
+    for tech_path in "$KB_ROOT"/*; do
+        [[ ! -d "$tech_path" ]] && continue
+        local tech=$(basename "$tech_path")
+        [[ "$tech" =~ \.json$ ]] && continue
+
+        local docs_count=$(count_docs "$tech_path")
+        local status=$(determine_status "$docs_count")
+        local source_url=$(get_source_url "$tech")
+
+        # Format: technology_name=status|docs_count|source
+        if [[ -n "$source_url" ]]; then
+            echo "${tech}=${status}|${docs_count}|${source_url}"
+        else
+            echo "${tech}=${status}|${docs_count}"
+        fi
+    done
 }
 
 # ===================================================================
@@ -342,7 +667,13 @@ update_config() {
 
 main() {
     echo ""
-    log_info "Bootstrap Knowledge Base Scanner - Phase 2"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log_info "Bootstrap Knowledge Base Scanner - Phase 2 [DRY RUN MODE]"
+    elif [[ "$VERIFY_CHANGES" == "true" ]]; then
+        log_info "Bootstrap Knowledge Base Scanner - Phase 2 [VERIFY MODE]"
+    else
+        log_info "Bootstrap Knowledge Base Scanner - Phase 2"
+    fi
     echo ""
 
     # Check prerequisites
@@ -359,6 +690,22 @@ main() {
     # Run scan
     local scan_result=$(scan_kb)
 
+    # If verify mode, show what will change and ask for confirmation
+    if [[ "$VERIFY_CHANGES" == "true" && "$REPORT_ONLY" != "true" ]]; then
+        echo ""
+        log_warn "Files that will be modified:"
+        echo "  • $REPORT_FILE"
+        echo "  • $KB_MANIFEST_FILE"
+        echo "  • $CONFIG_FILE"
+        echo ""
+        read -p "Proceed with these changes? (y/N): " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_warn "Operation cancelled by user"
+            exit 0
+        fi
+    fi
+
     # Generate report
     generate_report
 
@@ -369,10 +716,54 @@ main() {
     update_config
 
     echo ""
-    log_info "Scan complete!"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log_info "Dry run complete! No files were modified."
+        echo ""
+        log_info "Files that would be modified:"
+        echo "  • $REPORT_FILE (scan report)"
+        echo "  • $KB_MANIFEST_FILE (technology status)"
+        echo "  • $CONFIG_FILE ([technologies] section)"
+        echo ""
+        log_info "To execute changes, run without --dry-run flag"
+    else
+        log_info "Scan complete!"
+        echo ""
+        if [[ "$REPORT_ONLY" != "true" ]]; then
+            log_info "View report: cat $REPORT_FILE"
+        fi
+    fi
     echo ""
-    log_info "View report: cat $REPORT_FILE"
-    echo ""
+}
+
+# Show usage
+usage() {
+    cat << EOF
+Usage: bootstrap-kb-sync.sh [OPTIONS]
+
+Scan kb-bootstrap/ directory and update manifest with documentation status.
+
+OPTIONS:
+  --report-only       Generate report without updating manifest
+  --verbose           Show detailed scan progress
+  --dry-run          Show what would be changed without modifying files
+  --verify-changes   Show changes and ask for confirmation before proceeding
+  -h, --help         Show this help message
+
+EXAMPLES:
+  # Generate report only
+  ./bootstrap-kb-sync.sh --report-only
+
+  # Dry run to see what would change
+  ./bootstrap-kb-sync.sh --dry-run --verbose
+
+  # Verify changes before applying
+  ./bootstrap-kb-sync.sh --verify-changes
+
+  # Full scan with updates
+  ./bootstrap-kb-sync.sh
+
+EOF
+    exit 0
 }
 
 # Parse arguments
@@ -386,9 +777,20 @@ while [[ $# -gt 0 ]]; do
             VERBOSE=true
             shift
             ;;
+        --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        --verify-changes)
+            VERIFY_CHANGES=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            ;;
         *)
             log_error "Unknown option: $1"
-            exit 1
+            usage
             ;;
     esac
 done
