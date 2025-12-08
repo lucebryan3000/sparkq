@@ -70,7 +70,8 @@
       "templates": ["project/.gitignore", "project/.gitattributes"],
       "questions": "git",
       "detects": ["has_git_repo"],
-      "depends": []
+      "depends": [],
+      "requires": { "tools": ["git"], "optional": [] }
     },
     "vscode": {
       "file": "bootstrap-vscode.sh",
@@ -100,7 +101,8 @@
       "templates": ["nodejs/.nvmrc", "nodejs/.npmrc", "nodejs/package.json"],
       "questions": "packages",
       "detects": ["has_package_json"],
-      "depends": []
+      "depends": [],
+      "requires": { "tools": ["node", "npm"], "optional": ["pnpm", "yarn"] }
     },
     "typescript": {
       "file": "bootstrap-typescript.sh",
@@ -140,7 +142,8 @@
       "templates": ["docker/"],
       "questions": "docker",
       "detects": ["docker_installed", "docker_running"],
-      "depends": []
+      "depends": [],
+      "requires": { "tools": ["docker"], "optional": ["docker-compose"] }
     },
     "database": {
       "file": "bootstrap-database.sh",
@@ -170,7 +173,8 @@
       "templates": ["linting/"],
       "questions": "linting",
       "detects": [],
-      "depends": ["packages"]
+      "depends": ["packages"],
+      "requires": { "tools": ["python3"], "optional": ["node", "npm", "eslint", "prettier"] }
     },
     "editor": {
       "file": "bootstrap-editor.sh",
@@ -190,7 +194,8 @@
       "templates": ["husky/"],
       "questions": "husky",
       "detects": [],
-      "depends": ["git", "packages"]
+      "depends": ["git", "packages"],
+      "requires": { "tools": ["git", "node", "npm"], "optional": ["jq"] }
     },
     "testing": {
       "file": "bootstrap-testing.sh",
@@ -200,7 +205,8 @@
       "templates": ["testing/"],
       "questions": "testing",
       "detects": [],
-      "depends": ["packages", "typescript"]
+      "depends": ["packages", "typescript"],
+      "requires": { "tools": ["node", "npm"], "optional": ["vitest", "playwright"] }
     },
     "quality": {
       "file": "bootstrap-quality.sh",
@@ -230,13 +236,14 @@
       "templates": [".github/"],
       "questions": "github",
       "detects": [],
-      "depends": ["git"]
+      "depends": ["git"],
+      "requires": { "tools": ["git"], "optional": ["gh"] }
     },
     "ci-cd": {
-      "file": "bootstrap-ci-cd.sh",
+      "file": "bootstrap-cicd.sh",
       "phase": 4,
       "category": "cicd",
-      "description": "CI/CD pipelines (GitLab CI, Jenkins, Azure)",
+      "description": "CI/CD pipelines (GitHub Actions, GitLab CI, Azure, CircleCI)",
       "templates": ["cicd/"],
       "questions": null,
       "detects": [],
@@ -262,6 +269,26 @@
       "detects": [],
       "depends": ["typescript"]
     },
+    "buildtools": {
+      "file": "bootstrap-buildtools.sh",
+      "phase": 2,
+      "category": "build",
+      "description": "Build tools setup (Vite, Webpack, Rollup, tsup)",
+      "templates": ["buildtools/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["packages"]
+    },
+    "nodejs": {
+      "file": "bootstrap-nodejs.sh",
+      "phase": 1,
+      "category": "runtime",
+      "description": "Node.js runtime and package manager setup (nvm, npm, pnpm, yarn)",
+      "templates": ["nodejs/"],
+      "questions": null,
+      "detects": ["has_package_json"],
+      "depends": []
+    },
     "ssl": {
       "file": "bootstrap-ssl.sh",
       "phase": 4,
@@ -280,7 +307,8 @@
       "templates": ["kubernetes/"],
       "questions": null,
       "detects": [],
-      "depends": ["docker"]
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["kubectl", "helm"] }
     },
     "monitoring": {
       "file": "bootstrap-monitoring.sh",
@@ -329,6 +357,106 @@
     "library": {
       "description": "NPM package/library development",
       "scripts": ["claude", "git", "packages", "typescript", "linting", "testing", "github"]
+    }
+  },
+
+  "tools": {
+    "_description": "Global tool definitions with versions and install hints. Scripts reference these by key in their 'requires' field.",
+    "git": {
+      "command": "git",
+      "min_version": "2.30.0",
+      "install_hint": "https://git-scm.com/downloads",
+      "detect_version": "git --version | awk '{print $3}'"
+    },
+    "node": {
+      "command": "node",
+      "min_version": "18.0.0",
+      "install_hint": "https://nodejs.org/ or use nvm: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash",
+      "detect_version": "node --version | sed 's/v//'"
+    },
+    "npm": {
+      "command": "npm",
+      "min_version": "9.0.0",
+      "install_hint": "Comes with Node.js",
+      "detect_version": "npm --version"
+    },
+    "pnpm": {
+      "command": "pnpm",
+      "min_version": "8.0.0",
+      "install_hint": "npm install -g pnpm",
+      "detect_version": "pnpm --version"
+    },
+    "yarn": {
+      "command": "yarn",
+      "min_version": "1.22.0",
+      "install_hint": "npm install -g yarn",
+      "detect_version": "yarn --version"
+    },
+    "docker": {
+      "command": "docker",
+      "min_version": "20.0.0",
+      "install_hint": "https://docs.docker.com/get-docker/",
+      "detect_version": "docker --version | awk '{print $3}' | sed 's/,//'"
+    },
+    "docker-compose": {
+      "command": "docker-compose",
+      "min_version": "2.0.0",
+      "install_hint": "Included with Docker Desktop or: pip install docker-compose",
+      "detect_version": "docker-compose --version | awk '{print $4}' | sed 's/v//'"
+    },
+    "jq": {
+      "command": "jq",
+      "min_version": "1.6",
+      "install_hint": "apt install jq / brew install jq",
+      "detect_version": "jq --version | sed 's/jq-//'"
+    },
+    "python3": {
+      "command": "python3",
+      "min_version": "3.8.0",
+      "install_hint": "https://www.python.org/downloads/",
+      "detect_version": "python3 --version | awk '{print $2}'"
+    },
+    "gh": {
+      "command": "gh",
+      "min_version": "2.0.0",
+      "install_hint": "https://cli.github.com/",
+      "detect_version": "gh --version | head -1 | awk '{print $3}'"
+    },
+    "kubectl": {
+      "command": "kubectl",
+      "min_version": "1.25.0",
+      "install_hint": "https://kubernetes.io/docs/tasks/tools/",
+      "detect_version": "kubectl version --client -o json | jq -r '.clientVersion.gitVersion' | sed 's/v//'"
+    },
+    "helm": {
+      "command": "helm",
+      "min_version": "3.10.0",
+      "install_hint": "https://helm.sh/docs/intro/install/",
+      "detect_version": "helm version --short | sed 's/v//'"
+    },
+    "eslint": {
+      "command": "eslint",
+      "min_version": "8.0.0",
+      "install_hint": "npm install -g eslint",
+      "detect_version": "eslint --version | sed 's/v//'"
+    },
+    "prettier": {
+      "command": "prettier",
+      "min_version": "3.0.0",
+      "install_hint": "npm install -g prettier",
+      "detect_version": "prettier --version"
+    },
+    "vitest": {
+      "command": "vitest",
+      "min_version": "0.34.0",
+      "install_hint": "npm install -D vitest",
+      "detect_version": "npx vitest --version 2>/dev/null || echo '0.0.0'"
+    },
+    "playwright": {
+      "command": "playwright",
+      "min_version": "1.35.0",
+      "install_hint": "npm install -D @playwright/test",
+      "detect_version": "npx playwright --version 2>/dev/null || echo '0.0.0'"
     }
   },
 
