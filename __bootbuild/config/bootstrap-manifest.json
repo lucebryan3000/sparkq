@@ -172,7 +172,7 @@
       "category": "infrastructure",
       "description": "PostgreSQL-specific setup (Docker Compose, init scripts, backups, environment)",
       "templates": ["postgres/"],
-      "questions": null,
+      "questions": "postgres",
       "detects": [],
       "depends": ["docker"],
       "requires": { "tools": ["docker"], "optional": ["psql", "pg_dump"] }
@@ -183,7 +183,7 @@
       "category": "infrastructure",
       "description": "Redis cache/session store setup (Docker Compose, config, backups, environment)",
       "templates": ["redis/"],
-      "questions": null,
+      "questions": "redis",
       "detects": [],
       "depends": ["docker"],
       "requires": { "tools": ["docker"], "optional": ["redis-cli"] }
@@ -349,9 +349,86 @@
       "category": "observability",
       "description": "Monitoring setup (Prometheus, Datadog, Sentry)",
       "templates": ["monitoring/"],
-      "questions": null,
+      "questions": "monitoring",
       "detects": [],
       "depends": []
+    },
+    "mysql": {
+      "file": "bootstrap-mysql.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "MySQL database setup (Docker Compose, init scripts, backups, environment)",
+      "templates": ["mysql/"],
+      "questions": "mysql",
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["mysql", "mysqldump"] }
+    },
+    "elasticsearch": {
+      "file": "bootstrap-elasticsearch.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Elasticsearch cluster setup (Docker Compose, configuration, health checks)",
+      "templates": ["elasticsearch/"],
+      "questions": "elasticsearch",
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["curl"] }
+    },
+    "rate-limiting": {
+      "file": "bootstrap-rate-limiting.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Redis-based rate limiting service (Lua scripts, strategies, Docker)",
+      "templates": ["rate-limiting/"],
+      "questions": "rate-limiting",
+      "detects": [],
+      "depends": ["redis"],
+      "requires": { "tools": ["docker"], "optional": ["redis-cli"] }
+    },
+    "email": {
+      "file": "bootstrap-email-service.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Email service integration (SendGrid, Mailgun, SMTP, templates)",
+      "templates": ["email/"],
+      "questions": "email",
+      "detects": [],
+      "depends": [],
+      "requires": { "tools": [], "optional": [] }
+    },
+    "auth-oauth2": {
+      "file": "bootstrap-auth-oauth2.sh",
+      "phase": 4,
+      "category": "security",
+      "description": "OAuth2 provider setup (Keycloak, OpenID Connect, Docker)",
+      "templates": ["oauth2/"],
+      "questions": "auth-oauth2",
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["curl"] }
+    },
+    "network-vpn": {
+      "file": "bootstrap-network-vpn.sh",
+      "phase": 4,
+      "category": "security",
+      "description": "VPN and secure networking (WireGuard, OpenVPN, Docker overlay)",
+      "templates": ["network/"],
+      "questions": "network-vpn",
+      "detects": [],
+      "depends": [],
+      "requires": { "tools": [], "optional": ["wg", "openvpn"] }
+    },
+    "backup": {
+      "file": "bootstrap-backup-service.sh",
+      "phase": 4,
+      "category": "deployment",
+      "description": "Backup and disaster recovery (restic, S3, encryption, restore procedures)",
+      "templates": ["backup/"],
+      "questions": "backup",
+      "detects": [],
+      "depends": [],
+      "requires": { "tools": [], "optional": ["restic", "aws-cli"] }
     },
     "detect": {
       "file": "bootstrap-detect.sh",

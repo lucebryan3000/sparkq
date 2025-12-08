@@ -90,6 +90,430 @@
     ]
   },
 
+  "database_credentials": {
+    "description": "PostgreSQL database credentials (when database_type is postgres)",
+    "questions": [
+      {
+        "key": "postgres.db_user",
+        "prompt": "Change default POSTGRES_USER=[postgres]?",
+        "type": "text",
+        "default": "postgres",
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{2,31}$",
+        "help": "Username: 3-32 chars, letters/numbers/underscore, must start with letter. Press Enter to keep default."
+      },
+      {
+        "key": "postgres.db_password",
+        "prompt": "Change default POSTGRES_PASSWORD=[postgres]?",
+        "type": "password",
+        "default": "postgres",
+        "help": "Press Enter to keep default. Strongly recommend changing in production."
+      },
+      {
+        "key": "postgres.db_name",
+        "prompt": "Change default POSTGRES_DB=[${detected.project_name}]?",
+        "type": "text",
+        "default": "${detected.project_name}",
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{2,63}$",
+        "help": "Database name: 3-64 chars, letters/numbers/underscore, must start with letter. Press Enter to use project name."
+      }
+    ]
+  },
+
+  "redis_credentials": {
+    "description": "Redis credentials and configuration (optional, for caching/sessions)",
+    "questions": [
+      {
+        "key": "redis.password",
+        "prompt": "Change default REDIS_PASSWORD=[redis_password]?",
+        "type": "password",
+        "default": "redis_password",
+        "help": "Press Enter to keep default. Strongly recommend changing in production."
+      },
+      {
+        "key": "redis.port",
+        "prompt": "Change default REDIS_PORT=[6379]?",
+        "type": "number",
+        "default": 6379,
+        "min": 1024,
+        "max": 65535,
+        "help": "Port for Redis service. Press Enter for default 6379, or specify alternate if already in use."
+      }
+    ]
+  },
+
+  "mysql_credentials": {
+    "description": "MySQL database credentials (optional, alternative to PostgreSQL)",
+    "questions": [
+      {
+        "key": "mysql.db_user",
+        "prompt": "Change default MYSQL_USER=[app_user]?",
+        "type": "text",
+        "default": "app_user",
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{2,31}$",
+        "help": "MySQL username: 3-32 chars, letters/numbers/underscore, must start with letter. Press Enter to keep default."
+      },
+      {
+        "key": "mysql.db_password",
+        "prompt": "Change default MYSQL_PASSWORD=[app_password]?",
+        "type": "password",
+        "default": "app_password",
+        "help": "Press Enter to keep default. Strongly recommend changing in production."
+      },
+      {
+        "key": "mysql.root_password",
+        "prompt": "Change default MYSQL_ROOT_PASSWORD=[root]?",
+        "type": "password",
+        "default": "root",
+        "help": "MySQL root user password. Press Enter to keep default. Critical: Change in production."
+      },
+      {
+        "key": "mysql.port",
+        "prompt": "Change default MYSQL_PORT=[3306]?",
+        "type": "number",
+        "default": 3306,
+        "min": 1024,
+        "max": 65535,
+        "help": "MySQL port. Press Enter for default 3306, or specify alternate if already in use."
+      }
+    ]
+  },
+
+  "elasticsearch_credentials": {
+    "description": "Elasticsearch cluster credentials (optional, for search/analytics)",
+    "questions": [
+      {
+        "key": "elasticsearch.cluster_name",
+        "prompt": "Change default ELASTICSEARCH_CLUSTER_NAME=[elasticsearch]?",
+        "type": "text",
+        "default": "elasticsearch",
+        "pattern": "^[a-z0-9_-]{1,63}$",
+        "help": "Cluster name: lowercase alphanumeric, hyphen, underscore. Press Enter to keep default."
+      },
+      {
+        "key": "elasticsearch.password",
+        "prompt": "Change default ELASTICSEARCH_PASSWORD=[changeme]?",
+        "type": "password",
+        "default": "changeme",
+        "help": "Elasticsearch security password. Press Enter to keep default. Change in production."
+      },
+      {
+        "key": "elasticsearch.port",
+        "prompt": "Change default ELASTICSEARCH_PORT=[9200]?",
+        "type": "number",
+        "default": 9200,
+        "min": 1024,
+        "max": 65535,
+        "help": "Elasticsearch port. Press Enter for default 9200, or specify alternate if already in use."
+      },
+      {
+        "key": "elasticsearch.memory",
+        "prompt": "Change default ELASTICSEARCH_MEMORY=[512m]?",
+        "type": "text",
+        "default": "512m",
+        "pattern": "^[0-9]+[kmg]$",
+        "help": "Heap memory: use format like 512m, 1g. Default 512m for dev. Increase for production data."
+      }
+    ]
+  },
+
+  "email_service_credentials": {
+    "description": "Email service provider configuration (optional, for sending emails)",
+    "questions": [
+      {
+        "key": "email.provider",
+        "prompt": "Email service provider",
+        "type": "choice",
+        "options": ["sendgrid", "mailgun", "postmark", "aws-ses", "smtp-generic", "none"],
+        "default": "sendgrid",
+        "help": "Choose email provider. Press Enter for SendGrid."
+      },
+      {
+        "key": "email.api_key",
+        "prompt": "Email API key (or leave blank for SMTP)",
+        "type": "password",
+        "default": "",
+        "help": "SendGrid/Mailgun/Postmark API key. Leave blank if using SMTP."
+      },
+      {
+        "key": "email.from_address",
+        "prompt": "From email address",
+        "type": "text",
+        "default": "noreply@example.com",
+        "pattern": "^[^@]+@[^@]+\\.[^@]+$",
+        "help": "Email address emails will come from. Update to your domain."
+      },
+      {
+        "key": "email.from_name",
+        "prompt": "From display name",
+        "type": "text",
+        "default": "App Notifications",
+        "help": "Display name for sender. e.g., 'Company Name' or 'Support Team'."
+      },
+      {
+        "key": "email.smtp_user",
+        "prompt": "SMTP username (if using generic SMTP)",
+        "type": "text",
+        "default": "",
+        "help": "SMTP username. Leave blank if using API-based provider."
+      },
+      {
+        "key": "email.smtp_password",
+        "prompt": "SMTP password (if using generic SMTP)",
+        "type": "password",
+        "default": "",
+        "help": "SMTP password. Leave blank if using API-based provider."
+      }
+    ]
+  },
+
+  "oauth2_credentials": {
+    "description": "OAuth2/OpenID Connect authentication provider (optional, for user login)",
+    "questions": [
+      {
+        "key": "oauth2.provider",
+        "prompt": "OAuth2 provider",
+        "type": "choice",
+        "options": ["keycloak", "auth0", "okta", "google", "github", "none"],
+        "default": "keycloak",
+        "help": "Choose authentication provider. Keycloak for self-hosted, Auth0/Okta for managed."
+      },
+      {
+        "key": "oauth2.client_id",
+        "prompt": "Change default OAUTH2_CLIENT_ID=[app-client]?",
+        "type": "text",
+        "default": "app-client",
+        "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+        "help": "OAuth2 client ID. Ask your provider for this value. Press Enter for default."
+      },
+      {
+        "key": "oauth2.client_secret",
+        "prompt": "OAuth2 client secret (will be auto-generated if left blank)",
+        "type": "password",
+        "default": "",
+        "help": "OAuth2 client secret. Leave blank to auto-generate (recommended). Get from provider if migrating."
+      },
+      {
+        "key": "oauth2.admin_user",
+        "prompt": "Change default OAUTH2_ADMIN=[admin]?",
+        "type": "text",
+        "default": "admin",
+        "pattern": "^[a-zA-Z0-9_-]{3,32}$",
+        "help": "Admin username for OAuth2 provider. Press Enter for default."
+      },
+      {
+        "key": "oauth2.admin_password",
+        "prompt": "Change default OAUTH2_ADMIN_PASSWORD=[admin]?",
+        "type": "password",
+        "default": "admin",
+        "help": "Admin password for OAuth2 provider. Press Enter for default. Change immediately in production."
+      },
+      {
+        "key": "oauth2.port",
+        "prompt": "Change default OAUTH2_PORT=[8080]?",
+        "type": "number",
+        "default": 8080,
+        "min": 1024,
+        "max": 65535,
+        "help": "OAuth2 provider port. Press Enter for default 8080, or specify alternate if already in use."
+      }
+    ]
+  },
+
+  "monitoring_credentials": {
+    "description": "Monitoring and observability provider credentials (optional, for error tracking and APM)",
+    "questions": [
+      {
+        "key": "monitoring.sentry_enabled",
+        "prompt": "Enable Sentry error tracking?",
+        "type": "yesno",
+        "default": false,
+        "help": "Sentry captures errors and issues. Requires DSN from sentry.io account."
+      },
+      {
+        "key": "monitoring.sentry_dsn",
+        "prompt": "Sentry DSN (leave blank to skip)",
+        "type": "text",
+        "default": "",
+        "help": "Sentry project DSN. Find at sentry.io after creating a project. Leave blank to skip."
+      },
+      {
+        "key": "monitoring.datadog_enabled",
+        "prompt": "Enable Datadog monitoring?",
+        "type": "yesno",
+        "default": false,
+        "help": "Datadog provides metrics, logs, APM. Requires API key from datadog.com account."
+      },
+      {
+        "key": "monitoring.datadog_api_key",
+        "prompt": "Datadog API key (leave blank to skip)",
+        "type": "password",
+        "default": "",
+        "help": "Datadog API key. Find at organization settings in datadog.com. Leave blank to skip."
+      },
+      {
+        "key": "monitoring.newrelic_enabled",
+        "prompt": "Enable New Relic monitoring?",
+        "type": "yesno",
+        "default": false,
+        "help": "New Relic provides APM, logs, metrics. Requires license key from newrelic.com account."
+      },
+      {
+        "key": "monitoring.newrelic_license_key",
+        "prompt": "New Relic license key (leave blank to skip)",
+        "type": "password",
+        "default": "",
+        "help": "New Relic license key. Find in account settings at newrelic.com. Leave blank to skip."
+      }
+    ]
+  },
+
+  "rate_limiting_config": {
+    "description": "Rate limiting configuration (optional, for API protection)",
+    "questions": [
+      {
+        "key": "rate_limiting.max_requests",
+        "prompt": "Change default rate limit max requests=[100]?",
+        "type": "number",
+        "default": 100,
+        "min": 1,
+        "max": 10000,
+        "help": "Max requests allowed per window. Press Enter for 100 requests per minute."
+      },
+      {
+        "key": "rate_limiting.window_seconds",
+        "prompt": "Change default rate limit window=[60] seconds?",
+        "type": "number",
+        "default": 60,
+        "min": 1,
+        "max": 3600,
+        "help": "Time window in seconds. Press Enter for 60 (1 minute window)."
+      },
+      {
+        "key": "rate_limiting.strategy",
+        "prompt": "Rate limiting strategy",
+        "type": "choice",
+        "options": ["token-bucket", "sliding-window", "fixed-window"],
+        "default": "token-bucket",
+        "help": "Token-bucket (recommended) or sliding-window (accurate) or fixed-window (simple)."
+      }
+    ]
+  },
+
+  "network_vpn_credentials": {
+    "description": "VPN and secure networking configuration (optional, for network security)",
+    "questions": [
+      {
+        "key": "network_vpn.provider",
+        "prompt": "VPN provider",
+        "type": "choice",
+        "options": ["wireguard", "openvpn", "none"],
+        "default": "wireguard",
+        "help": "WireGuard (recommended - modern, faster) or OpenVPN (established, cross-platform)."
+      },
+      {
+        "key": "network_vpn.vpn_cidr",
+        "prompt": "Change default VPN_CIDR=[10.0.0.0/24]?",
+        "type": "text",
+        "default": "10.0.0.0/24",
+        "pattern": "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}/\\d{1,2}$",
+        "help": "VPN network CIDR block. Default 10.0.0.0/24. Change if conflicts with existing networks."
+      },
+      {
+        "key": "network_vpn.vpn_port",
+        "prompt": "Change default VPN_PORT=[51820]?",
+        "type": "number",
+        "default": 51820,
+        "min": 1024,
+        "max": 65535,
+        "help": "VPN port (51820 for WireGuard, 1194 for OpenVPN). Adjust if already in use."
+      },
+      {
+        "key": "network_vpn.peers_count",
+        "prompt": "Number of VPN peer configurations",
+        "type": "number",
+        "default": 5,
+        "min": 1,
+        "max": 100,
+        "help": "How many peer configurations to generate for multi-node setups. Default: 5 peers."
+      },
+      {
+        "key": "network_vpn.dns_servers",
+        "prompt": "Change default DNS servers=[8.8.8.8,8.8.4.4]?",
+        "type": "text",
+        "default": "8.8.8.8,8.8.4.4",
+        "pattern": "^([0-9.]+)(,[0-9.]+)*$",
+        "help": "DNS servers to use (comma-separated). Default: Google Public DNS."
+      }
+    ]
+  },
+
+  "backup_credentials": {
+    "description": "Backup and disaster recovery configuration (optional, for data protection)",
+    "questions": [
+      {
+        "key": "backup.provider",
+        "prompt": "Backup tool",
+        "type": "choice",
+        "options": ["restic", "duplicati", "bacula", "none"],
+        "default": "restic",
+        "help": "Restic (recommended - fast, secure) or Duplicati (UI) or Bacula (enterprise)."
+      },
+      {
+        "key": "backup.storage_backend",
+        "prompt": "Backup storage backend",
+        "type": "choice",
+        "options": ["s3", "b2", "azure", "gs", "local"],
+        "default": "s3",
+        "help": "S3/S3-compatible (recommended), B2 (cheap), Azure, Google Cloud, or local disk."
+      },
+      {
+        "key": "backup.s3_bucket",
+        "prompt": "S3 bucket name (leave blank if not using S3)",
+        "type": "text",
+        "default": "app-backups",
+        "help": "S3 bucket for backups. Can be AWS S3, DigitalOcean Spaces, or Backblaze B2 S3 API."
+      },
+      {
+        "key": "backup.s3_region",
+        "prompt": "Change default S3 region=[us-east-1]?",
+        "type": "text",
+        "default": "us-east-1",
+        "help": "AWS region (us-east-1, eu-west-1, etc.) or endpoint URL for S3-compatible services."
+      },
+      {
+        "key": "backup.retention_days",
+        "prompt": "Change default backup retention=[30] days?",
+        "type": "number",
+        "default": 30,
+        "min": 1,
+        "max": 3650,
+        "help": "How long to keep backups (30 days = monthly, 90 days = quarterly, 365+ for long-term)."
+      },
+      {
+        "key": "backup.schedule",
+        "prompt": "Change default backup schedule=[daily at 2 AM]?",
+        "type": "text",
+        "default": "0 2 * * *",
+        "pattern": "^(\\d+|\\*) (\\d+|\\*) (\\d+|\\*|\\?|L|W) (\\d+|\\*|\\?|,|L) (\\d+|\\*|\\?|L|#|,)$",
+        "help": "Cron format (0 2 * * * = 2 AM daily). Change for different schedule."
+      },
+      {
+        "key": "backup.encryption_enabled",
+        "prompt": "Enable encryption for backups?",
+        "type": "yesno",
+        "default": true,
+        "help": "Encryption protects backup data in transit and at rest. Strongly recommended."
+      },
+      {
+        "key": "backup.backup_sources",
+        "prompt": "Change default backup sources=[database,uploads]?",
+        "type": "text",
+        "default": "database,uploads",
+        "help": "Directories/services to backup (comma-separated). Include all critical data."
+      }
+    ]
+  },
+
   "sandbox_options": {
     "description": "Docker sandbox (single container for app + Postgres + Redis)",
     "questions": [
@@ -235,6 +659,24 @@
         "help": "Default: 5432 (PostgreSQL), 3306 (MySQL), 27017 (MongoDB)"
       },
       {
+        "key": "postgres.port",
+        "prompt": "Change default POSTGRES_PORT=[5432]?",
+        "type": "number",
+        "default": 5432,
+        "min": 1024,
+        "max": 65535,
+        "help": "PostgreSQL port. Press Enter for default 5432, or specify alternate if already in use."
+      },
+      {
+        "key": "redis.port_advanced",
+        "prompt": "Change default REDIS_PORT=[6379]? (also set in redis_credentials)",
+        "type": "number",
+        "default": 6379,
+        "min": 1024,
+        "max": 65535,
+        "help": "Redis port. Press Enter for default 6379, or specify alternate if already in use."
+      },
+      {
         "key": "testing_defaults.coverage_threshold",
         "prompt": "Coverage threshold %",
         "type": "number",
@@ -292,6 +734,16 @@
       "bootstrap-packages": ["packages.package_manager"],
       "bootstrap-docker": ["docker.enabled", "docker.database_type"],
       "bootstrap-database": ["docker.database_type"],
+      "bootstrap-postgres": ["database_credentials"],
+      "bootstrap-redis": ["redis_credentials"],
+      "bootstrap-mysql": ["mysql_credentials"],
+      "bootstrap-elasticsearch": ["elasticsearch_credentials"],
+      "bootstrap-email": ["email_service_credentials"],
+      "bootstrap-auth-oauth2": ["oauth2_credentials"],
+      "bootstrap-monitoring": ["monitoring_credentials"],
+      "bootstrap-rate-limiting": ["rate_limiting_config"],
+      "bootstrap-network-vpn": ["network_vpn_credentials"],
+      "bootstrap-backup": ["backup_credentials"],
       "bootstrap-testing": ["testing.framework", "testing.e2e_framework"],
       "bootstrap-husky": ["husky.enabled"],
       "bootstrap-git": [],
@@ -307,13 +759,12 @@
       "bootstrap-api": [],
       "bootstrap-docs": [],
       "bootstrap-secrets": [],
-      "bootstrap-monitoring": [],
       "bootstrap-kubernetes": [],
       "bootstrap-ci-cd": [],
       "bootstrap-ssl": [],
-      "bootstrap-docker-sandbox": ["quick_start", "sandbox_options"],
-      "bootstrap-docker-dev": ["quick_start", "dev_options"],
-      "bootstrap-docker-prod": ["quick_start", "prod_options"]
+      "bootstrap-docker-sandbox": ["quick_start", "sandbox_options", "database_credentials", "redis_credentials"],
+      "bootstrap-docker-dev": ["quick_start", "dev_options", "database_credentials", "redis_credentials"],
+      "bootstrap-docker-prod": ["quick_start", "prod_options", "database_credentials", "redis_credentials"]
     }
   }
 }

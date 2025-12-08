@@ -159,7 +159,7 @@
     "workbench.list.smoothScrolling": true,
     "workbench.tree.indent": 20,
     "workbench.editor.enablePreview": false,
-    "workbench.sideBar.location": "right",
+    "workbench.sideBar.location": "left",
     "workbench.iconTheme": "material-icon-theme",
     // ===========================
     // TypeScript Global Settings
