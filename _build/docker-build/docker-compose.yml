@@ -1,0 +1,39 @@
+# docker-compose.yml
+# SparkQ Bootstrap - Production-ready dev sandbox
+
+services:
+  sparkq:
+    build:
+      context: .
+      dockerfile: _build/Dockerfile
+      args:
+        HOST_UID: ${HOST_UID:-1000}
+        HOST_GID: ${HOST_GID:-1000}
+    container_name: sparkq
+    network_mode: host
+    privileged: true
+
+    # Auto-restart on crash or host reboot
+    restart: always
+
+    # UNCAPPED RESOURCES - use everything available
+    # No cpu/memory limits. If it causes issues, add limits later.
+
+    volumes:
+      - /:/host:rw                              # Entire filesystem
+      - .:/app:rw                               # Source for hot reload
+      - pgdata:/var/lib/postgresql/data         # Persist DB
+      - sparkq-logs:/var/log/sparkq             # Persist logs
+      - ${HOME}/.ssh:/home/dev/.ssh:ro          # Git creds
+      - ${HOME}/.gitconfig:/home/dev/.gitconfig:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      DATABASE_URL: postgresql://bootstrap:bootstrap@localhost:5432/sparkq
+      PORT: 3000
+
+    working_dir: /app
+
+volumes:
+  pgdata:
+  sparkq-logs:

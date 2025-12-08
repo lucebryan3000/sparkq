@@ -1,0 +1,21 @@
+{
+  "name": "sparkq-bootstrap",
+  "version": "1.0.0",
+  "description": "SparkQ Bootstrap - Project scaffolding service",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/pg": "^8.10.9",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.2"
+  }
+}
