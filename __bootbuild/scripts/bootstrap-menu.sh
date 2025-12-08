@@ -23,7 +23,7 @@ set -euo pipefail
 # ===================================================================
 # Version
 # ===================================================================
-MENU_VERSION="2.0.0"
+MENU_VERSION="2.1.0"
 
 # ===================================================================
 # Paths and Setup
@@ -49,7 +49,10 @@ source "${LIB_DIR}/script-registry.sh" || exit 1
 # Source optional libraries if they exist
 [[ -f "${LIB_DIR}/question-engine.sh" ]] && source "${LIB_DIR}/question-engine.sh"
 [[ -f "${LIB_DIR}/cache-manager.sh" ]] && source "${LIB_DIR}/cache-manager.sh"
+[[ -f "${LIB_DIR}/ui-utils.sh" ]] && source "${LIB_DIR}/ui-utils.sh"
+[[ -f "${LIB_DIR}/recommendation-engine.sh" ]] && source "${LIB_DIR}/recommendation-engine.sh"
 
+[[ -f "${LIB_DIR}/preflight-checker.sh" ]] && source "${LIB_DIR}/preflight-checker.sh"
 # Cache and status files
 CACHE_DIR="${BOOTSTRAP_DIR}/.cache"
 STATUS_FILE="${CACHE_DIR}/helper-status.json"
@@ -70,7 +73,10 @@ PROJECT_ROOT="."
 SHOW_STATUS=false
 SHOW_LIST=false
 FORCE_SCAN=false
+SHOW_PROGRESS=true
 SHOW_HELP=false
+SKIP_PREFLIGHT=false
+ENABLE_SUGGESTIONS=true
 
 # ===================================================================
 # Help Text
@@ -90,8 +96,11 @@ OPTIONS:
     --phase=N            Run all scripts in phase N (1-4)
     --status             Show detected environment status
     --list               List all available scripts and exit
+    --no-progress        Disable progress bars for multi-script operations
     --scan               Force rescan of scripts and refresh cache
+    --skip-preflight     Skip pre-flight dependency check
     --project=PATH       Target project directory (default: current)
+    --no-progress        Disable progress bars for multi-script operations
     -h, --help           Show this help message
     -v, --version        Show version
 
@@ -122,8 +131,13 @@ MENU COMMANDS:
     1-N          Run script by number
     p1-p4        Run entire phase
     all          Run all available scripts
+    v            Validation report (pre-flight check on Phase 1)
+    hc           Health check (quick)
+    t            Test suite
     s            Show environment status
     c            Show current config
+    e            Edit config interactively
+    sg           Toggle smart suggestions
     r            Refresh/rescan scripts
     h            Show help
     q            Quit
@@ -191,6 +205,14 @@ parse_arguments() {
                 ;;
             --scan)
                 FORCE_SCAN=true
+                shift
+                ;;
+            --no-progress)
+                SHOW_PROGRESS=false
+                shift
+                ;;
+            --skip-preflight)
+                SKIP_PREFLIGHT=true
                 shift
                 ;;
             --project=*)
@@ -336,6 +358,12 @@ run_script() {
         log_success "$script_name completed"
         ((SCRIPTS_RUN++))
         track_session_script "$script_name" "completed"
+
+        # Suggest next scripts if enabled and function available
+        if [[ "$ENABLE_SUGGESTIONS" == "true" ]] && type -t suggest_next_scripts &>/dev/null; then
+            suggest_next_scripts "$script_name"
+        fi
+
         return 0
     else
         local exit_code=$?
@@ -348,19 +376,63 @@ run_script() {
 
 run_phase() {
     local phase="$1"
+
+    # Pre-flight check
+    if [[ "$SKIP_PREFLIGHT" != "true" ]] && type -t preflight_check_phase &>/dev/null; then
+        if ! preflight_check_phase "$phase"; then
+            log_error "Pre-flight check failed for phase $phase"
+            return 1
+        fi
+        echo ""
+    fi
     local phase_name=$(registry_get_phase_name "$phase")
 
     log_info "Running Phase $phase: $phase_name"
     echo ""
 
-    for script in $(registry_get_phase_scripts "$phase"); do
+    # Count total scripts in phase
+    local phase_scripts=($(registry_get_phase_scripts "$phase"))
+    local total_scripts=${#phase_scripts[@]}
+    local current=0
+    local start_time=$(date +%s)
+
+    for script in "${phase_scripts[@]}"; do
         if registry_script_file_exists "$script"; then
+            # Show progress bar if enabled
+            if [[ "$SHOW_PROGRESS" == "true" ]] && type -t show_progress_bar &>/dev/null; then
+                show_progress_bar "$current" "$total_scripts" "Phase $phase"
+            fi
+
             run_script "$script" || true
+            ((current++))
         else
             log_warning "Skipping unavailable: $script"
             ((SCRIPTS_SKIPPED++))
+            ((current++))
         fi
     done
+
+    # Show final progress bar
+    if [[ "$SHOW_PROGRESS" == "true" ]] && type -t show_progress_bar &>/dev/null; then
+        show_progress_bar "$total_scripts" "$total_scripts" "Phase $phase"
+
+        # Show completion time
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
+
+    # Pre-flight check
+    if [[ "$SKIP_PREFLIGHT" != "true" ]] && type -t preflight_check_profile &>/dev/null; then
+        if ! preflight_check_profile "$profile"; then
+            log_error "Pre-flight check failed for profile $profile"
+            return 1
+        fi
+        echo ""
+    fi
+        if type -t format_duration &>/dev/null; then
+            local formatted_duration=$(format_duration "$duration")
+            log_success "Phase $phase completed in $formatted_duration"
+        fi
+    fi
 }
 
 run_profile() {
@@ -372,19 +444,54 @@ run_profile() {
         return 1
     fi
 
+    # Pre-flight check
+    if [[ "$SKIP_PREFLIGHT" != "true" ]] && type -t preflight_check_profile &>/dev/null; then
+        if ! preflight_check_profile "$profile"; then
+            log_error "Pre-flight check failed for profile $profile"
+            return 1
+        fi
+        echo ""
+    fi
+
     local desc=$(registry_get_profile_description "$profile")
     log_info "Running profile: $profile"
     [[ -n "$desc" ]] && echo -e "  ${GREY}$desc${NC}"
     echo ""
 
-    for script in $(registry_get_profile_scripts "$profile"); do
+    # Count total scripts in profile
+    local profile_scripts=($(registry_get_profile_scripts "$profile"))
+    local total_scripts=${#profile_scripts[@]}
+    local current=0
+    local start_time=$(date +%s)
+
+    for script in "${profile_scripts[@]}"; do
         if registry_script_file_exists "$script"; then
+            # Show progress bar if enabled
+            if [[ "$SHOW_PROGRESS" == "true" ]] && type -t show_progress_bar &>/dev/null; then
+                show_progress_bar "$current" "$total_scripts" "Profile: $profile"
+            fi
+
             run_script "$script" || true
+            ((current++))
         else
             log_warning "Skipping unavailable: $script"
             ((SCRIPTS_SKIPPED++))
+            ((current++))
         fi
     done
+
+    # Show final progress bar
+    if [[ "$SHOW_PROGRESS" == "true" ]] && type -t show_progress_bar &>/dev/null; then
+        show_progress_bar "$total_scripts" "$total_scripts" "Profile: $profile"
+
+        # Show completion time
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
+        if type -t format_duration &>/dev/null; then
+            local formatted_duration=$(format_duration "$duration")
+            log_success "Profile '$profile' completed in $formatted_duration"
+        fi
+    fi
 }
 
 # ===================================================================
@@ -655,13 +762,87 @@ display_menu() {
     echo "  p1-p4    Run entire phase"
     echo "  all      Run all scripts"
     echo "  d        Defaults (80% industry standards)"
+    echo "  v        Validation report (pre-flight check)"
+    echo "  hc       Health check (quick)"
+    echo "  t        Test suite"
     echo "  qa       Questions (20% you'll be asked)"
     echo "  s        Status"
     echo "  c        Full config"
+    echo "  e        Edit config"
+    echo "  sg       Toggle suggestions (currently: $([ "$ENABLE_SUGGESTIONS" == "true" ] && echo "ON" || echo "OFF"))"
     echo "  r        Refresh"
     echo "  h        Help"
     echo "  q        Quit"
     echo ""
+}
+
+# ===================================================================
+# Input Validation
+# ===================================================================
+validate_menu_command() {
+    local cmd="$1"
+    local max_scripts="$2"
+
+    # Empty input is OK (skip)
+    [[ -z "$cmd" || "$cmd" == " " ]] && return 0
+
+    # Number validation FIRST (before length checks, since numbers can be 1-2+ digits)
+    if [[ "$cmd" =~ ^-?[0-9]+$ ]]; then
+        if [[ "$cmd" -lt 1 ]]; then
+            log_error "Invalid number: $cmd (must be positive)"
+            echo "Valid range: 1-$max_scripts"
+            return 1
+        elif [[ "$cmd" -gt "$max_scripts" ]]; then
+            log_error "Number out of range: $cmd"
+            echo "Valid range: 1-$max_scripts"
+            return 1
+        else
+            return 0
+        fi
+    fi
+
+    # Single letter commands
+    if [[ "${#cmd}" -eq 1 ]]; then
+        case "$cmd" in
+            h|H|s|S|c|C|d|D|l|L|r|R|q|Q|x|X|t|T|v|V|e|E|u|U|\?)
+                return 0
+                ;;
+            *)
+                log_error "Unknown command: $cmd"
+                echo "Type 'h' for help or 'q' to quit"
+                return 1
+                ;;
+        esac
+    fi
+
+    # Two letter commands
+    if [[ "${#cmd}" -eq 2 ]]; then
+        case "$cmd" in
+            qa|QA|hc|HC|rb|RB|sg|SG|p1|p2|p3|p4|P1|P2|P3|P4)
+                return 0
+                ;;
+            *)
+                log_error "Unknown command: $cmd"
+                echo "Type 'h' for help or 'q' to quit"
+                return 1
+                ;;
+        esac
+    fi
+
+    # Three letter commands
+    if [[ "$cmd" == "all" || "$cmd" == "ALL" ]]; then
+        return 0
+    fi
+
+    # Script name validation (fallback)
+    if registry_script_exists "$cmd"; then
+        return 0
+    fi
+
+    # Invalid - no match found
+    log_error "Unknown command: $cmd"
+    echo "Type 'h' for help, 'l' to list scripts, or 'q' to quit"
+    return 1
 }
 
 # ===================================================================
@@ -675,6 +856,12 @@ run_menu() {
     while true; do
         read -p "Selection: " -r choice || continue
 
+        # Validate input before processing
+        if ! validate_menu_command "$choice" "$total_scripts"; then
+            echo ""
+            continue
+        fi
+
         case "$choice" in
             ""|" ")
                 continue
@@ -687,12 +874,16 @@ run_menu() {
                 echo "  p1        Run Phase 1 (AI toolkit)"
                 echo "  p2        Run Phase 2 (Infrastructure)"
                 echo "  p3        Run Phase 3 (Quality)"
+                echo "  v         Validation report (pre-flight check on Phase 1)"
+                echo "  hc        Health check (quick)"
+                echo "  t         Test suite"
                 echo "  p4        Run Phase 4 (CI/CD)"
                 echo "  all       Run all available scripts"
                 echo "  d         Show 80% defaults (industry standards)"
                 echo "  qa        Show 20% questions (what you'll be asked)"
                 echo "  s         Show environment status"
                 echo "  c         Show full config file"
+                echo "  e         Edit config interactively"
                 echo "  r         Refresh/rescan"
                 echo "  l         List all scripts"
                 echo "  q/x       Exit"
@@ -712,6 +903,21 @@ run_menu() {
                 config_show "$BOOTSTRAP_CONFIG"
                 ;;
 
+            e|E)
+                config_edit_interactive "$BOOTSTRAP_CONFIG"
+                ;;
+
+            sg|SG)
+                if [[ "$ENABLE_SUGGESTIONS" == "true" ]]; then
+                    ENABLE_SUGGESTIONS=false
+                    log_info "Suggestions disabled"
+                else
+                    ENABLE_SUGGESTIONS=true
+                    log_success "Suggestions enabled"
+                fi
+                display_menu
+                ;;
+
             d|D)
                 show_config_preview
                 ;;
@@ -723,6 +929,46 @@ run_menu() {
             l|L)
                 show_list
                 ;;
+            v|V)
+                log_section "Validation Report"
+                if type -t preflight_check_phase &>/dev/null; then
+                    echo "Checking Phase 1..."
+                    preflight_check_phase 1 || true
+                    echo ""
+                fi
+                if type -t registry_validate_manifest &>/dev/null; then
+                    echo "Validating manifest..."
+                    registry_validate_manifest || true
+                fi
+                ;;
+
+            hc|HC)
+                log_info "Running health check..."
+                if [[ -f "${SCRIPTS_DIR}/bootstrap-healthcheck.sh" ]]; then
+                    bash "${SCRIPTS_DIR}/bootstrap-healthcheck.sh" --quick
+                else
+                    log_error "Health check script not found"
+                fi
+                ;;
+
+            t|T)
+                log_section "Running Test Suite"
+                if [[ -f "${BOOTSTRAP_DIR}/tests/lib/test-runner.sh" ]]; then
+                    cd "${BOOTSTRAP_DIR}" || exit 1
+                    if bash tests/lib/test-runner.sh; then
+                        echo ""
+                        log_success "All tests passed"
+                    else
+                        echo ""
+                        log_error "Some tests failed"
+                        log_warning "Library functions may be unreliable"
+                    fi
+                else
+                    log_error "Test runner not found"
+                fi
+                ;;
+
+
 
             r|R)
                 log_info "Rescanning scripts..."
@@ -867,6 +1113,11 @@ main() {
 # ===================================================================
 cleanup() {
     [[ -n "${HELPER_PID:-}" ]] && kill "$HELPER_PID" 2>/dev/null || true
+
+    # Clear session history if recommendation engine is loaded
+    if type -t clear_session_history &>/dev/null; then
+        clear_session_history
+    fi
 }
 trap cleanup EXIT
 

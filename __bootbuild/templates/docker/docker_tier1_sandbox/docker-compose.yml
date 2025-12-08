@@ -1,0 +1,55 @@
+# TIER 1: SANDBOX - Maximum velocity, minimum friction
+# ⚠️ NOT FOR PRODUCTION - Security deliberately relaxed for development speed
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME:-app}_sandbox
+    ports:
+      - "${APP_PORT:-3000}:${APP_PORT:-3000}"
+      - "${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}"
+      - "${REDIS_PORT:-6379}:${REDIS_PORT:-6379}"
+    # Run as root for zero permission issues in dev
+    user: root
+    volumes:
+      # Full project mount with native performance
+      - .:/app
+      # Persist node_modules in named volume (faster than bind mount)
+      - node_modules:/app/node_modules
+      # Persist embedded Postgres data
+      - postgres_data:/var/lib/postgresql
+      # Persist embedded Redis data
+      - redis_data:/var/lib/redis
+      # Optional: share host Docker socket (commented by default)
+      # - /var/run/docker.sock:/var/run/docker.sock
+      # Optional: mount SSH keys for git operations (commented by default)
+      # - ~/.ssh:/root/.ssh:ro
+      # - ~/.gitconfig:/root/.gitconfig:ro
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DEBUG=${DEBUG:-*}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - DANGEROUSLY_DISABLE_HOST_CHECK=${DANGEROUSLY_DISABLE_HOST_CHECK:-true}
+      - HOST=${HOST:-0.0.0.0}
+      - APP_PORT=${APP_PORT:-3000}
+      - PORT=${PORT:-3000}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-${COMPOSE_PROJECT_NAME:-app}}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@localhost:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-${COMPOSE_PROJECT_NAME:-app}}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_URL=redis://localhost:${REDIS_PORT:-6379}
+      - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED:-1}
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
+    command: ["bash"]
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+volumes:
+  node_modules:
+  postgres_data:
+  redis_data:

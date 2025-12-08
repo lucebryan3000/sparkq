@@ -48,6 +48,7 @@ STRICT_MODE=false
 REPORT_ONLY=true
 COMPARE_BASELINE=false
 JSON_MODE=false
+QUICK_MODE=false
 
 # Counters
 PASS_COUNT=0
@@ -117,6 +118,7 @@ Options:
   --report-only        Don't modify anything, only report (default)
   --compare-baseline   Compare against previous healthcheck baseline
   --json               Output results in JSON format
+  --quick              Fast health check (critical libraries and tools only)
   -h, --help           Show this help
 
 Exit Codes:
@@ -126,6 +128,7 @@ Exit Codes:
 
 Examples:
   bootstrap-healthcheck.sh                    Run health check
+  bootstrap-healthcheck.sh --quick            Quick health check
   bootstrap-healthcheck.sh --strict           Fail on any warning
   bootstrap-healthcheck.sh --compare-baseline Compare with baseline
   bootstrap-healthcheck.sh --json > report.json
@@ -164,6 +167,10 @@ parse_args() {
                 JSON_MODE=true
                 shift
                 ;;
+            --quick)
+                QUICK_MODE=true
+                shift
+                ;;
             -h|--help)
                 show_usage
                 exit 0
@@ -180,6 +187,60 @@ parse_args() {
 # ===================================================================
 # Health Check Functions
 # ===================================================================
+
+# Quick health check (critical libraries and tools only)
+quick_health_check() {
+    local errors=0
+
+    [[ "$JSON_MODE" == "false" ]] && log_section "Quick Health Check"
+
+    # Check critical library files exist
+    [[ "$JSON_MODE" == "false" ]] && log_info "Checking critical library files..."
+    for lib in common.sh config-manager.sh script-registry.sh; do
+        if [[ ! -f "${LIB_DIR}/${lib}" ]]; then
+            log_error "Missing library: $lib"
+            ((errors++))
+        else
+            [[ "$JSON_MODE" == "false" ]] && log_success "Library: $lib"
+        fi
+    done
+
+    # Validate manifest with registry
+    [[ "$JSON_MODE" == "false" ]] && echo ""
+    [[ "$JSON_MODE" == "false" ]] && log_info "Validating manifest..."
+    if type -t registry_validate_manifest &>/dev/null; then
+        if registry_validate_manifest &>/dev/null; then
+            [[ "$JSON_MODE" == "false" ]] && log_success "Manifest valid"
+        else
+            log_error "Invalid manifest"
+            ((errors++))
+        fi
+    else
+        log_warning "Cannot validate manifest (registry not available)"
+    fi
+
+    # Check critical tools
+    [[ "$JSON_MODE" == "false" ]] && echo ""
+    [[ "$JSON_MODE" == "false" ]] && log_info "Checking critical tools..."
+    for tool in bash jq; do
+        if ! command -v "$tool" &>/dev/null; then
+            log_error "Missing critical tool: $tool"
+            ((errors++))
+        else
+            [[ "$JSON_MODE" == "false" ]] && log_success "Tool: $tool"
+        fi
+    done
+
+    # Report results
+    echo ""
+    if [[ $errors -eq 0 ]]; then
+        log_success "Quick health check passed"
+        return 0
+    else
+        log_error "Quick health check failed ($errors errors)"
+        return 1
+    fi
+}
 
 # Check execution logs
 check_execution_logs() {
@@ -553,6 +614,12 @@ determine_exit_code() {
 
 main() {
     parse_args "$@"
+
+    # Run quick health check if --quick flag set
+    if [[ "$QUICK_MODE" == "true" ]]; then
+        quick_health_check
+        exit $?
+    fi
 
     run_healthcheck
 

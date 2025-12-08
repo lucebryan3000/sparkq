@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:{{REDIS_VERSION}}-alpine
+    container_name: {{PROJECT_NAME}}-redis
+    command: redis-server --appendonly yes --maxmemory {{MAX_MEMORY}} --maxmemory-policy allkeys-lru
+    ports:
+      - "{{REDIS_PORT}}:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - {{PROJECT_NAME}}-net
+    restart: unless-stopped
+    environment:
+      - REDIS_PASSWORD={{REDIS_PASSWORD}}
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  {{PROJECT_NAME}}-net:
+    driver: bridge

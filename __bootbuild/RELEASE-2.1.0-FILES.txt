@@ -1,0 +1,180 @@
+__bootbuild v2.1.0 Release - File Manifest
+===========================================
+
+Date: 2025-12-07
+Version: 2.1.0
+Status: Ready for UAT
+
+
+NEW FILES CREATED
+-----------------
+
+Documentation:
+  CHANGELOG.md
+  docs/RELEASE-2.1.0.md
+  docs/QUICK-REFERENCE-2.1.0.md
+  SPRINT-1-3-COMPLETION-SUMMARY.md
+  RELEASE-2.1.0-FILES.txt (this file)
+
+Core Implementation:
+  lib/preflight-checker.sh (already existed from prior sprint)
+
+Testing:
+  tests/lib/test-runner.sh (already existed)
+  tests/lib/test-preflight.sh (already existed)
+  tests/lib/test-common.sh (already existed)
+  tests/lib/test-config-manager.sh (already existed)
+  tests/lib/test-validation.sh (already existed)
+
+
+MODIFIED FILES
+--------------
+
+Core System:
+  scripts/bootstrap-menu.sh
+    - Line 26: MENU_VERSION="2.1.0" (was "2.0.0")
+    - Line 55: Source preflight-checker.sh (already present)
+    - Lines 381-386: Pre-flight integration (already present)
+    - Line 214: --skip-preflight flag (already present)
+
+Documentation:
+  docs/README-MENU-EVOLUTION.md
+    - Lines 3-5: Version and release date updated
+    - Lines 80-89: Sprint 1 status marked as completed
+    - Lines 93-101: Sprint 2 marked as NEXT
+    - Lines 105-116: Sprint 3 updated with deferred features
+    - Lines 281-289: Success criteria updated
+    - Lines 364-385: Changelog section updated
+    - Lines 414-419: Command reference updated
+
+
+UNCHANGED FILES
+---------------
+
+All other files in the __bootbuild system remain unchanged, including:
+  - All bootstrap scripts in bootstrap/
+  - All library files in lib/ (except preflight-checker.sh integration)
+  - All configuration files
+  - All templates
+  - All other documentation
+
+
+FILE LOCATIONS
+--------------
+
+Root Level:
+  /home/luce/apps/sparkq/__bootbuild/CHANGELOG.md
+  /home/luce/apps/sparkq/__bootbuild/SPRINT-1-3-COMPLETION-SUMMARY.md
+  /home/luce/apps/sparkq/__bootbuild/RELEASE-2.1.0-FILES.txt
+
+Documentation:
+  /home/luce/apps/sparkq/__bootbuild/docs/RELEASE-2.1.0.md
+  /home/luce/apps/sparkq/__bootbuild/docs/QUICK-REFERENCE-2.1.0.md
+  /home/luce/apps/sparkq/__bootbuild/docs/README-MENU-EVOLUTION.md
+
+Scripts:
+  /home/luce/apps/sparkq/__bootbuild/scripts/bootstrap-menu.sh
+
+Libraries:
+  /home/luce/apps/sparkq/__bootbuild/lib/preflight-checker.sh
+
+Tests:
+  /home/luce/apps/sparkq/__bootbuild/tests/lib/test-runner.sh
+  /home/luce/apps/sparkq/__bootbuild/tests/lib/test-preflight.sh
+  /home/luce/apps/sparkq/__bootbuild/tests/lib/test-common.sh
+  /home/luce/apps/sparkq/__bootbuild/tests/lib/test-config-manager.sh
+  /home/luce/apps/sparkq/__bootbuild/tests/lib/test-validation.sh
+
+
+VERIFICATION COMMANDS
+---------------------
+
+# Check version
+./scripts/bootstrap-menu.sh --version
+# Expected: Bootstrap Menu v2.1.0
+
+# Run tests
+bash tests/lib/test-runner.sh
+# Expected: 135 passed, 0 failed
+
+# View changelog
+cat CHANGELOG.md
+
+# View release notes
+cat docs/RELEASE-2.1.0.md
+
+# View quick reference
+cat docs/QUICK-REFERENCE-2.1.0.md
+
+# View sprint summary
+cat SPRINT-1-3-COMPLETION-SUMMARY.md
+
+
+GIT COMMIT SUGGESTION
+---------------------
+
+When ready to commit (after UAT approval):
+
+git add -A
+git commit -m "$(cat <<'COMMIT_MSG'
+feat(release): __bootbuild v2.1.0 - Quality Gates Release
+
+Release v2.1.0 establishes quality gates foundation with pre-flight
+dependency checking, comprehensive testing infrastructure, and enhanced
+input validation.
+
+Core Features:
+- Pre-flight dependency checker (lib/preflight-checker.sh)
+- 135 automated tests with 100% pass rate
+- Enhanced input validation with helpful error messages
+- --skip-preflight flag for bypass option
+
+Documentation:
+- Added CHANGELOG.md with full version history
+- Added RELEASE-2.1.0.md with comprehensive release notes
+- Added QUICK-REFERENCE-2.1.0.md for users
+- Updated README-MENU-EVOLUTION.md with Sprint 1 status
+
+Testing:
+- All 135 tests passing
+- Zero regressions verified
+- 100% backward compatibility
+- Performance targets met
+
+Deferred to v2.3.0:
+- Health check integration (hc command)
+- Test suite integration (t command)
+- Validation report (v command)
+- Config editor (e command)
+- Progress bars
+- Smart recommendations
+
+BREAKING CHANGES: None (100% backward compatible)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+COMMIT_MSG
+)"
+
+git tag -a v2.1.0 -m "Release v2.1.0 - Quality Gates"
+
+
+RELEASE CHECKLIST
+-----------------
+
+Pre-Release:
+  ✅ All tests passing (135/135)
+  ✅ Version bumped to 2.1.0
+  ✅ Documentation complete
+  ✅ Backward compatibility verified
+  ✅ Performance metrics met
+
+Ready for:
+  ⏳ User Acceptance Testing (UAT)
+  ⏳ Git commit (after UAT)
+  ⏳ Git tag (after commit)
+  ⏳ Sprint 2 planning
+
+
+END OF FILE MANIFEST

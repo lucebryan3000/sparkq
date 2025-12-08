@@ -1,0 +1,83 @@
+# TIER 3: PRODUCTION - Single container (app + Postgres + Redis), hardened
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_VERSION=20
+        - USER_ID=${USER_ID:-1001}
+        - GROUP_ID=${GROUP_ID:-1001}
+    container_name: ${COMPOSE_PROJECT_NAME}_prod
+    ports:
+      - "${APP_PORT:-3000}:${APP_PORT:-3000}"
+      - "${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}"
+      - "${REDIS_PORT:-6379}:${REDIS_PORT:-6379}"
+    networks:
+      - app_network
+    volumes:
+      - .:/app:ro
+      - node_modules:/app/node_modules
+      - pnpm_store:/home/node/.local/share/pnpm/store
+      - postgres_data:/var/lib/postgresql
+      - redis_data:/var/lib/redis
+      # Optional: socket/SSH mounts (off by default, not recommended in prod)
+      # - /var/run/docker.sock:/var/run/docker.sock
+      # - ~/.ssh:/home/node/.ssh:ro
+      # - ~/.gitconfig:/home/node/.gitconfig:ro
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - HOST=${HOST:-0.0.0.0}
+      - APP_PORT=${APP_PORT:-3000}
+      - PORT=${PORT:-3000}
+      - USER_ID=${USER_ID:-1001}
+      - GROUP_ID=${GROUP_ID:-1001}
+      - APP_USER=${APP_USER:-node}
+      - APP_GROUP=${APP_GROUP:-node}
+      - POSTGRES_USER=${POSTGRES_USER:-${COMPOSE_PROJECT_NAME}_prod}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      - POSTGRES_DB=${POSTGRES_DB:-${COMPOSE_PROJECT_NAME}_prod}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-${COMPOSE_PROJECT_NAME}_prod}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-${COMPOSE_PROJECT_NAME}_prod}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD required}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@localhost:${REDIS_PORT:-6379}
+      - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED:-1}
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
+    command: ["node", "server.js"]
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  node_modules:
+  pnpm_store:
+  postgres_data:
+  redis_data:

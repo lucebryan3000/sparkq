@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+
+# Dependencies (rebuilt in container)
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+dist
+build
+out
+
+# Environment files (use Docker secrets in prod)
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Test & coverage
+coverage
+.nyc_output
+
+# Docker (don't nest)
+Dockerfile*
+docker-compose*
+.docker
+
+# Documentation
+*.md
+!README.md
+docs
+
+# Secrets (never include)
+secrets
+*.pem
+*.key
+*.crt

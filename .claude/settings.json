@@ -18,32 +18,6 @@
       "Read(**/*.key)",
       "Bash(rm -rf /)",
       "Bash(git push origin -f)"
-    ],
-    "additionalDirectories": [
-      "./.venv",
-      "./venv",
-      "./.pythonenv",
-      "./.conda",
-      "./.pyenv",
-      "./__pycache__",
-      "./.mypy_cache",
-      "./.pytest_cache",
-      "./.ruff_cache",
-      "./.npm",
-      "./.yarn",
-      "./.pnpm-store",
-      "./target",
-      "./.cargo",
-      "./vendor",
-      "./.terraform",
-      "./.terragrunt-cache",
-      "./postgres_data",
-      "./mysql_data",
-      "./redis_data",
-      "./legacy",
-      "./deprecated",
-      "./secrets",
-      "./.secrets"
     ]
   },
 

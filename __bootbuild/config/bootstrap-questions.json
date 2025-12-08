@@ -90,6 +90,130 @@
     ]
   },
 
+  "sandbox_options": {
+    "description": "Docker sandbox (single container for app + Postgres + Redis)",
+    "questions": [
+      {
+        "key": "docker_sandbox.app_port",
+        "prompt": "App port to expose on the host",
+        "type": "number",
+        "default": 3000,
+        "min": 1024,
+        "max": 65535,
+        "help": "Bridge networking maps this port to the host so you can hit the dev server via host IP"
+      },
+      {
+        "key": "docker_sandbox.mount_docker_socket",
+        "prompt": "Mount host Docker socket? (enables Docker-in-Docker workflows)",
+        "type": "yesno",
+        "default": false,
+        "help": "Mounting /var/run/docker.sock grants the container control of your host Docker daemon"
+      },
+      {
+        "key": "docker_sandbox.mount_ssh_credentials",
+        "prompt": "Mount host SSH keys for git access?",
+        "type": "yesno",
+        "default": false,
+        "help": "Mounting ~/.ssh and ~/.gitconfig lets git inside the container use your host credentials"
+      }
+    ]
+  },
+
+  "dev_options": {
+    "description": "Docker Tier 2 Dev (single container, hardened vs sandbox)",
+    "questions": [
+      {
+        "key": "docker_dev.app_port",
+        "prompt": "App port to expose on the host",
+        "type": "number",
+        "default": 3000,
+        "min": 1024,
+        "max": 65535,
+        "help": "Bridge networking maps this port to the host so you can hit the dev server via host IP"
+      },
+      {
+        "key": "docker_dev.debug_port",
+        "prompt": "Node debug/inspector port",
+        "type": "number",
+        "default": 9229,
+        "min": 1024,
+        "max": 65535,
+        "help": "Expose Node inspector for attaching debuggers"
+      },
+      {
+        "key": "docker_dev.mount_docker_socket",
+        "prompt": "Mount host Docker socket? (for Docker-in-Docker workflows)",
+        "type": "yesno",
+        "default": false,
+        "help": "Mounting /var/run/docker.sock grants the container control of your host Docker daemon"
+      },
+      {
+        "key": "docker_dev.mount_ssh_credentials",
+        "prompt": "Mount host SSH keys for git access?",
+        "type": "yesno",
+        "default": false,
+        "help": "Mounting ~/.ssh and ~/.gitconfig lets git inside the container use your host credentials"
+      },
+      {
+        "key": "docker_dev.user_id",
+        "prompt": "Container user ID (match your host uid for bind mounts)",
+        "type": "number",
+        "default": 1000,
+        "help": "Helps avoid file permission mismatches when mounting the repo"
+      },
+      {
+        "key": "docker_dev.group_id",
+        "prompt": "Container group ID (match your host gid for bind mounts)",
+        "type": "number",
+        "default": 1000,
+        "help": "Helps avoid file permission mismatches when mounting the repo"
+      }
+    ]
+  },
+
+  "prod_options": {
+    "description": "Docker Tier 3 Prod (single container, hardened)",
+    "questions": [
+      {
+        "key": "docker_prod.app_port",
+        "prompt": "App port to expose on the host",
+        "type": "number",
+        "default": 3000,
+        "min": 1024,
+        "max": 65535,
+        "help": "Bridge networking maps this port to the host; keep minimal exposure"
+      },
+      {
+        "key": "docker_prod.postgres_password",
+        "prompt": "Postgres password (required, will also be written to secret file)",
+        "type": "password",
+        "default": "",
+        "required": true
+      },
+      {
+        "key": "docker_prod.redis_password",
+        "prompt": "Redis password (required, will also be written to secret file)",
+        "type": "password",
+        "default": "",
+        "required": true
+      },
+      {
+        "key": "docker_prod.mount_docker_socket",
+        "prompt": "Mount host Docker socket? (avoid in prod)",
+        "type": "yesno",
+        "default": false,
+        "help": "Mounting /var/run/docker.sock grants the container control of your host Docker daemon"
+      },
+      {
+        "key": "docker_prod.mount_ssh_credentials",
+        "prompt": "Mount host SSH keys for git access? (avoid in prod)",
+        "type": "yesno",
+        "default": false,
+        "help": "Mounting ~/.ssh and ~/.gitconfig lets the container use your host credentials; avoid in prod"
+      }
+    ]
+  },
+
   "advanced": {
     "description": "Optional overrides for power users (shown only with --advanced flag)",
     "show_condition": "advanced_mode",
@@ -186,7 +310,10 @@
       "bootstrap-monitoring": [],
       "bootstrap-kubernetes": [],
       "bootstrap-ci-cd": [],
-      "bootstrap-ssl": []
+      "bootstrap-ssl": [],
+      "bootstrap-docker-sandbox": ["quick_start", "sandbox_options"],
+      "bootstrap-docker-dev": ["quick_start", "dev_options"],
+      "bootstrap-docker-prod": ["quick_start", "prod_options"]
     }
   }
 }

@@ -1,0 +1,75 @@
+# TIER 2: DEVELOPMENT - Single container (app + Postgres + Redis), hardened vs sandbox
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_VERSION=20
+        - USER_ID=${USER_ID:-1000}
+        - GROUP_ID=${GROUP_ID:-1000}
+    container_name: ${COMPOSE_PROJECT_NAME:-app}_dev
+    ports:
+      - "${APP_PORT:-3000}:${APP_PORT:-3000}"
+      - "${DEBUG_PORT:-9229}:${DEBUG_PORT:-9229}"
+      - "${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}"
+      - "${REDIS_PORT:-6379}:${REDIS_PORT:-6379}"
+    networks:
+      - app_network
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - pnpm_store:/home/node/.local/share/pnpm/store
+      - postgres_data:/var/lib/postgresql
+      - redis_data:/var/lib/redis
+      # Optional: share host Docker socket (commented by default)
+      # - /var/run/docker.sock:/var/run/docker.sock
+      # Optional: mount SSH keys for git operations (commented by default)
+      # - ~/.ssh:/home/node/.ssh:ro
+      # - ~/.gitconfig:/home/node/.gitconfig:ro
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - DEBUG=${DEBUG:-*}
+      - HOST=${HOST:-0.0.0.0}
+      - APP_PORT=${APP_PORT:-3000}
+      - PORT=${PORT:-3000}
+      - DEBUG_PORT=${DEBUG_PORT:-9229}
+      - USER_ID=${USER_ID:-1000}
+      - GROUP_ID=${GROUP_ID:-1000}
+      - APP_USER=${APP_USER:-node}
+      - APP_GROUP=${APP_GROUP:-node}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-${COMPOSE_PROJECT_NAME:-app}}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@localhost:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-${COMPOSE_PROJECT_NAME:-app}}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_URL=redis://localhost:${REDIS_PORT:-6379}
+      - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED:-1}
+      - DANGEROUSLY_DISABLE_HOST_CHECK=${DANGEROUSLY_DISABLE_HOST_CHECK:-false}
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
+    command: ["bash"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -h localhost -p ${POSTGRES_PORT:-5432} -d ${POSTGRES_DB:-${COMPOSE_PROJECT_NAME:-app}}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    security_opt:
+      - no-new-privileges:true
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  node_modules:
+  pnpm_store:
+  postgres_data:
+  redis_data:

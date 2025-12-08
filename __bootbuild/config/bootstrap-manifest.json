@@ -166,6 +166,28 @@
       "detects": [],
       "depends": ["docker"]
     },
+    "postgres": {
+      "file": "bootstrap-postgres.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "PostgreSQL-specific setup (Docker Compose, init scripts, backups, environment)",
+      "templates": ["postgres/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["psql", "pg_dump"] }
+    },
+    "redis": {
+      "file": "bootstrap-redis.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Redis cache/session store setup (Docker Compose, config, backups, environment)",
+      "templates": ["redis/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["redis-cli"] }
+    },
     "secrets": {
       "file": "bootstrap-secrets.sh",
       "phase": 2,
@@ -355,11 +377,11 @@
     },
     "full": {
       "description": "Complete setup including CI/CD",
-      "scripts": ["claude", "git", "vscode", "codex", "packages", "typescript", "environment", "docker", "linting", "editor", "testing", "security", "github"]
+      "scripts": ["claude", "git", "vscode", "codex", "packages", "typescript", "environment", "docker", "postgres", "redis", "linting", "editor", "testing", "security", "github"]
     },
     "api": {
       "description": "Backend API development",
-      "scripts": ["claude", "git", "packages", "typescript", "environment", "docker", "database", "testing", "security"]
+      "scripts": ["claude", "git", "packages", "typescript", "environment", "docker", "postgres", "redis", "testing", "security"]
     },
     "frontend": {
       "description": "Frontend web development",

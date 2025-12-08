@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:{{PG_VERSION}}-alpine
+    container_name: {{PROJECT_NAME}}-postgres
+    environment:
+      POSTGRES_DB: {{DB_NAME}}
+      POSTGRES_USER: {{DB_USER}}
+      POSTGRES_PASSWORD: {{DB_PASSWORD}}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "{{DB_PORT}}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{DB_USER}} -d {{DB_NAME}}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - {{PROJECT_NAME}}-net
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  {{PROJECT_NAME}}-net:
+    driver: bridge

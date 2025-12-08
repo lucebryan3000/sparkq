@@ -371,6 +371,284 @@ config_update_from_answers() {
 }
 
 # ===================================================================
+# Interactive Config Editor
+# ===================================================================
+
+# Edit a specific config section interactively
+edit_section() {
+    local section="$1"
+    local config_file="$2"
+
+    echo ""
+    echo "Editing [$section] section"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    # Get all keys in this section
+    local keys=()
+    while IFS='=' read -r key value; do
+        [[ "$key" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$key" ]] && continue
+        [[ "$key" =~ ^\[ ]] && continue
+
+        # Only add if we're in the target section
+        if awk -F= -v section="[$section]" '
+            $0 == section { in_section=1; next }
+            /^\[/ { in_section=0 }
+            in_section && NF > 0 && !/^[[:space:]]*#/ { print }
+        ' "$config_file" | grep -q "^${key}="; then
+            keys+=("$key")
+        fi
+    done < <(awk -F= -v section="[$section]" '
+        $0 == section { in_section=1; next }
+        /^\[/ { in_section=0 }
+        in_section && NF > 0 && !/^[[:space:]]*#/ { print $1 "=" $2 }
+    ' "$config_file")
+
+    # Display current values
+    echo ""
+    echo "Current values:"
+    local i=1
+    for key in "${keys[@]}"; do
+        local current_value=$(config_get "${section}.${key}" "" "$config_file")
+        printf "  %2d. %-20s = %s\n" "$i" "$key" "$current_value"
+        ((i++))
+    done
+
+    echo ""
+    echo "Commands:"
+    echo "  1-${#keys[@]}  Edit value by number"
+    echo "  a         Edit all values"
+    echo "  r         Reset section to defaults"
+    echo "  b         Back to section menu"
+    echo ""
+
+    while true; do
+        read -p "Choice: " choice
+
+        case "$choice" in
+            b|B|"")
+                return 0
+                ;;
+
+            a|A)
+                # Edit all values in section
+                for key in "${keys[@]}"; do
+                    edit_config_key "$section" "$key" "$config_file"
+                done
+                return 0
+                ;;
+
+            r|R)
+                echo "Reset $section to defaults? (y/N): "
+                read -r confirm
+                if [[ "$confirm" =~ ^[Yy]$ ]]; then
+                    echo "Resetting [$section] to defaults..."
+                    # This would require storing defaults somewhere
+                    # For now, just notify user to run init again
+                    echo "To reset to defaults, delete config and re-run bootstrap"
+                fi
+                return 0
+                ;;
+
+            [0-9]|[0-9][0-9])
+                if [[ $choice -ge 1 && $choice -le ${#keys[@]} ]]; then
+                    local key="${keys[$((choice-1))]}"
+                    edit_config_key "$section" "$key" "$config_file"
+                else
+                    echo "Invalid number. Choose 1-${#keys[@]}"
+                fi
+                ;;
+
+            *)
+                echo "Invalid choice. Try again."
+                ;;
+        esac
+    done
+}
+
+# Edit a single config key with validation
+edit_config_key() {
+    local section="$1"
+    local key="$2"
+    local config_file="$3"
+
+    local current_value=$(config_get "${section}.${key}" "" "$config_file")
+
+    echo ""
+    echo "Editing: ${section}.${key}"
+    echo "Current value: $current_value"
+
+    # Provide context-specific help
+    local help_text=""
+    case "${section}.${key}" in
+        project.name)
+            help_text="Project name (lowercase, no spaces)"
+            ;;
+        project.phase)
+            help_text="Project phase: POC, MVP, or Production"
+            ;;
+        docker.app_port|docker.database_port|docker.redis_port)
+            help_text="Port number (1024-65535)"
+            ;;
+        packages.node_version)
+            help_text="Node version (18, 20, 22)"
+            ;;
+        packages.package_manager)
+            help_text="Package manager: npm, yarn, or pnpm"
+            ;;
+        testing.coverage_threshold)
+            help_text="Coverage threshold (0-100)"
+            ;;
+        claude.enable_codex)
+            help_text="Enable Codex: true or false"
+            ;;
+        git.default_branch)
+            help_text="Default branch name (main, master, develop)"
+            ;;
+    esac
+
+    [[ -n "$help_text" ]] && echo "Help: $help_text"
+
+    read -p "New value (or Enter to keep current): " new_value
+
+    # Keep current if empty
+    if [[ -z "$new_value" ]]; then
+        echo "Keeping current value: $current_value"
+        return 0
+    fi
+
+    # Validate new value
+    local validation_error=""
+    case "${section}.${key}" in
+        docker.*_port)
+            if ! [[ "$new_value" =~ ^[0-9]+$ ]] || [[ $new_value -lt 1024 ]] || [[ $new_value -gt 65535 ]]; then
+                validation_error="Port must be a number between 1024-65535"
+            fi
+            ;;
+
+        testing.coverage_threshold|testing.branch_coverage)
+            if ! [[ "$new_value" =~ ^[0-9]+$ ]] || [[ $new_value -lt 0 ]] || [[ $new_value -gt 100 ]]; then
+                validation_error="Coverage must be a number between 0-100"
+            fi
+            ;;
+
+        packages.package_manager)
+            if ! [[ "$new_value" =~ ^(npm|yarn|pnpm)$ ]]; then
+                validation_error="Package manager must be npm, yarn, or pnpm"
+            fi
+            ;;
+
+        packages.node_version)
+            if ! [[ "$new_value" =~ ^[0-9]+$ ]]; then
+                validation_error="Node version must be a number (e.g., 18, 20, 22)"
+            fi
+            ;;
+
+        project.phase)
+            if ! [[ "$new_value" =~ ^(POC|MVP|Production)$ ]]; then
+                validation_error="Phase must be POC, MVP, or Production"
+            fi
+            ;;
+
+        claude.enable_codex|*.enabled)
+            if ! [[ "$new_value" =~ ^(true|false)$ ]]; then
+                validation_error="Value must be true or false"
+            fi
+            ;;
+    esac
+
+    # Show validation error if any
+    if [[ -n "$validation_error" ]]; then
+        echo "Error: $validation_error"
+        echo "Value not changed."
+        return 1
+    fi
+
+    # Set new value
+    if config_set "${section}.${key}" "$new_value" "$config_file"; then
+        echo "✓ Updated ${section}.${key} = $new_value"
+        return 0
+    else
+        echo "✗ Failed to update config"
+        return 1
+    fi
+}
+
+# Interactive config editor - main entry point
+config_edit_interactive() {
+    local config_file="${1:-$BOOTSTRAP_CONFIG}"
+
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  Interactive Config Editor"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+
+    # Ensure config exists
+    if [[ ! -f "$config_file" ]]; then
+        echo "Config file not found. Creating with defaults..."
+        init_config "$config_file" >/dev/null
+    fi
+
+    while true; do
+        echo "Configuration Sections:"
+        echo "  1. Project settings (name, phase, owner)"
+        echo "  2. Git settings (user, email, branch)"
+        echo "  3. Docker settings (ports, database)"
+        echo "  4. Package settings (node, package manager)"
+        echo "  5. Claude settings (codex, model)"
+        echo "  6. Testing settings (coverage, framework)"
+        echo "  7. Show all config"
+        echo "  8. Show config file path"
+        echo "  q. Quit editor"
+        echo ""
+
+        read -p "Select section (1-8, q): " choice
+
+        case "$choice" in
+            1)
+                edit_section "project" "$config_file"
+                ;;
+            2)
+                edit_section "git" "$config_file"
+                ;;
+            3)
+                edit_section "docker" "$config_file"
+                ;;
+            4)
+                edit_section "packages" "$config_file"
+                ;;
+            5)
+                edit_section "claude" "$config_file"
+                ;;
+            6)
+                edit_section "testing" "$config_file"
+                ;;
+            7)
+                config_show "$config_file"
+                ;;
+            8)
+                echo ""
+                echo "Config file: $config_file"
+                echo ""
+                ;;
+            q|Q)
+                echo ""
+                echo "Config editor closed."
+                echo ""
+                return 0
+                ;;
+            "")
+                continue
+                ;;
+            *)
+                echo "Invalid choice. Try again."
+                ;;
+        esac
+    done
+}
+
+# ===================================================================
 # Ensure config exists
 # ===================================================================
 
