@@ -1,4 +1,29 @@
-# Python Bootstrap
+# Python Bootstrap (DEPRECATED)
+
+⚠️ **DEPRECATION NOTICE**
+
+This standalone Python Bootstrap system has been **standardized and integrated** into the main bootstrap ecosystem as `bootstrap-python.sh`.
+
+**New projects should use the standard bootstrap system:**
+```bash
+# Option 1: Run specific Python setup
+./bootstrap-menu.sh --list | grep python
+
+# Option 2: Use a Python-focused profile
+./bootstrap-menu.sh --profile=python-backend
+./bootstrap-menu.sh --profile=python-cli
+```
+
+**Migration:** If you're using this standalone system, migrate to `bootstrap-python.sh`:
+1. Run the new bootstrap-python script from `__bootbuild/templates/scripts/`
+2. It provides all the same features (venv reuse, dependency hashing, manifest cleanup)
+3. Delete the `__bootbuild/templates/python-bootstrap/` folder when ready
+
+This folder will be removed in a future version.
+
+---
+
+## Original Documentation (Archived)
 
 A **one-time environment bootstrapper** for Python projects. It sets up a standardized, reproducible Python virtual environment and then gets out of the way.
 

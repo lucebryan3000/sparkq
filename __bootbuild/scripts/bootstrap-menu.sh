@@ -109,12 +109,14 @@ PHASES:
        GitHub Actions, CI pipelines, Kubernetes, monitoring
 
 PROFILES:
-    minimal      Claude, Git, packages (bare minimum)
-    standard     + VS Code, TypeScript, linting, editor integration
-    full         + Docker, testing, security, GitHub Actions
-    api          Backend-focused: Docker, database, testing
-    frontend     Frontend-focused: VS Code, linting, editor
-    library      NPM package: linting, testing, GitHub
+    minimal         Claude, Git, packages (bare minimum)
+    standard        + VS Code, TypeScript, linting, editor integration
+    full            + Docker, testing, security, GitHub Actions
+    api             Backend-focused: Docker, database, testing
+    frontend        Frontend-focused: VS Code, linting, editor
+    library         NPM package: linting, testing, GitHub
+    python-backend  Python backend: docker, database, testing, security
+    python-cli      Python CLI: environment, testing, security, GitHub
 
 MENU COMMANDS:
     1-N          Run script by number

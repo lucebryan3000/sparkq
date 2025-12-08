@@ -11,26 +11,6 @@
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "Python: Current File",
-      "type": "python",
-      "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal",
-      "justMyCode": true
-    },
-    {
-      "name": "Python: Debug Tests",
-      "type": "python",
-      "request": "launch",
-      "module": "pytest",
-      "args": [
-        "-v",
-        "${file}"
-      ],
-      "console": "integratedTerminal",
-      "justMyCode": false
     }
   ],
   "compounds": []
