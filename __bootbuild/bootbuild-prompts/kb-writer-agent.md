@@ -1,172 +1,395 @@
-# KB Writer Agent - Knowledge Base Content Generator
+# KB Writer - Knowledge Base Content Generation
 
-## Overview
+> **Purpose**: Generate authoritative, structured documentation for any knowledge base
+> **First Application**: `__bootbuild/kb-bootstrap/` - Technology documentation for rapid project scaffolding
 
-Build an agent/system to populate `kb-bootstrap/` with technology-specific documentation that powers the bootstrap script generation system.
+---
 
-## Current State
+## How It Works
 
-**Exists:**
-- `kb-bootstrap/` - 35+ technology folders (babel, claude, docker, eslint, git, typescript, etc.)
-- `bootstrap-kb-sync.sh` - Scanner that inventories docs, tracks status (documented/partial/missing)
-- `kb-bootstrap-manifest.json` - Manifest tracking documentation coverage
+When invoked, I will:
 
-**Missing:**
-- No writer/generator to create actual documentation content
-- Folders exist but contain minimal or placeholder content
-- No automated way to populate best practices, config patterns, examples
+1. **Scan** - Read the target KB manifest to identify what needs documentation
+2. **Research** - Fetch authoritative sources (official docs, best practices)
+3. **Generate** - Create structured articles following the KB schema
+4. **Validate** - Check syntax, completeness, no placeholders
+5. **Report** - Summary of what was created/updated
 
-## Requirements
+---
 
-### 1. KB Article Structure
-
-Each technology folder should contain:
+## Invocation
 
 ```
-kb-bootstrap/{technology}/
-├── MANIFEST.json           # Metadata about this tech's docs
-├── overview.md             # What it is, why use it, when to use it
-├── config-patterns.md      # Common configuration patterns
-├── best-practices.md       # Industry best practices
-├── integration.md          # How it integrates with other tools
-├── troubleshooting.md      # Common issues and solutions
-└── examples/               # Example configurations
-    ├── minimal.json        # Minimal viable config
-    ├── standard.json       # Recommended config
-    └── advanced.json       # Full-featured config
+Generate KB documentation for {target}
+
+Target options:
+- Single item: "eslint", "typescript", "docker"
+- Batch: "batch:core", "batch:infrastructure", "batch:quality"
+- All missing: "all-missing"
+- Update outdated: "update-outdated"
 ```
 
-### 2. Content Requirements per Article
+---
 
-**overview.md:**
-- One-paragraph description
-- Use cases (when to use, when not to use)
-- Key features
-- Version requirements
-- Links to official docs
+## Generic KB Structure
 
-**config-patterns.md:**
-- Common configuration scenarios
-- Config file formats supported
-- Environment-specific patterns (dev/staging/prod)
-- Monorepo vs single-repo patterns
+Every KB follows this pattern:
 
-**best-practices.md:**
-- Industry standards
-- Security considerations
-- Performance tips
-- Maintenance patterns
+```
+{kb-root}/
+├── {kb-name}-manifest.json    # Master manifest tracking all items
+└── {item}/                    # One folder per documented item
+    ├── MANIFEST.json          # Item metadata
+    ├── overview.md            # What, why, when to use
+    ├── config-patterns.md     # Configuration patterns
+    ├── best-practices.md      # Industry standards
+    ├── integration.md         # How it works with other items
+    ├── troubleshooting.md     # Common issues and fixes
+    └── examples/              # Concrete examples
+        ├── minimal.{ext}
+        ├── standard.{ext}
+        └── advanced.{ext}
+```
 
-**integration.md:**
-- How it works with other bootstrap technologies
-- Order of operations / dependencies
-- Conflict resolution patterns
+---
 
-**troubleshooting.md:**
-- Common error messages and fixes
-- Debugging tips
-- Migration guides (version upgrades)
+## First Application: Bootstrap KB
 
-### 3. MANIFEST.json Schema
+### Target Directory
+`__bootbuild/kb-bootstrap/`
+
+### Purpose
+Authoritative documentation for each technology in the bootstrap system, enabling:
+- Fast, informed decisions when scaffolding new projects
+- Consistent configuration patterns across projects
+- Quick troubleshooting reference
+- Context for Claude agents helping with setup
+
+### Data Sources
+
+**Primary**: `__bootbuild/kb-bootstrap/kb-bootstrap-manifest.json`
+- 36 technologies with metadata
+- Priority levels (high/medium/low)
+- Categories (linting, testing, devops, etc.)
+- Official source URLs per technology
+
+**Secondary**: `__bootbuild/templates/root/{tech}/`
+- Actual template files used by bootstrap scripts
+- These become canonical examples in KB articles
+
+**Tertiary**: Official documentation (via WebFetch)
+- Use `source_url` from manifest
+- Fetch current version requirements, breaking changes
+
+### Priority Order (from manifest)
+
+**High Priority** (document first):
+- git, typescript, eslint, prettier, docker, docker-compose
+- github, jest, linting, next, packages, pytest
+- stylelint, testing, vite, vscode, webpack
+
+**Medium Priority**:
+- babel, claudeignore, codex, coverage, direnv
+- environment, gitignore, nvm, prompts, rollup
+
+**Low Priority**:
+- coveragerc, dockerignore, editor, editorconfig
+- gitattributes, nvmrc, tool-versions
+
+### Consolidation Strategy
+
+Some folders are sub-topics of a primary technology. Generate docs for primary, reference in sub-topics:
+
+| Primary | Sub-topics (reference only) |
+|---------|----------------------------|
+| git | gitignore, gitattributes |
+| docker | docker-compose, dockerignore |
+| coverage | coveragerc |
+| nvm | nvmrc |
+| eslint | linting (merge) |
+| jest | testing (merge) |
+
+### Cross-Reference to Templates
+
+Each KB article should reference the actual template files:
+
+```markdown
+## Bootstrap Template
+
+The bootstrap system uses this configuration:
+- Template: `__bootbuild/templates/root/eslint/.eslintrc.json`
+- Script: `__bootbuild/templates/scripts/bootstrap-linting.sh`
+```
+
+---
+
+## Article Templates
+
+### MANIFEST.json (per item)
 
 ```json
 {
-  "technology": "eslint",
-  "version": "9.x",
-  "category": "linting",
+  "technology": "{name}",
+  "version": "{current_stable}",
+  "category": "{from_master_manifest}",
   "status": "documented",
-  "lastUpdated": "2025-12-07",
+  "lastUpdated": "{YYYY-MM-DD}",
   "articles": [
     { "file": "overview.md", "status": "complete" },
     { "file": "config-patterns.md", "status": "complete" },
-    { "file": "best-practices.md", "status": "partial" }
+    { "file": "best-practices.md", "status": "complete" },
+    { "file": "integration.md", "status": "complete" },
+    { "file": "troubleshooting.md", "status": "complete" }
   ],
-  "examples": ["minimal.json", "standard.json"],
-  "dependencies": ["prettier", "typescript"],
-  "sources": [
-    "https://eslint.org/docs/latest/",
-    "https://typescript-eslint.io/"
-  ]
+  "examples": [],
+  "sources": ["{from_master_manifest.source_url}"],
+  "bootstrapTemplate": "{path_to_template_if_exists}",
+  "bootstrapScript": "{path_to_script_if_exists}"
 }
 ```
 
-### 4. Agent Capabilities
+### overview.md
 
-The KB Writer Agent should:
+```markdown
+# {Technology} Overview
 
-1. **Scan** - Check current documentation status via `bootstrap-kb-sync.sh`
-2. **Prioritize** - Focus on technologies used in bootstrap scripts first
-3. **Research** - Fetch current best practices from official docs (WebFetch)
-4. **Generate** - Create structured markdown content
-5. **Validate** - Ensure content follows schema, no broken links
-6. **Update** - Refresh outdated content when versions change
+## What It Is
+{Concise description - what problem it solves}
 
-### 5. Priority Technologies
+## When to Use
+- {Primary use case}
+- {Secondary use case}
 
-Based on bootstrap script usage, prioritize:
+## When NOT to Use
+- {Anti-pattern or alternative}
 
-**Phase 1 (Core):**
-- git, typescript, eslint, prettier, docker, vscode
+## Key Features
+- {Feature 1}
+- {Feature 2}
 
-**Phase 2 (Infrastructure):**
-- docker-compose, database (postgres/mysql), kubernetes
+## Version Requirements
+- Current stable: {version}
+- Minimum supported: {version}
+- Runtime requirement: {Node X.x / Python X.x / etc.}
 
-**Phase 3 (Quality):**
-- jest/vitest, husky, commitlint, security (snyk/npm-audit)
+## Official Documentation
+- {source_url from manifest}
 
-**Phase 4 (CI/CD):**
-- github-actions, gitlab-ci, azure-pipelines
-
-### 6. Integration with Bootstrap System
-
-The KB content should be usable by:
-
-- Bootstrap scripts (read patterns when generating configs)
-- Claude agents (context for helping users)
-- Documentation generation (auto-generate user docs)
-
-### 7. Implementation Options
-
-**Option A: Dedicated Agent**
-Create `.claude/agents/kb-writer-agent.md` with instructions to:
-- Read manifest for missing/partial docs
-- Generate one technology at a time
-- Validate and commit
-
-**Option B: Slash Command**
-Create `.claude/commands/kb-generate.md`:
-```
-/kb-generate eslint
-/kb-generate --all-missing
-/kb-generate --update-outdated
+## Bootstrap Integration
+- Template: `{path}`
+- Script: `{path}`
 ```
 
-**Option C: Automated Pipeline**
-Create `scripts/kb-generate.sh` that:
-- Runs periodically or on-demand
-- Uses Codex/Claude to generate content
-- Commits updates automatically
+### config-patterns.md
 
-### 8. Quality Gates
+```markdown
+# {Technology} Configuration Patterns
 
-Before marking a technology as "documented":
-- [ ] All required articles exist
-- [ ] At least 2 example configs
+## Config File Locations
+{Where config files live, order of precedence}
+
+## Minimal Configuration
+{Simplest working config - copy-paste ready}
+
+## Standard Configuration
+{Recommended for most projects - what bootstrap uses}
+
+## Advanced Configuration
+{Full-featured with explanations}
+
+## Environment-Specific
+
+### Development
+{Dev overrides}
+
+### Production
+{Prod considerations}
+
+## Monorepo vs Single Repo
+{Differences in configuration approach}
+```
+
+### best-practices.md
+
+```markdown
+# {Technology} Best Practices
+
+## Industry Standards
+- {Standard 1 with rationale}
+- {Standard 2 with rationale}
+
+## Security Considerations
+- {Security practice}
+
+## Performance
+- {Performance tip}
+
+## Maintenance
+- {How to keep it updated}
+- {When to upgrade versions}
+
+## Common Mistakes
+- {Mistake}: {Why it's wrong and how to fix}
+```
+
+### integration.md
+
+```markdown
+# {Technology} Integration
+
+## Bootstrap Dependencies
+- Requires: {technologies that must run first}
+- Required by: {technologies that depend on this}
+
+## Common Integrations
+
+### With {Related Tech}
+{How they work together, config snippets}
+
+## Conflict Resolution
+{What to do when configs clash}
+
+## Order of Operations
+{When to run relative to other bootstrap scripts}
+```
+
+### troubleshooting.md
+
+```markdown
+# {Technology} Troubleshooting
+
+## Common Errors
+
+### {Error message or symptom}
+**Cause**: {Why this happens}
+**Fix**: {How to resolve}
+
+## Debugging
+- {Debug tip 1}
+- {Debug tip 2}
+
+## Version Migration
+
+### {Old version} → {New version}
+{Breaking changes and migration steps}
+
+## FAQ
+
+**Q: {Common question}**
+A: {Answer}
+```
+
+---
+
+## Execution Process
+
+### For Single Technology
+
+```
+1. Read master manifest for metadata (priority, category, source_url)
+2. Check if template exists at __bootbuild/templates/root/{tech}/
+3. Check if script exists at __bootbuild/templates/scripts/bootstrap-{tech}.sh
+4. Fetch source_url if needed for current version info
+5. Generate all 5 articles + MANIFEST.json
+6. Create examples/ from template files if they exist
+7. Validate: JSON syntax, no placeholders, markdown formatting
+8. Update master manifest status to "documented"
+```
+
+### For Batch
+
+```
+1. Filter master manifest by priority or category
+2. Process each technology sequentially
+3. After each: validate and report
+4. After batch: update master manifest summary counts
+```
+
+### For All Missing
+
+```
+1. Read master manifest, filter status="missing"
+2. Sort by priority (high → medium → low)
+3. Process high priority first
+4. Continue until all documented or error
+```
+
+---
+
+## Validation
+
+```bash
+# JSON syntax
+python3 -c "import json; json.load(open('MANIFEST.json'))"
+
+# No placeholders
+grep -r "TODO\|FIXME\|TBD\|{.*}" *.md
+
+# All required files exist
+ls overview.md config-patterns.md best-practices.md integration.md troubleshooting.md
+
+# Example configs valid (JSON)
+python3 -c "import json; json.load(open('examples/minimal.json'))"
+
+# Example configs valid (YAML)
+python3 -c "import yaml; yaml.safe_load(open('examples/minimal.yaml'))"
+```
+
+---
+
+## Quality Gates
+
+Before marking as "documented":
+
+- [ ] MANIFEST.json exists and valid
+- [ ] All 5 required articles exist
 - [ ] No placeholder text remaining
-- [ ] Links validated
-- [ ] Reviewed against official docs (< 6 months old)
+- [ ] Source URL referenced
+- [ ] Bootstrap template/script cross-referenced (if exists)
+- [ ] At least minimal example provided
 
-## Next Steps
+---
 
-1. Choose implementation option (A, B, or C)
-2. Create the agent/command structure
-3. Generate content for 3 pilot technologies
-4. Validate approach works
-5. Scale to remaining technologies
+## Progress Tracking
+
+When running batch or all-missing:
+
+```
+=== KB Generation Progress ===
+Target: __bootbuild/kb-bootstrap/
+Total: 36 technologies
+Documented: 1 (claude)
+Missing: 35
+
+High Priority (17): 0/17 complete
+Medium Priority (10): 0/10 complete
+Low Priority (8): 0/8 complete
+
+Currently processing: {technology}
+```
+
+---
+
+## Future KB Applications
+
+This same pattern can generate documentation for:
+
+- `docs/api/` - API endpoint documentation
+- `docs/architecture/` - System architecture docs
+- `docs/runbooks/` - Operational runbooks
+- Any structured knowledge base following the item/article pattern
+
+---
 
 ## Related Files
 
+**Bootstrap KB specific:**
 - `__bootbuild/kb-bootstrap/` - Target directory
-- `__bootbuild/scripts/bootstrap-kb-sync.sh` - Scanner
-- `__bootbuild/kb-bootstrap/kb-bootstrap-manifest.json` - Status manifest
-- `__bootbuild/config/bootstrap-manifest.json` - Main bootstrap manifest
+- `__bootbuild/kb-bootstrap/kb-bootstrap-manifest.json` - Master manifest
+- `__bootbuild/templates/root/` - Template files to reference
+- `__bootbuild/templates/scripts/` - Bootstrap scripts to reference
+- `__bootbuild/config/bootstrap-manifest.json` - Script definitions
+
+**Generic:**
+- Article templates above
+- Validation commands above
