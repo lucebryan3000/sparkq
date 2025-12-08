@@ -1211,6 +1211,9 @@ run_menu() {
             1|2|3|4)
                 # Phase selection - route to phase menu
                 run_phase_menu "$choice"
+                echo ""
+                sleep 0.5
+                display_menu
                 ;;
 
             [0-9]|[0-9][0-9])
