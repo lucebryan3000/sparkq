@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-typescript
+# @script         bootstrap-typescript
+# @version        1.0.0
 # @phase          2
-# @category       setup
+# @category       nodejs
+# @priority       50
 # @short          TypeScript configuration and project structure setup
 # @description    Sets up TypeScript compiler configuration with strict mode,
 #                 builds framework configs (Next.js, Babel, Vite), creates
@@ -19,14 +21,24 @@
 # @creates        src/types
 # @creates        src/services
 #
-# @depends        bootstrap-project, bootstrap-packages
-# @requires_tools node, npm
+# @depends        project, packages
 #
+# @detects        has_tsconfig
+# @questions      typescript
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        LIB_DIR
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf tsconfig.json next.config.js babel.config.js vite.config.ts src/components src/hooks src/lib src/types src/services
+# @verify          test -f tsconfig.json
+# @docs            https://www.typescriptlang.org/docs/
 # =============================================================================
 
 set -euo pipefail

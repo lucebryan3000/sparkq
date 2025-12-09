@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-vscode
+# @script         bootstrap-vscode
+# @version        1.0.0
 # @phase          1
 # @category       config
+# @priority       50
 # @short          VS Code workspace configuration and extensions
 # @description    Sets up VS Code workspace configuration with recommended
 #                 settings for development, extensions list for team
@@ -14,11 +16,22 @@
 # @creates        .vscode/tasks.json
 # @creates        .vscode/launch.json
 #
+# @detects        has_settings
+# @questions      vscode
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        VSCODE_DIR
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .vscode/settings.json .vscode/extensions.json .vscode/tasks.json .vscode/launch.json
+# @verify          test -f .vscode/settings.json
+# @docs            https://code.visualstudio.com/docs
 # =============================================================================
 
 set -euo pipefail

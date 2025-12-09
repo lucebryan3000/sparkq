@@ -1,12 +1,44 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-cicd.sh
+# =============================================================================
+# @script         bootstrap-cicd
+# @version        1.0.0
+# @phase          4
+# @category       deploy
+# @priority       50
 #
-# Purpose: CI/CD pipeline configuration (GitHub Actions, GitLab CI, Azure Pipelines)
-# Creates: GitHub Actions workflows, GitLab CI config, Azure Pipelines
-# Config:  [cicd] section in bootstrap.config
-# ===================================================================
+# @short          CI/CD pipeline configuration
+# @description    CI/CD pipeline configuration for GitHub Actions, GitLab CI,
+#                 Azure Pipelines, and CircleCI. Creates standardized workflow
+#                 templates for testing, building, and deployment.
+#
+# @creates        .github/workflows/
+# @creates        .github/workflows/ci.yml
+# @creates        .gitlab-ci.yml
+# @creates        azure-pipelines.yml
+# @creates        .circleci/config.yml
+#
+# @depends        project
+#
+# @requires       tool:git
+#
+# @detects        has_github_dir
+# @questions      none
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+#
+# @config_section  cicd
+# @env_vars        ENABLED,NODE_VERSION
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .github/workflows/ .github/workflows/ci.yml .gitlab-ci.yml azure-pipelines.yml .circleci/config.yml
+# @verify          test -f .github/workflows/
+# @docs            https://docs.github.com/en/actions
+# =============================================================================
 
 set -euo pipefail
 

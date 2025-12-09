@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-docs
+# @script         bootstrap-docs
+# @version        1.0.0
 # @phase          4
-# @category       setup
+# @category       docs
+# @priority       50
 # @short          Documentation generation and management
 # @description    Sets up documentation generation with TypeDoc for API docs,
 #                 VitePress for site building, changelog generation,
@@ -16,7 +18,9 @@
 # @creates        docs/.vitepress/config.js
 # @creates        docs/index.md
 #
-# @depends        bootstrap-project
+# @depends        project
+# @detects        has_typedoc
+# @questions      docs
 # @defaults       DOC_TOOL=auto, DOC_SITE=vitepress, GENERATE_CHANGELOG=true
 #
 # @safe           yes
@@ -24,6 +28,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        ARCH_FILE,CHANGELOG_FILE,DOCS_DIR,DOC_SITE,DOC_SUBDIRS,DOC_TOOL,GENERATE_API_DOCS,GENERATE_CHANGELOG,HAS_API,HAS_GIT,HAS_JAVASCRIPT,HAS_TYPESCRIPT,SWAGGER_FILE,TYPEDOC_CONFIG,VITEPRESS_CONFIG,VITEPRESS_DIR,VITEPRESS_INDEX
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf typedoc.json docs/api/openapi.yaml CHANGELOG.md docs/architecture/ARCHITECTURE.md docs/.vitepress/config.js docs/index.md
+# @verify          test -f typedoc.json
+# @docs            https://jsdoc.app/
 # =============================================================================
 
 set -euo pipefail

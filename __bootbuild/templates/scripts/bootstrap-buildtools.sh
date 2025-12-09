@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-buildtools
+# @script         bootstrap-buildtools
+# @version        1.0.0
 # @phase          3
 # @category       build
+# @priority       50
 # @short          Build tool configurations (Vite, Webpack, Rollup, tsup)
 # @description    Generates modern JavaScript/TypeScript build tool configs for
 #                 Vite (React plugin), Webpack (Babel, CSS), Rollup (library
@@ -14,14 +16,24 @@
 # @creates        rollup.config.js
 # @creates        tsup.config.ts
 #
-# @depends        bootstrap-project, bootstrap-packages
-# @requires_tools node, npm
+# @depends        project, packages
 #
+# @detects        has_vite_config
+# @questions      none
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        none
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf vite.config.ts webpack.config.js rollup.config.js tsup.config.ts
+# @verify          test -f vite.config.ts
+# @docs            https://docs.npmjs.com/cli/commands
 # =============================================================================
 
 set -euo pipefail

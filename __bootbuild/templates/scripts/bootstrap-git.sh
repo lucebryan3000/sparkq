@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-git
+# @script         bootstrap-git
+# @version        1.0.0
 # @phase          1
-# @category       setup
+# @category       vcs
+# @priority       50
 # @short          Git configuration for new project
 # @description    Initializes Git repository and creates .gitignore with
 #                 sensible defaults for Node.js, Python, IDE artifacts,
@@ -13,13 +15,23 @@
 # @creates        .gitattributes
 # @creates        .git/
 #
-# @requires_tools git
 #
+# @detects        has_gitignore
+# @questions      git
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        none
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .gitignore .gitattributes .git/
+# @verify          test -f .gitignore
+# @docs            https://git-scm.com/doc
 # =============================================================================
 
 set -euo pipefail

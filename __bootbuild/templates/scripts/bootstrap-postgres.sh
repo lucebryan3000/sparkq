@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-postgres
+# @script         bootstrap-postgres
+# @version        1.0.0
 # @phase          3
-# @category       setup
+# @category       database
+# @priority       50
 # @short          PostgreSQL database setup with Docker
 # @description    Sets up PostgreSQL database with Docker Compose orchestration,
 #                 initialization scripts with schema creation, seed data,
@@ -15,7 +17,11 @@
 # @creates        .env.postgres
 # @creates        docker-compose.postgres.yml
 #
+# @detects        has_postgres_config
+# @questions      postgres
 # @defaults       postgres.enabled=true, postgres.version=latest
+# @detects        has_postgres_config
+# @questions      postgres
 # @defaults       postgres.port=5432, postgres.backup_enabled=true
 #
 # @safe           yes
@@ -23,6 +29,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  postgres
+# @env_vars        BACKUP_DIR,BACKUP_ENABLED,BACKUP_FILE,BACKUP_SCRIPT,BLUE,CREATED_FILES,DB_HOST,DB_NAME,DB_PASSWORD,DB_PORT,DB_USER,DOCKER_COMPOSE_FILE,ENABLED,ENV_FILE,FILES_TO_CREATE,GREEN,INIT_FILE,NC,PG_VERSION,POOL_SIZE,SKIPPED_FILES,TIMESTAMP,YELLOW
+# @interactive     no
+# @platforms       all
+# @conflicts       mysql
+# @rollback        rm -rf database/postgres/init.sql database/postgres/backup.sh database/backups/ .env.postgres docker-compose.postgres.yml
+# @verify          test -f database/postgres/init.sql
+# @docs            https://www.postgresql.org/docs/current/
 # =============================================================================
 
 set -euo pipefail

@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-testing
+# @script         bootstrap-testing
+# @version        1.0.0
 # @phase          3
 # @category       test
+# @priority       50
 # @short          Testing frameworks and coverage configuration
 # @description    Sets up testing frameworks including Jest for JavaScript/
 #                 TypeScript unit and integration tests, Pytest for Python,
@@ -13,14 +15,24 @@
 # @creates        pytest.ini
 # @creates        .coveragerc
 #
-# @depends        bootstrap-project, bootstrap-packages
-# @requires_tools node, npm
+# @depends        project, packages
 #
+# @detects        has_jest_config
+# @questions      testing
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        none
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf jest.config.js pytest.ini .coveragerc
+# @verify          test -f jest.config.js
+# @docs            https://vitest.dev/guide/
 # =============================================================================
 
 set -euo pipefail

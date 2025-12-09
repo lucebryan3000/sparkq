@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-quality
+# @script         bootstrap-quality
+# @version        1.0.0
 # @phase          4
 # @category       test
+# @priority       50
 # @short          Code quality metrics and baseline configuration
 # @description    Sets up code quality framework with SonarQube configuration,
 #                 CodeClimate setup, quality gates, complexity rules,
@@ -15,8 +17,12 @@
 # @creates        quality/complexity-rules.json
 # @creates        quality/baseline-report.md
 #
-# @depends        bootstrap-linting, bootstrap-testing
+# @depends        linting, testing
+# @detects        has_quality_config
+# @questions      quality
 # @defaults       quality.enabled=true, quality.coverage_threshold=80
+# @detects        has_quality_config
+# @questions      quality
 # @defaults       quality.complexity_threshold=10
 #
 # @safe           yes
@@ -24,6 +30,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  quality
+# @env_vars        BASELINE_REPORT,CODECLIMATE_CONFIG,COMPLEXITY_RULES,COMPLEXITY_THRESHOLD,COVERAGE_REPORT,COVERAGE_THRESHOLD,CREATE_BASELINE,DUPLICATION_THRESHOLD,ENABLE_CODECLIMATE,ENABLED,ENABLE_SONARQUBE,EXCLUSIONS,FILES_TO_CREATE,QUALITY_GATES,SONAR_CONFIG,SONARQUBE_AVAILABLE,SOURCE_DIRS,TEST_FRAMEWORK
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf quality/sonar-project.properties quality/.codeclimate.yml quality/quality-gates.json quality/complexity-rules.json quality/baseline-report.md
+# @verify          test -f quality/sonar-project.properties
+# @docs            https://eslint.org/docs/latest/
 # =============================================================================
 
 set -euo pipefail

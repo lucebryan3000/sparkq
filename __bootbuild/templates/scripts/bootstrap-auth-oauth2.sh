@@ -1,13 +1,45 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-auth-oauth2.sh
+# =============================================================================
+# @script         bootstrap-auth-oauth2
+# @version        1.0.0
+# @phase          4
+# @category       security
+# @priority       60
 #
-# Purpose: OAuth2 authentication provider setup with file tracking
-# Creates: OAuth2 config, realm export, environment files, Docker configs
-# Config:  [oauth2] section in bootstrap.config
-# Phase:   4 (CI/CD & Deployment) - includes Docker deployment notes
-# ===================================================================
+# @short          OAuth2 authentication provider setup
+# @description    OAuth2 authentication provider setup with file tracking.
+#                 Configures OAuth2/OIDC providers (Keycloak, Auth0, Okta)
+#                 including realm export, environment files, and Docker configs.
+#
+# @creates        config/oauth2/
+# @creates        config/oauth2/oauth2-config.json
+# @creates        config/oauth2/realm-export.json
+# @creates        .env.oauth2
+# @creates        docker-compose.oauth2.yml
+#
+# @depends        project
+#
+# @requires       tool:docker
+# @requires       tool:openssl
+#
+# @detects        has_oauth2
+# @questions      none
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+#
+# @config_section  oauth2
+# @env_vars        ADMIN_TOKEN,AUTH0_DOMAIN,BLUE,CREATED_FILES,DOCKER_COMPOSE_FILE,ENABLED,ENV_FILE,FILES_TO_CREATE,GREEN,NC,OAUTH2_ADMIN_PASSWORD,OAUTH2_ADMIN_USER,OAUTH2_CLIENT_ID,OAUTH2_CLIENT_SECRET,OAUTH2_CONFIG_FILE,OAUTH2_ISSUER_URL,OAUTH2_PORT,OAUTH2_PROVIDER,OAUTH2_REALM,OAUTH2_REDIRECT_URIS,OAUTH2_SCOPES,OAUTH2_VERSION,OAUTH2_WEB_ORIGINS,OKTA_DOMAIN,README_FILE,REALM_EXPORT_FILE,REDIRECT_URIS_JSON,SCOPES_JSON,SESSION_SECRET,SKIPPED_FILES,WEB_ORIGINS_JSON,YELLOW
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf config/oauth2/ config/oauth2/oauth2-config.json config/oauth2/realm-export.json .env.oauth2 docker-compose.oauth2.yml
+# @verify          test -f config/oauth2/
+# @docs            https://oauth.net/2/
+# =============================================================================
 
 set -euo pipefail
 

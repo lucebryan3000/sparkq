@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-backup-service
+# @script         bootstrap-backup-service
+# @version        1.0.0
 # @phase          4
 # @category       deploy
+# @priority       50
 # @short          Disaster recovery with Restic backups and restore
 # @description    Implements comprehensive disaster recovery system using
 #                 Restic for encrypted, deduplicated backups. Creates backup
@@ -20,8 +22,11 @@
 #
 # @deletes        Old backups (via retention policy)
 #
-# @requires_tools openssl
+# @detects        has_backup.config
+# @questions      none
 # @defaults       provider=restic, storage=s3, schedule=0 2 * * *
+# @detects        has_backup.config
+# @questions      none
 # @defaults       retention_days=30, compression=true, verify=true
 #
 # @safe           no
@@ -29,6 +34,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  backup
+# @env_vars        BACKUP_COMPRESSION,BACKUP_CONFIG_FILE,BACKUP_DIR,BACKUP_ENCRYPTION_KEY,BACKUP_ENV_FILE,BACKUP_FILE,BACKUP_MAX_AGE_HOURS,BACKUP_PROVIDER,BACKUP_RETENTION_DAYS,BACKUP_SCHEDULE,BACKUP_STORAGE,BACKUP_VERIFY,BLUE,CREATED_FILES,DB_BACKUP_SCRIPT,DB_HOST,DB_NAME,DB_PASSWORD,DB_PORT,DB_RESTORE_SCRIPT,DB_TYPE,DB_USER,ENABLED,EXIT_CODE,FILES_TO_CREATE,GENERATED_DATE,GREEN,LOG_FILE,NC,RESTIC_COMPRESSION,RESTIC_REPO,RESTIC_REPOSITORY,RESTIC_SCRIPT,RESTIC_VERIFY,RESTIC_VERIFY_FLAG,RESTORE_DOC,S3_BUCKET,S3_ENDPOINT,S3_REGION,SKIPPED_FILES,TIMESTAMP,VERIFY_SCRIPT,YELLOW
+# @interactive     yes
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf config/backup/backup.config.json config/backup/restic-backup.sh config/backup/.backup.env config/backup/restore-procedure.md scripts/backup-database.sh scripts/restore-database.sh scripts/verify-backup.sh
+# @verify          test -f config/backup/backup.config.json
+# @docs            https://www.postgresql.org/docs/current/backup.html
 # =============================================================================
 
 set -euo pipefail

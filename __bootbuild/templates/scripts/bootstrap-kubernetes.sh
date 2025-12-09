@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-kubernetes
-# @phase          6
+# @script         bootstrap-kubernetes
+# @version        1.0.0
+# @phase          4
 # @category       deploy
+# @priority       50
 # @short          Kubernetes deployment and Helm chart config
 # @description    Generates Kubernetes deployment configuration with Kustomize
 #                 for environment-specific overlays (dev/staging/prod) and Helm
@@ -18,8 +20,9 @@
 # @creates        kubernetes/helm-chart/values.yaml
 # @creates        kubernetes/README.md
 #
-# @depends        bootstrap-docker
-# @requires_tools kubectl, docker
+# @depends        docker
+# @detects        has_k8s_config
+# @questions      kubernetes
 # @defaults       replicas=2, container_port=3000
 #
 # @safe           yes
@@ -27,6 +30,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        ANSWERS_FILE,APP_PORT,K8S_DIR,K8S_TEMPLATE_DIR
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf kubernetes/base/deployment.yaml kubernetes/base/service.yaml kubernetes/base/ingress.yaml kubernetes/base/kustomization.yaml kubernetes/overlays/dev/kustomization.yaml kubernetes/helm-chart/Chart.yaml kubernetes/helm-chart/values.yaml kubernetes/README.md
+# @verify          test -f kubernetes/base/deployment.yaml
+# @docs            https://kubernetes.io/docs/home/
 # =============================================================================
 
 set -euo pipefail

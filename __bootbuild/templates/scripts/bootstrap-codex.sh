@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-codex
+# @script         bootstrap-codex
+# @version        1.0.0
 # @phase          1
 # @category       ai
+# @priority       50
 # @short          OpenAI Codex CLI configuration
 # @description    Sets up OpenAI Codex CLI integration for AI-assisted coding.
 #                 Creates Codex configuration with OpenAI API settings, model
@@ -13,7 +15,11 @@
 # @creates        .codexignore
 #
 # @requires_env   OPENAI_API_KEY (required when enabled=true)
+# @detects        has_.codex
+# @questions      codex
 # @defaults       model=code-davinci-002, enabled=false, temperature=0.5
+# @detects        has_.codex
+# @questions      codex
 # @defaults       maxTokens=100, cache.ttl=3600
 #
 # @safe           yes
@@ -21,6 +27,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        LIB_DIR,OPENAI_API_KEY,OPENAI_ORGANIZATION
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .codex.json .codexignore
+# @verify          test -f .codex.json
+# @docs            https://platform.openai.com/docs/guides/code
 # =============================================================================
 
 set -euo pipefail

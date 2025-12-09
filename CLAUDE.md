@@ -151,6 +151,28 @@ docs(readme): update setup instructions
 
 ---
 
+## DEVELOPER STANDARDS ALIGNMENT
+
+### The `/bryan` Playbook
+
+This project includes a systematic 6-PLAY audit process (`/bryan`) that validates plans against your developer profile before execution. It catches architectural gaps, verifies tool stack alignment, and identifies improvements early.
+
+**When to use it:**
+- Before major refactors or migrations
+- For plans affecting multiple phases or >5K tokens
+- When uncertain about architectural approach
+- Pre-flight check before asking for UAT
+
+**How to invoke:**
+```bash
+/load-bryan-local    # Load sparkq-specific configuration
+/bryan               # Run the playbook (references .claude/config/bryan-local.md)
+```
+
+**Why it's there:** Prevention has 4.3x ROI over remediation. The playbook surfaces gaps before implementation, saving tokens and preventing rework.
+
+---
+
 ## PROJECT-SPECIFIC
 
 ### Current Focus

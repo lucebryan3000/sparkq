@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-docker
+# @script         bootstrap-docker
+# @version        1.0.0
 # @phase          3
 # @category       config
+# @priority       50
 # @short          Docker and containerized dev environment setup
 # @description    Configures Docker and containerized development environment.
 #                 Creates docker-compose.yml for orchestrating services,
@@ -14,7 +16,8 @@
 # @creates        .dockerignore
 # @creates        .env.local
 #
-# @requires_tools docker
+# @detects        has_docker_compose
+# @questions      docker
 # @defaults       DATABASE_TYPE=auto, DATABASE_NAME=app_dev, APP_PORT=3000
 #
 # @safe           yes
@@ -22,6 +25,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        ANSWERS_FILE,APP_PORT,DATABASE_NAME,DATABASE_PORT,DATABASE_TYPE
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf docker-compose.yml Dockerfile .dockerignore .env.local
+# @verify          test -f docker-compose.yml
+# @docs            https://docs.docker.com/compose/
 # =============================================================================
 
 set -euo pipefail

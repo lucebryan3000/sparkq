@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-claude
+# @script         bootstrap-claude
+# @version        1.0.0
 # @phase          1
 # @category       ai
+# @priority       50
 # @short          Complete Claude Code configuration with agents & commands
 # @description    Bootstraps complete Claude Code development environment with
 #                 comprehensive agent system, custom slash commands, hooks, and
@@ -18,6 +20,8 @@
 # @creates        .claudeignore
 # @creates        CLAUDE.md
 #
+# @detects        has_settings
+# @questions      claude
 # @defaults       model=claude-opus-4-5-20251101, bypassPermissions=true
 #
 # @safe           yes
@@ -25,6 +29,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        AI_MODEL,ANSWERS_FILE,CLAUDE_DIR,CLAUDE_FILE_PATH,ENABLE_CODEX,GITHUB_TOKEN
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .claude/settings.json .claude/agents/code-reviewer.md .claude/agents/debugger.md .claude/commands/analyze.md .claude/hooks/post-write.sh .mcp.json .claudeignore CLAUDE.md
+# @verify          test -f .claude/settings.json
+# @docs            https://docs.anthropic.com/en/api
 # =============================================================================
 
 set -euo pipefail

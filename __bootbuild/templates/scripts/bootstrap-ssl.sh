@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-ssl
+# @script         bootstrap-ssl
+# @version        1.0.0
 # @phase          3
 # @category       config
+# @priority       50
 # @short          Local HTTPS certificate generation for development
 # @description    Generates self-signed SSL/TLS certificates for localhost
 #                 development with OpenSSL. Creates certificate info,
@@ -18,12 +20,23 @@
 #
 # @modifies       .gitignore
 #
-# @depends        bootstrap-project
+# @depends        project
+# @detects        has_ssl_config
+# @questions      ssl
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        CERT_METHOD,EXPIRY,GITIGNORE,PERMS,SANS,SSL_DIR,SUBJECT,TIMESTAMP,VALIDITY_DAYS
+# @interactive     no
+# @platforms       needs-review
+# @conflicts       none
+# @rollback        rm -rf ssl/openssl.cnf ssl/cert-info.txt ssl/install-cert.sh ssl/localhost.crt ssl/localhost.key ssl/localhost.pem
+# @verify          test -f ssl/openssl.cnf
+# @docs            https://letsencrypt.org/docs/
 # =============================================================================
 
 set -euo pipefail

@@ -34,6 +34,11 @@ source "${BOOTSTRAP_DIR}/lib/paths.sh" || {
     exit 1
 }
 
+# Source script registry for manifest validation
+source "${LIB_DIR}/script-registry.sh" || {
+    log_warning "Script registry not available - manifest validation disabled"
+}
+
 # Source JSON validator if available
 if [[ -f "${LIB_DIR}/json-validator.sh" ]]; then
     source "${LIB_DIR}/json-validator.sh"

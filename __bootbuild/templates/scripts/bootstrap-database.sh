@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-database
+# @script         bootstrap-database
+# @version        1.0.0
 # @phase          3
-# @category       setup
+# @category       database
+# @priority       50
 # @short          Database initialization, migrations, and backups
 # @description    Creates comprehensive database infrastructure supporting
 #                 PostgreSQL, MySQL, and MongoDB. Generates initialization
@@ -15,9 +17,12 @@
 # @creates        database/migrations/
 # @creates        database/README.md
 #
-# @depends        bootstrap-docker
-# @requires_tools docker
+# @depends        docker
+# @detects        has_database_config
+# @questions      database
 # @defaults       type=postgresql, auto_migrate=false, backup_enabled=true
+# @detects        has_database_config
+# @questions      database
 # @defaults       pool_size=10, backup_retention_days=7
 #
 # @safe           no
@@ -25,6 +30,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  database
+# @env_vars        BACKUP_DIR,BACKUP_ENABLED,BACKUP_FILE,BACKUP_SCRIPT,CONNECTION_AVAILABLE,CONNECTION_STRING,CREATE_SEED_DATA,DB_HOST,DB_INIT_FILE,DB_NAME,DB_PASSWORD,DB_PORT,DB_TYPE,DB_USER,ENABLED,FILES_TO_CREATE,POOL_SIZE,README_FILE,SEED_FILE,TIMESTAMP,X
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf database/db-init.sql database/seed-data.sql database/db-backup.sh database/migrations/ database/README.md
+# @verify          test -f database/db-init.sql
+# @docs            https://www.postgresql.org/docs/current/
 # =============================================================================
 
 set -euo pipefail

@@ -1,615 +1,2222 @@
 {
-  "version": "2.0",
-  "generated": "2025-12-07T21:00:00Z",
-
-  "paths": {
-    "BOOTSTRAP_DIR": ".",
-    "MANIFEST_FILE": "config/bootstrap-manifest.json",
-    "CONFIG_FILE": "config/bootstrap.config",
-    "QUESTIONS_FILE": "config/bootstrap-questions.json",
-    "CONFIG_DIR": "config",
-    "LIB_DIR": "lib",
-    "SCRIPTS_DIR": "scripts",
-    "TEMPLATES_DIR": "templates",
-    "TEMPLATES_ROOT": "templates/root",
-    "TEMPLATES_SCRIPTS": "templates/scripts",
-    "TEMPLATES_CLAUDE": "templates/.claude",
-    "TEMPLATES_VSCODE": "templates/.vscode",
-    "TEMPLATES_GITHUB": "templates/.github",
-    "TEMPLATES_DEVCONTAINER": "templates/.devcontainer",
-    "DOCS_DIR": "docs",
-    "PLAYBOOKS_DIR": "docs/playbooks",
-    "KB_ROOT": "kb-bootstrap",
-    "LOGS_DIR": "logs",
-    "CACHE_DIR": ".cache"
-  },
-
-  "phases": {
-    "1": {
-      "name": "AI Development Toolkit",
-      "description": "Core AI and development setup - run first",
-      "color": "red",
-      "icon": "rocket"
-    },
-    "2": {
-      "name": "Infrastructure",
-      "description": "Docker, databases, and services",
-      "color": "red",
-      "icon": "server"
-    },
-    "3": {
-      "name": "Code Quality",
-      "description": "Linting, testing, and quality gates",
-      "color": "yellow",
-      "icon": "check"
-    },
-    "4": {
-      "name": "CI/CD & Deployment",
-      "description": "GitHub Actions, Kubernetes, monitoring",
-      "color": "green",
-      "icon": "cloud"
-    }
-  },
-
+  "$schema": "./bootstrap-manifest.schema.json",
+  "version": "2.0.0",
+  "generated": "2025-12-09T00:55:42-06:00",
+  "generator": "generate-manifest.sh",
   "scripts": {
-    "claude": {
-      "file": "bootstrap-claude.sh",
-      "phase": 1,
-      "category": "ai",
-      "description": "Claude Code configuration (.claude/, CLAUDE.md, agents, commands)",
-      "templates": [".claude/", "project/CLAUDE.md", "project/.claudeignore"],
-      "questions": "claude",
-      "detects": ["has_claude_dir"],
-      "depends": []
-    },
-    "git": {
-      "file": "bootstrap-git.sh",
-      "phase": 1,
-      "category": "vcs",
-      "description": "Git repository setup (.gitignore, .gitattributes, hooks)",
-      "templates": ["project/.gitignore", "project/.gitattributes"],
-      "questions": "git",
-      "detects": ["has_git_repo"],
-      "depends": [],
-      "requires": { "tools": ["git"], "optional": [] }
-    },
-    "vscode": {
-      "file": "bootstrap-vscode.sh",
-      "phase": 1,
-      "category": "editor",
-      "description": "VS Code workspace settings and extensions",
-      "templates": [".vscode/"],
-      "questions": null,
-      "detects": [],
-      "depends": []
-    },
-    "codex": {
-      "file": "bootstrap-codex.sh",
-      "phase": 1,
-      "category": "ai",
-      "description": "Codex AI context optimization",
-      "templates": [".claude/codex.md", ".claude/codex_prompt.md"],
-      "questions": null,
-      "detects": [],
-      "depends": ["claude"]
-    },
-    "packages": {
-      "file": "bootstrap-packages.sh",
-      "phase": 1,
-      "category": "nodejs",
-      "description": "Package manager setup (npm/pnpm/yarn, .nvmrc, .npmrc)",
-      "templates": ["nodejs/.nvmrc", "nodejs/.npmrc", "nodejs/package.json"],
-      "questions": "packages",
-      "detects": ["has_package_json"],
-      "depends": [],
-      "requires": { "tools": ["node", "npm"], "optional": ["pnpm", "yarn"] }
-    },
-    "python": {
-      "file": "bootstrap-python.sh",
-      "phase": 1,
-      "category": "runtime",
-      "description": "Python virtual environment and dependency management (.venv, requirements.txt, pyproject.toml)",
-      "templates": ["python/"],
-      "questions": null,
-      "detects": ["has_pyproject_toml", "has_requirements_txt"],
-      "depends": ["project"],
-      "requires": { "tools": ["python3"], "optional": ["pyenv"] }
-    },
-    "typescript": {
-      "file": "bootstrap-typescript.sh",
-      "phase": 1,
-      "category": "nodejs",
-      "description": "TypeScript configuration (tsconfig.json, strict mode)",
-      "templates": ["typescript/tsconfig.json"],
-      "questions": "typescript",
-      "detects": ["has_tsconfig"],
-      "depends": ["packages"]
-    },
-    "environment": {
-      "file": "bootstrap-environment.sh",
-      "phase": 1,
-      "category": "config",
-      "description": "Environment files (.env.example, .envrc)",
-      "templates": ["secrets/.env.example"],
-      "questions": null,
-      "detects": [],
-      "depends": []
-    },
-    "project": {
-      "file": "bootstrap-project.sh",
-      "phase": 1,
-      "category": "core",
-      "description": "Project scaffolding (README, .editorconfig, .tool-versions)",
-      "templates": ["project/README.md", "project/.editorconfig", "project/.tool-versions"],
-      "questions": "project",
-      "detects": [],
-      "depends": []
-    },
-    "docker": {
-      "file": "bootstrap-docker.sh",
-      "phase": 2,
-      "category": "infrastructure",
-      "description": "Docker and docker-compose configuration",
-      "templates": ["docker/"],
-      "questions": "docker",
-      "detects": ["docker_installed", "docker_running"],
-      "depends": [],
-      "requires": { "tools": ["docker"], "optional": ["docker-compose"] }
-    },
-    "database": {
-      "file": "bootstrap-database.sh",
-      "phase": 2,
-      "category": "infrastructure",
-      "description": "Database setup (Postgres/MySQL init scripts, migrations)",
-      "templates": ["database/"],
-      "questions": "database",
-      "detects": [],
-      "depends": ["docker"]
-    },
-    "postgres": {
-      "file": "bootstrap-postgres.sh",
-      "phase": 2,
-      "category": "infrastructure",
-      "description": "PostgreSQL-specific setup (Docker Compose, init scripts, backups, environment)",
-      "templates": ["postgres/"],
-      "questions": "postgres",
-      "detects": [],
-      "depends": ["docker"],
-      "requires": { "tools": ["docker"], "optional": ["psql", "pg_dump"] }
-    },
-    "redis": {
-      "file": "bootstrap-redis.sh",
-      "phase": 2,
-      "category": "infrastructure",
-      "description": "Redis cache/session store setup (Docker Compose, config, backups, environment)",
-      "templates": ["redis/"],
-      "questions": "redis",
-      "detects": [],
-      "depends": ["docker"],
-      "requires": { "tools": ["docker"], "optional": ["redis-cli"] }
-    },
-    "secrets": {
-      "file": "bootstrap-secrets.sh",
-      "phase": 2,
-      "category": "security",
-      "description": "Secrets management (.vault, credential templates)",
-      "templates": ["secrets/"],
-      "questions": null,
-      "detects": [],
-      "depends": []
-    },
-    "linting": {
-      "file": "bootstrap-linting.sh",
-      "phase": 3,
-      "category": "quality",
-      "description": "Linting setup (ESLint, Prettier, Stylelint)",
-      "templates": ["linting/"],
-      "questions": "linting",
-      "detects": [],
-      "depends": ["packages"],
-      "requires": { "tools": ["python3"], "optional": ["node", "npm", "eslint", "prettier"] }
-    },
-    "editor": {
-      "file": "bootstrap-editor.sh",
-      "phase": 3,
-      "category": "editor",
-      "description": "Editor integration (format on save, lint on save)",
-      "templates": [],
-      "questions": null,
-      "detects": [],
-      "depends": ["linting", "vscode"]
-    },
-    "husky": {
-      "file": "bootstrap-husky.sh",
-      "phase": 3,
-      "category": "quality",
-      "description": "Git hooks with Husky (pre-commit, commit-msg)",
-      "templates": ["husky/"],
-      "questions": "husky",
-      "detects": [],
-      "depends": ["git", "packages"],
-      "requires": { "tools": ["git", "node", "npm"], "optional": ["jq"] }
-    },
-    "testing": {
-      "file": "bootstrap-testing.sh",
-      "phase": 3,
-      "category": "quality",
-      "description": "Testing framework setup (Vitest/Jest, Playwright)",
-      "templates": ["testing/"],
-      "questions": "testing",
-      "detects": [],
-      "depends": ["packages", "typescript"],
-      "requires": { "tools": ["node", "npm"], "optional": ["vitest", "playwright"] }
-    },
-    "quality": {
-      "file": "bootstrap-quality.sh",
-      "phase": 3,
-      "category": "quality",
-      "description": "Code quality gates (SonarQube, CodeClimate)",
-      "templates": ["quality/"],
-      "questions": null,
-      "detects": [],
-      "depends": ["testing"]
-    },
-    "security": {
-      "file": "bootstrap-security.sh",
-      "phase": 3,
-      "category": "security",
-      "description": "Security scanning (npm audit, Snyk, license checks)",
-      "templates": ["security/"],
-      "questions": "security",
-      "detects": [],
-      "depends": ["packages"]
-    },
-    "github": {
-      "file": "bootstrap-github.sh",
-      "phase": 4,
-      "category": "cicd",
-      "description": "GitHub configuration (Actions, templates, CODEOWNERS)",
-      "templates": [".github/"],
-      "questions": "github",
-      "detects": [],
-      "depends": ["git"],
-      "requires": { "tools": ["git"], "optional": ["gh"] }
-    },
-    "ci-cd": {
-      "file": "bootstrap-cicd.sh",
-      "phase": 4,
-      "category": "cicd",
-      "description": "CI/CD pipelines (GitHub Actions, GitLab CI, Azure, CircleCI)",
-      "templates": ["cicd/"],
-      "questions": null,
-      "detects": [],
-      "depends": []
-    },
-    "docs": {
-      "file": "bootstrap-docs.sh",
-      "phase": 4,
-      "category": "documentation",
-      "description": "Documentation setup (API docs, architecture)",
-      "templates": [],
-      "questions": null,
-      "detects": [],
-      "depends": []
-    },
     "api": {
-      "file": "bootstrap-api.sh",
-      "phase": 4,
-      "category": "backend",
-      "description": "API scaffolding (OpenAPI, routes, middleware)",
-      "templates": ["api/"],
-      "questions": null,
-      "detects": [],
-      "depends": ["typescript"]
-    },
-    "buildtools": {
-      "file": "bootstrap-buildtools.sh",
+      "version": "1.0.0",
       "phase": 2,
-      "category": "build",
-      "description": "Build tools setup (Vite, Webpack, Rollup, tsup)",
-      "templates": ["buildtools/"],
-      "questions": null,
-      "detects": [],
-      "depends": ["packages"]
-    },
-    "nodejs": {
-      "file": "bootstrap-nodejs.sh",
-      "phase": 1,
-      "category": "runtime",
-      "description": "Node.js runtime and package manager setup (nvm, npm, pnpm, yarn)",
-      "templates": ["nodejs/"],
-      "questions": null,
-      "detects": ["has_package_json"],
-      "depends": []
-    },
-    "ssl": {
-      "file": "bootstrap-ssl.sh",
-      "phase": 4,
-      "category": "security",
-      "description": "SSL/TLS certificate setup (local dev certs)",
-      "templates": ["ssl/"],
-      "questions": null,
-      "detects": [],
-      "depends": []
-    },
-    "kubernetes": {
-      "file": "bootstrap-kubernetes.sh",
-      "phase": 4,
-      "category": "deployment",
-      "description": "Kubernetes manifests (deployments, services, ingress)",
-      "templates": ["kubernetes/"],
-      "questions": null,
-      "detects": [],
-      "depends": ["docker"],
-      "requires": { "tools": ["docker"], "optional": ["kubectl", "helm"] }
-    },
-    "monitoring": {
-      "file": "bootstrap-monitoring.sh",
-      "phase": 4,
-      "category": "observability",
-      "description": "Monitoring setup (Prometheus, Datadog, Sentry)",
-      "templates": ["monitoring/"],
-      "questions": "monitoring",
-      "detects": [],
-      "depends": []
-    },
-    "mysql": {
-      "file": "bootstrap-mysql.sh",
-      "phase": 2,
-      "category": "infrastructure",
-      "description": "MySQL database setup (Docker Compose, init scripts, backups, environment)",
-      "templates": ["mysql/"],
-      "questions": "mysql",
-      "detects": [],
-      "depends": ["docker"],
-      "requires": { "tools": ["docker"], "optional": ["mysql", "mysqldump"] }
-    },
-    "elasticsearch": {
-      "file": "bootstrap-elasticsearch.sh",
-      "phase": 2,
-      "category": "infrastructure",
-      "description": "Elasticsearch cluster setup (Docker Compose, configuration, health checks)",
-      "templates": ["elasticsearch/"],
-      "questions": "elasticsearch",
-      "detects": [],
-      "depends": ["docker"],
-      "requires": { "tools": ["docker"], "optional": ["curl"] }
-    },
-    "rate-limiting": {
-      "file": "bootstrap-rate-limiting.sh",
-      "phase": 2,
-      "category": "infrastructure",
-      "description": "Redis-based rate limiting service (Lua scripts, strategies, Docker)",
-      "templates": ["rate-limiting/"],
-      "questions": "rate-limiting",
-      "detects": [],
-      "depends": ["redis"],
-      "requires": { "tools": ["docker"], "optional": ["redis-cli"] }
-    },
-    "email": {
-      "file": "bootstrap-email-service.sh",
-      "phase": 2,
-      "category": "infrastructure",
-      "description": "Email service integration (SendGrid, Mailgun, SMTP, templates)",
-      "templates": ["email/"],
-      "questions": "email",
-      "detects": [],
-      "depends": [],
-      "requires": { "tools": [], "optional": [] }
+      "category": "config",
+      "priority": 50,
+      "short": "API configuration and OpenAPI/GraphQL standards",
+      "description": "Bootstrap API configuration including OpenAPI/Swagger specs, GraphQL schemas, API routes structure, and mock server setup for development and testing.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        "openapi.yaml",
+        "graphql/schema.graphql",
+        "api/",
+        "mock-server.js"
+      ],
+      "depends": [
+        "project",
+        "typescript"
+      ],
+      "requires": [
+        "tool:node",
+        "tool:npm"
+      ],
+      "detects": [
+        "has_openapi"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "PORT"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf openapi.yaml graphql/schema.graphql api/ mock-server.js",
+      "verify": "test -f openapi.yaml",
+      "docs": "https://swagger.io/specification/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
     "auth-oauth2": {
-      "file": "bootstrap-auth-oauth2.sh",
+      "version": "1.0.0",
       "phase": 4,
       "category": "security",
-      "description": "OAuth2 provider setup (Keycloak, OpenID Connect, Docker)",
-      "templates": ["oauth2/"],
-      "questions": "auth-oauth2",
-      "detects": [],
-      "depends": ["docker"],
-      "requires": { "tools": ["docker"], "optional": ["curl"] }
+      "priority": 60,
+      "short": "OAuth2 authentication provider setup",
+      "description": "OAuth2 authentication provider setup with file tracking. Configures OAuth2/OIDC providers (Keycloak, Auth0, Okta) including realm export, environment files, and Docker configs.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        "config/oauth2/",
+        "config/oauth2/oauth2-config.json",
+        "config/oauth2/realm-export.json",
+        ".env.oauth2",
+        "docker-compose.oauth2.yml"
+      ],
+      "depends": [
+        "project"
+      ],
+      "requires": [
+        "tool:docker",
+        "tool:openssl"
+      ],
+      "detects": [
+        "has_oauth2"
+      ],
+      "tags": [],
+      "config_section": "oauth2",
+      "env_vars": [
+        "ADMIN_TOKEN",
+        "AUTH0_DOMAIN",
+        "BLUE",
+        "CREATED_FILES",
+        "DOCKER_COMPOSE_FILE",
+        "ENABLED",
+        "ENV_FILE",
+        "FILES_TO_CREATE",
+        "GREEN",
+        "NC",
+        "OAUTH2_ADMIN_PASSWORD",
+        "OAUTH2_ADMIN_USER",
+        "OAUTH2_CLIENT_ID",
+        "OAUTH2_CLIENT_SECRET",
+        "OAUTH2_CONFIG_FILE",
+        "OAUTH2_ISSUER_URL",
+        "OAUTH2_PORT",
+        "OAUTH2_PROVIDER",
+        "OAUTH2_REALM",
+        "OAUTH2_REDIRECT_URIS",
+        "OAUTH2_SCOPES",
+        "OAUTH2_VERSION",
+        "OAUTH2_WEB_ORIGINS",
+        "OKTA_DOMAIN",
+        "README_FILE",
+        "REALM_EXPORT_FILE",
+        "REDIRECT_URIS_JSON",
+        "SCOPES_JSON",
+        "SESSION_SECRET",
+        "SKIPPED_FILES",
+        "WEB_ORIGINS_JSON",
+        "YELLOW"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf config/oauth2/ config/oauth2/oauth2-config.json config/oauth2/realm-export.json .env.oauth2 docker-compose.oauth2.yml",
+      "verify": "test -f config/oauth2/",
+      "docs": "https://oauth.net/2/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "network-vpn": {
-      "file": "bootstrap-network-vpn.sh",
+    "backup-service": {
+      "version": "1.0.0",
       "phase": 4,
-      "category": "security",
-      "description": "VPN and secure networking (WireGuard, OpenVPN, Docker overlay)",
-      "templates": ["network/"],
-      "questions": "network-vpn",
-      "detects": [],
+      "category": "deploy",
+      "priority": 50,
+      "short": "Disaster recovery with Restic backups and restore",
+      "description": "Implements comprehensive disaster recovery system using Restic for encrypted, deduplicated backups. Creates backup configuration with retention policies, database-specific backup/restore scripts, verification procedures, S3 storage backend configuration, and detailed restore documentation.",
+      "safe": false,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        "config/backup/backup.config.json",
+        "config/backup/restic-backup.sh",
+        "config/backup/.backup.env",
+        "config/backup/restore-procedure.md",
+        "scripts/backup-database.sh",
+        "scripts/restore-database.sh",
+        "scripts/verify-backup.sh"
+      ],
       "depends": [],
-      "requires": { "tools": [], "optional": ["wg", "openvpn"] }
+      "requires": [],
+      "detects": [
+        "has_backup.config",
+        "has_backup.config"
+      ],
+      "tags": [],
+      "config_section": "backup",
+      "env_vars": [
+        "BACKUP_COMPRESSION",
+        "BACKUP_CONFIG_FILE",
+        "BACKUP_DIR",
+        "BACKUP_ENCRYPTION_KEY",
+        "BACKUP_ENV_FILE",
+        "BACKUP_FILE",
+        "BACKUP_MAX_AGE_HOURS",
+        "BACKUP_PROVIDER",
+        "BACKUP_RETENTION_DAYS",
+        "BACKUP_SCHEDULE",
+        "BACKUP_STORAGE",
+        "BACKUP_VERIFY",
+        "BLUE",
+        "CREATED_FILES",
+        "DB_BACKUP_SCRIPT",
+        "DB_HOST",
+        "DB_NAME",
+        "DB_PASSWORD",
+        "DB_PORT",
+        "DB_RESTORE_SCRIPT",
+        "DB_TYPE",
+        "DB_USER",
+        "ENABLED",
+        "EXIT_CODE",
+        "FILES_TO_CREATE",
+        "GENERATED_DATE",
+        "GREEN",
+        "LOG_FILE",
+        "NC",
+        "RESTIC_COMPRESSION",
+        "RESTIC_REPO",
+        "RESTIC_REPOSITORY",
+        "RESTIC_SCRIPT",
+        "RESTIC_VERIFY",
+        "RESTIC_VERIFY_FLAG",
+        "RESTORE_DOC",
+        "S3_BUCKET",
+        "S3_ENDPOINT",
+        "S3_REGION",
+        "SKIPPED_FILES",
+        "TIMESTAMP",
+        "VERIFY_SCRIPT",
+        "YELLOW"
+      ],
+      "interactive": "yes",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf config/backup/backup.config.json config/backup/restic-backup.sh config/backup/.backup.env config/backup/restore-procedure.md scripts/backup-database.sh scripts/restore-database.sh scripts/verify-backup.sh",
+      "verify": "test -f config/backup/backup.config.json",
+      "docs": "https://www.postgresql.org/docs/current/backup.html",
+      "defaults": "provider=restic, storage=s3, schedule=0 2 * * *",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "backup": {
-      "file": "bootstrap-backup-service.sh",
+    "buildtools": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "build",
+      "priority": 50,
+      "short": "Build tool configurations (Vite, Webpack, Rollup, tsup)",
+      "description": "Generates modern JavaScript/TypeScript build tool configs for Vite (React plugin), Webpack (Babel, CSS), Rollup (library builds), and tsup (fast TypeScript). Each includes source maps, minification, code splitting, and ESM/CJS output options.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        "vite.config.ts",
+        "webpack.config.js",
+        "rollup.config.js",
+        "tsup.config.ts"
+      ],
+      "depends": [
+        "project",
+        "packages"
+      ],
+      "requires": [],
+      "detects": [
+        "has_vite_config"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf vite.config.ts webpack.config.js rollup.config.js tsup.config.ts",
+      "verify": "test -f vite.config.ts",
+      "docs": "https://docs.npmjs.com/cli/commands",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "ci-cd": {
+      "version": "1.0.0",
       "phase": 4,
-      "category": "deployment",
-      "description": "Backup and disaster recovery (restic, S3, encryption, restore procedures)",
-      "templates": ["backup/"],
-      "questions": "backup",
-      "detects": [],
+      "category": "deploy",
+      "priority": 50,
+      "short": "Multi-platform CI/CD pipeline configurations",
+      "description": "Creates comprehensive CI/CD pipeline configurations for five platforms: GitLab CI, Jenkins, CircleCI, Azure Pipelines, Bitbucket Pipelines. Each includes linting, building, testing with Node matrix, caching, and code coverage reporting.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "ci-cd",
+      "creates": [
+        ".gitlab-ci.yml",
+        "Jenkinsfile",
+        ".circleci/config.yml",
+        "azure-pipelines.yml",
+        "bitbucket-pipelines.yml"
+      ],
+      "depends": [
+        "git",
+        "github"
+      ],
+      "requires": [],
+      "detects": [
+        "has_gitlab_ci"
+      ],
+      "tags": [],
+      "config_section": "cicd",
+      "env_vars": [
+        "ANSWERS_FILE",
+        "DETECTED_PLATFORM"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .gitlab-ci.yml Jenkinsfile .circleci/config.yml azure-pipelines.yml bitbucket-pipelines.yml",
+      "verify": "test -f .gitlab-ci.yml",
+      "docs": "https://docs.github.com/en/actions",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "cicd": {
+      "version": "1.0.0",
+      "phase": 4,
+      "category": "deploy",
+      "priority": 50,
+      "short": "CI/CD pipeline configuration",
+      "description": "CI/CD pipeline configuration for GitHub Actions, GitLab CI, Azure Pipelines, and CircleCI. Creates standardized workflow templates for testing, building, and deployment.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        ".github/workflows/",
+        ".github/workflows/ci.yml",
+        ".gitlab-ci.yml",
+        "azure-pipelines.yml",
+        ".circleci/config.yml"
+      ],
+      "depends": [
+        "project"
+      ],
+      "requires": [
+        "tool:git"
+      ],
+      "detects": [
+        "has_github_dir"
+      ],
+      "tags": [],
+      "config_section": "cicd",
+      "env_vars": [
+        "ENABLED",
+        "NODE_VERSION"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .github/workflows/ .github/workflows/ci.yml .gitlab-ci.yml azure-pipelines.yml .circleci/config.yml",
+      "verify": "test -f .github/workflows/",
+      "docs": "https://docs.github.com/en/actions",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "claude": {
+      "version": "1.0.0",
+      "phase": 1,
+      "category": "ai",
+      "priority": 50,
+      "short": "Complete Claude Code configuration with agents & commands",
+      "description": "Bootstraps complete Claude Code development environment with comprehensive agent system, custom slash commands, hooks, and project-specific instructions. Creates .claude/ structure with agents, commands, skills, MCP config, and team settings.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "claude",
+      "creates": [
+        ".claude/settings.json",
+        ".claude/agents/code-reviewer.md",
+        ".claude/agents/debugger.md",
+        ".claude/commands/analyze.md",
+        ".claude/hooks/post-write.sh",
+        ".mcp.json",
+        ".claudeignore",
+        "CLAUDE.md"
+      ],
       "depends": [],
-      "requires": { "tools": [], "optional": ["restic", "aws-cli"] }
+      "requires": [],
+      "detects": [
+        "has_settings"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "AI_MODEL",
+        "ANSWERS_FILE",
+        "CLAUDE_DIR",
+        "CLAUDE_FILE_PATH",
+        "ENABLE_CODEX",
+        "GITHUB_TOKEN"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .claude/settings.json .claude/agents/code-reviewer.md .claude/agents/debugger.md .claude/commands/analyze.md .claude/hooks/post-write.sh .mcp.json .claudeignore CLAUDE.md",
+      "verify": "test -f .claude/settings.json",
+      "docs": "https://docs.anthropic.com/en/api",
+      "defaults": "model=claude-opus-4-5-20251101, bypassPermissions=true",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "codex": {
+      "version": "1.0.0",
+      "phase": 1,
+      "category": "ai",
+      "priority": 50,
+      "short": "OpenAI Codex CLI configuration",
+      "description": "Sets up OpenAI Codex CLI integration for AI-assisted coding. Creates Codex configuration with OpenAI API settings, model parameters, context limitations, and ignore patterns for excluding build artifacts and dependencies from AI context.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "codex",
+      "creates": [
+        ".codex.json",
+        ".codexignore"
+      ],
+      "depends": [],
+      "requires": [
+        "_env",
+        "OPENAI_API_KEY",
+        "(required",
+        "when",
+        "enabled=true)"
+      ],
+      "detects": [
+        "has_.codex",
+        "has_.codex"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "LIB_DIR",
+        "OPENAI_API_KEY",
+        "OPENAI_ORGANIZATION"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .codex.json .codexignore",
+      "verify": "test -f .codex.json",
+      "docs": "https://platform.openai.com/docs/guides/code",
+      "defaults": "model=code-davinci-002, enabled=false, temperature=0.5",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "database": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "database",
+      "priority": 50,
+      "short": "Database initialization, migrations, and backups",
+      "description": "Creates comprehensive database infrastructure supporting PostgreSQL, MySQL, and MongoDB. Generates initialization scripts with schema creation, seed data, automated backup scripts with retention policies, and restore capabilities.",
+      "safe": false,
+      "idempotent": true,
+      "questions": "database",
+      "creates": [
+        "database/db-init.sql",
+        "database/seed-data.sql",
+        "database/db-backup.sh",
+        "database/migrations/",
+        "database/README.md"
+      ],
+      "depends": [
+        "docker"
+      ],
+      "requires": [],
+      "detects": [
+        "has_database_config",
+        "has_database_config"
+      ],
+      "tags": [],
+      "config_section": "database",
+      "env_vars": [
+        "BACKUP_DIR",
+        "BACKUP_ENABLED",
+        "BACKUP_FILE",
+        "BACKUP_SCRIPT",
+        "CONNECTION_AVAILABLE",
+        "CONNECTION_STRING",
+        "CREATE_SEED_DATA",
+        "DB_HOST",
+        "DB_INIT_FILE",
+        "DB_NAME",
+        "DB_PASSWORD",
+        "DB_PORT",
+        "DB_TYPE",
+        "DB_USER",
+        "ENABLED",
+        "FILES_TO_CREATE",
+        "POOL_SIZE",
+        "README_FILE",
+        "SEED_FILE",
+        "TIMESTAMP",
+        "X"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf database/db-init.sql database/seed-data.sql database/db-backup.sh database/migrations/ database/README.md",
+      "verify": "test -f database/db-init.sql",
+      "docs": "https://www.postgresql.org/docs/current/",
+      "defaults": "type=postgresql, auto_migrate=false, backup_enabled=true",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
     "detect": {
-      "file": "bootstrap-detect.sh",
-      "phase": 0,
-      "category": "system",
-      "description": "System detection and environment scanning",
-      "templates": [],
-      "questions": null,
-      "detects": [],
+      "version": "1.0.0",
+      "phase": 1,
+      "category": "core",
+      "priority": 50,
+      "short": "Detect system tools, project files, and capabilities",
+      "description": "Performs comprehensive system and project detection to inform bootstrap script recommendations. Detects installed tools with versions, checks for project files, analyzes Git status, generates timestamped JSON reports, and updates bootstrap.config with project-level facts. Maintains history of last 10 runs.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        "__bootbuild/logs/bootstrap-detect-*.json",
+        "__bootbuild/logs/bootstrap-recommendations.json"
+      ],
       "depends": [],
-      "hidden": true
-    }
-  },
-
-  "profiles": {
-    "minimal": {
-      "description": "Bare minimum for AI-assisted development",
-      "scripts": ["claude", "git", "packages"]
+      "requires": [],
+      "detects": [
+        "has_bootstrap-detect-*"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "ARCH",
+        "CLAUDE_DIR",
+        "COLOR_GREEN",
+        "COLOR_RED",
+        "COLOR_RESET",
+        "COLOR_YELLOW",
+        "CONFIG_FILE",
+        "CURL_RESULT",
+        "CURRENT_BRANCH",
+        "DELETED_COUNT",
+        "DETECTION_FILES",
+        "DETECT_LATEST",
+        "DETECT_OUTPUT",
+        "DOCKER_COMPOSE",
+        "DOCKER_COMPOSE_RESULT",
+        "DOCKERFILE",
+        "DOCKER_RESULT",
+        "DOCKER_RUNNING",
+        "FILE_COUNT",
+        "FILES_TO_DELETE",
+        "GITIGNORE",
+        "GIT_REPO",
+        "GIT_RESULT",
+        "JQ_RESULT",
+        "LOGS_DIR",
+        "MAKE_RESULT",
+        "MYSQL_RESULT",
+        "NEXT_CONFIG",
+        "NODE_RESULT",
+        "NPM_RESULT",
+        "OS_TYPE",
+        "PACKAGE_JSON",
+        "PIPFILE",
+        "PIP_RESULT",
+        "PNPM_RESULT",
+        "PRISMA",
+        "PSQL_RESULT",
+        "PYTEST",
+        "PYTHON_RESULT",
+        "README",
+        "RECOMMENDATIONS_FILE",
+        "REGISTRY_AVAILABLE",
+        "REQUIREMENTS",
+        "TIMESTAMP",
+        "TSCONFIG",
+        "VITE_CONFIG",
+        "WSL_STATUS",
+        "YARN_RESULT"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "needs-review"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf __bootbuild/logs/bootstrap-detect-*.json __bootbuild/logs/bootstrap-recommendations.json",
+      "verify": "test -f __bootbuild/logs/bootstrap-detect-*.json",
+      "docs": "https://www.gnu.org/software/bash/manual/bash.html",
+      "defaults": "None explicitly configured",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "standard": {
-      "description": "Recommended setup for most projects",
-      "scripts": ["claude", "git", "vscode", "packages", "typescript", "environment", "linting", "editor"]
+    "docker-dev": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "config",
+      "priority": 50,
+      "short": "Tier 2 dev single-container app + Postgres + Redis",
+      "description": "Development environment with single container combining app, PostgreSQL, and Redis. Includes hardened networking vs sandbox, optional Docker socket and SSH credential mounts, healthchecks, and bridge networking for local host access.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "docker-dev",
+      "creates": [
+        "docker-compose.yml",
+        "Dockerfile",
+        ".dockerignore",
+        "entrypoint.sh",
+        ".env.docker-dev"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_docker_compose",
+        "has_docker_compose"
+      ],
+      "tags": [],
+      "config_section": "project",
+      "env_vars": [
+        "ANSWERS_FILE",
+        "DOCKER_DEV_APP_PORT",
+        "DOCKER_DEV_COMPOSE_PROJECT_NAME",
+        "DOCKER_DEV_DEBUG_PORT",
+        "DOCKER_DEV_GROUP_ID",
+        "DOCKER_DEV_MOUNT_DOCKER_SOCKET",
+        "DOCKER_DEV_MOUNT_SSH_CREDENTIALS",
+        "DOCKER_DEV_POSTGRES_DB",
+        "DOCKER_DEV_POSTGRES_PASSWORD",
+        "DOCKER_DEV_POSTGRES_PORT",
+        "DOCKER_DEV_POSTGRES_USER",
+        "DOCKER_DEV_REDIS_PORT",
+        "DOCKER_DEV_USER_ID",
+        "ENV_FILE",
+        "ENV_FILE_NAME"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [
+        "docker-prod"
+      ],
+      "rollback": "rm -rf docker-compose.yml Dockerfile .dockerignore entrypoint.sh .env.docker-dev",
+      "verify": "test -f docker-compose.yml",
+      "docs": "https://docs.docker.com/compose/",
+      "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "full": {
-      "description": "Complete setup including CI/CD",
-      "scripts": ["claude", "git", "vscode", "codex", "packages", "typescript", "environment", "docker", "postgres", "redis", "linting", "editor", "testing", "security", "github"]
+    "docker-prod": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "config",
+      "priority": 50,
+      "short": "Tier 3 prod hardened single-container + services",
+      "description": "Production-hardened environment with single container, services, secrets management, read-only app filesystem, security scanning, health checks, and bridge networking. Requires environment variables for database and cache passwords.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "docker-prod",
+      "creates": [
+        "docker-compose.yml",
+        "Dockerfile",
+        ".dockerignore",
+        "entrypoint.sh",
+        "healthcheck.js",
+        ".env.docker-prod",
+        "secrets/db_password.txt",
+        "secrets/redis_password.txt"
+      ],
+      "depends": [],
+      "requires": [
+        "_env",
+        "DOCKER_PROD_POSTGRES_PASSWORD",
+        "DOCKER_PROD_REDIS_PASSWORD"
+      ],
+      "detects": [
+        "has_docker_compose"
+      ],
+      "tags": [],
+      "config_section": "project",
+      "env_vars": [
+        "ANSWERS_FILE",
+        "DOCKER_PROD_APP_PORT",
+        "DOCKER_PROD_COMPOSE_PROJECT_NAME",
+        "DOCKER_PROD_GROUP_ID",
+        "DOCKER_PROD_MOUNT_DOCKER_SOCKET",
+        "DOCKER_PROD_MOUNT_SSH_CREDENTIALS",
+        "DOCKER_PROD_POSTGRES_DB",
+        "DOCKER_PROD_POSTGRES_PASSWORD",
+        "DOCKER_PROD_POSTGRES_PORT",
+        "DOCKER_PROD_POSTGRES_USER",
+        "DOCKER_PROD_REDIS_PASSWORD",
+        "DOCKER_PROD_REDIS_PORT",
+        "DOCKER_PROD_USER_ID",
+        "ENV_FILE",
+        "ENV_FILE_NAME",
+        "SECRETS_DIR"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [
+        "docker-dev"
+      ],
+      "rollback": "rm -rf docker-compose.yml Dockerfile .dockerignore entrypoint.sh healthcheck.js .env.docker-prod secrets/db_password.txt secrets/redis_password.txt",
+      "verify": "test -f docker-compose.yml",
+      "docs": "https://docs.docker.com/compose/",
+      "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "api": {
-      "description": "Backend API development",
-      "scripts": ["claude", "git", "packages", "typescript", "environment", "docker", "postgres", "redis", "testing", "security"]
-    },
-    "frontend": {
-      "description": "Frontend web development",
-      "scripts": ["claude", "git", "vscode", "packages", "typescript", "linting", "editor", "testing"]
-    },
-    "library": {
-      "description": "NPM package/library development",
-      "scripts": ["claude", "git", "packages", "typescript", "linting", "testing", "github"]
-    },
-    "python-backend": {
-      "description": "Python backend development",
-      "scripts": ["claude", "git", "python", "environment", "docker", "database", "testing", "security"]
-    },
-    "python-cli": {
-      "description": "Python CLI tool development",
-      "scripts": ["claude", "git", "python", "environment", "testing", "security", "github"]
-    }
-  },
-
-  "tools": {
-    "_description": "Global tool definitions with versions and install hints. Scripts reference these by key in their 'requires' field.",
-    "git": {
-      "command": "git",
-      "min_version": "2.30.0",
-      "install_hint": "https://git-scm.com/downloads",
-      "detect_version": "git --version | awk '{print $3}'"
-    },
-    "node": {
-      "command": "node",
-      "min_version": "18.0.0",
-      "install_hint": "https://nodejs.org/ or use nvm: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash",
-      "detect_version": "node --version | sed 's/v//'"
-    },
-    "npm": {
-      "command": "npm",
-      "min_version": "9.0.0",
-      "install_hint": "Comes with Node.js",
-      "detect_version": "npm --version"
-    },
-    "pnpm": {
-      "command": "pnpm",
-      "min_version": "8.0.0",
-      "install_hint": "npm install -g pnpm",
-      "detect_version": "pnpm --version"
-    },
-    "yarn": {
-      "command": "yarn",
-      "min_version": "1.22.0",
-      "install_hint": "npm install -g yarn",
-      "detect_version": "yarn --version"
+    "docker-sandbox": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "config",
+      "priority": 50,
+      "short": "Tier 1 sandbox single-container for local dev",
+      "description": "Sandbox environment with single container for local development. Combines app, PostgreSQL, and Redis with permissive settings, optional Docker socket and SSH mounts, bridge networking, and health checks. Ideal for quick local testing.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "docker-sandbox",
+      "creates": [
+        "docker-compose.yml",
+        "Dockerfile",
+        ".dockerignore",
+        "entrypoint.sh",
+        ".env.docker-sandbox"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_docker_compose"
+      ],
+      "tags": [],
+      "config_section": "project",
+      "env_vars": [
+        "ANSWERS_FILE",
+        "DOCKER_SANDBOX_APP_PORT",
+        "DOCKER_SANDBOX_COMPOSE_PROJECT_NAME",
+        "DOCKER_SANDBOX_MOUNT_DOCKER_SOCKET",
+        "DOCKER_SANDBOX_MOUNT_SSH_CREDENTIALS",
+        "DOCKER_SANDBOX_POSTGRES_DB",
+        "DOCKER_SANDBOX_POSTGRES_PASSWORD",
+        "DOCKER_SANDBOX_POSTGRES_PORT",
+        "DOCKER_SANDBOX_POSTGRES_USER",
+        "DOCKER_SANDBOX_REDIS_PORT",
+        "ENV_FILE",
+        "ENV_FILE_NAME"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf docker-compose.yml Dockerfile .dockerignore entrypoint.sh .env.docker-sandbox",
+      "verify": "test -f docker-compose.yml",
+      "docs": "https://docs.docker.com/compose/",
+      "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
     "docker": {
-      "command": "docker",
-      "min_version": "20.0.0",
-      "install_hint": "https://docs.docker.com/get-docker/",
-      "detect_version": "docker --version | awk '{print $3}' | sed 's/,//'"
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "config",
+      "priority": 50,
+      "short": "Docker and containerized dev environment setup",
+      "description": "Configures Docker and containerized development environment. Creates docker-compose.yml for orchestrating services, Dockerfile for application container, and .dockerignore to exclude unnecessary files from build context.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "docker",
+      "creates": [
+        "docker-compose.yml",
+        "Dockerfile",
+        ".dockerignore",
+        ".env.local"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_docker_compose"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "ANSWERS_FILE",
+        "APP_PORT",
+        "DATABASE_NAME",
+        "DATABASE_PORT",
+        "DATABASE_TYPE"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf docker-compose.yml Dockerfile .dockerignore .env.local",
+      "verify": "test -f docker-compose.yml",
+      "docs": "https://docs.docker.com/compose/",
+      "defaults": "DATABASE_TYPE=auto, DATABASE_NAME=app_dev, APP_PORT=3000",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "docker-compose": {
-      "command": "docker-compose",
-      "min_version": "2.0.0",
-      "install_hint": "Included with Docker Desktop or: pip install docker-compose",
-      "detect_version": "docker-compose --version | awk '{print $4}' | sed 's/v//'"
+    "docs": {
+      "version": "1.0.0",
+      "phase": 4,
+      "category": "docs",
+      "priority": 50,
+      "short": "Documentation generation and management",
+      "description": "Sets up documentation generation with TypeDoc for API docs, VitePress for site building, changelog generation, architecture documentation, and deployment configuration for hosting generated documentation.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "docs",
+      "creates": [
+        "typedoc.json",
+        "docs/api/openapi.yaml",
+        "CHANGELOG.md",
+        "docs/architecture/ARCHITECTURE.md",
+        "docs/.vitepress/config.js",
+        "docs/index.md"
+      ],
+      "depends": [
+        "project"
+      ],
+      "requires": [],
+      "detects": [
+        "has_typedoc"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "ARCH_FILE",
+        "CHANGELOG_FILE",
+        "DOCS_DIR",
+        "DOC_SITE",
+        "DOC_SUBDIRS",
+        "DOC_TOOL",
+        "GENERATE_API_DOCS",
+        "GENERATE_CHANGELOG",
+        "HAS_API",
+        "HAS_GIT",
+        "HAS_JAVASCRIPT",
+        "HAS_TYPESCRIPT",
+        "SWAGGER_FILE",
+        "TYPEDOC_CONFIG",
+        "VITEPRESS_CONFIG",
+        "VITEPRESS_DIR",
+        "VITEPRESS_INDEX"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf typedoc.json docs/api/openapi.yaml CHANGELOG.md docs/architecture/ARCHITECTURE.md docs/.vitepress/config.js docs/index.md",
+      "verify": "test -f typedoc.json",
+      "docs": "https://jsdoc.app/",
+      "defaults": "DOC_TOOL=auto, DOC_SITE=vitepress, GENERATE_CHANGELOG=true",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "jq": {
-      "command": "jq",
-      "min_version": "1.6",
-      "install_hint": "apt install jq / brew install jq",
-      "detect_version": "jq --version | sed 's/jq-//'"
+    "editor": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "config",
+      "priority": 50,
+      "short": "Editor formatting and coding standards",
+      "description": "Sets up editor configuration with EditorConfig for consistent formatting across different editors and IDEs, plus Stylelint for CSS/SCSS linting and style enforcement.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "editor",
+      "creates": [
+        ".editorconfig",
+        ".stylelintrc.json"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_editorconfig"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .editorconfig .stylelintrc.json",
+      "verify": "test -f .editorconfig",
+      "docs": "https://editorconfig.org/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "python3": {
-      "command": "python3",
-      "min_version": "3.8.0",
-      "install_hint": "https://www.python.org/downloads/",
-      "detect_version": "python3 --version | awk '{print $2}'"
+    "elasticsearch": {
+      "version": "1.0.0",
+      "phase": 5,
+      "category": "config",
+      "priority": 50,
+      "short": "Elasticsearch cluster infrastructure config",
+      "description": "Configures Elasticsearch cluster with analysis plugins, security settings, Docker Compose orchestration, persistent data/log volumes, and environment configuration for search and analytics capabilities.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "elasticsearch",
+      "creates": [
+        "infrastructure/elasticsearch/elasticsearch.yml",
+        "infrastructure/elasticsearch/analysis.yml",
+        ".env.elasticsearch",
+        "docker-compose.elasticsearch.yml"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_elasticsearch_config",
+        "has_elasticsearch_config"
+      ],
+      "tags": [],
+      "config_section": "elasticsearch",
+      "env_vars": [
+        "ANALYSIS_FILE",
+        "BLUE",
+        "CREATED_FILES",
+        "DOCKER_COMPOSE_FILE",
+        "ENABLED",
+        "ENV_FILE",
+        "ES_BIND_HOST",
+        "ES_CLUSTER_NAME",
+        "ES_CONFIG_FILE",
+        "ES_DISCOVERY_TYPE",
+        "ES_MEMORY",
+        "ES_NODE_NAME",
+        "ES_PASSWORD",
+        "ES_PORT",
+        "ES_SECURITY_ENABLED",
+        "ES_VERSION",
+        "FILES_TO_CREATE",
+        "GREEN",
+        "NC",
+        "SKIPPED_FILES",
+        "YELLOW"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf infrastructure/elasticsearch/elasticsearch.yml infrastructure/elasticsearch/analysis.yml .env.elasticsearch docker-compose.elasticsearch.yml",
+      "verify": "test -f infrastructure/elasticsearch/elasticsearch.yml",
+      "docs": "https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html",
+      "defaults": "ES_VERSION=8.0, ES_PORT=9200, ES_MEMORY=512m",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "gh": {
-      "command": "gh",
-      "min_version": "2.0.0",
-      "install_hint": "https://cli.github.com/",
-      "detect_version": "gh --version | head -1 | awk '{print $3}'"
+    "email-service": {
+      "version": "1.0.0",
+      "phase": 5,
+      "category": "config",
+      "priority": 50,
+      "short": "Email service integration setup",
+      "description": "Sets up email service integration with provider configuration (SendGrid, AWS SES, etc), Handlebars email templates, template layouts, Redis queue support, and rate limiting for email delivery.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        "config/email/email-provider.config.json",
+        "config/email/templates/welcome.hbs",
+        "config/email/templates/password-reset.hbs",
+        ".env.email"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_email-provider.config",
+        "has_email-provider.config"
+      ],
+      "tags": [],
+      "config_section": "email",
+      "env_vars": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_REGION",
+        "AWS_SECRET_ACCESS_KEY",
+        "BLUE",
+        "CREATED_FILES",
+        "EMAIL_API_KEY",
+        "EMAIL_FROM_ADDRESS",
+        "EMAIL_FROM_NAME",
+        "EMAIL_PROVIDER",
+        "EMAIL_QUEUE_ENABLED",
+        "EMAIL_QUEUE_SERVICE",
+        "ENABLED",
+        "ENV_FILE",
+        "FILES_TO_CREATE",
+        "GREEN",
+        "LAYOUT_TEMPLATE",
+        "MAILGUN_DOMAIN",
+        "NC",
+        "NOTIFICATION_TEMPLATE",
+        "PROVIDER_CONFIG",
+        "RATE_LIMIT_PER_HOUR",
+        "REDIS_HOST",
+        "REDIS_PASSWORD",
+        "REDIS_PORT",
+        "RESET_TEMPLATE",
+        "SKIPPED_FILES",
+        "SMTP_HOST",
+        "SMTP_PASSWORD",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "WELCOME_TEMPLATE",
+        "YELLOW"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf config/email/email-provider.config.json config/email/templates/welcome.hbs config/email/templates/password-reset.hbs .env.email",
+      "verify": "test -f config/email/email-provider.config.json",
+      "docs": "https://nodemailer.com/about/",
+      "defaults": "EMAIL_PROVIDER=sendgrid, EMAIL_QUEUE_ENABLED=true",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "kubectl": {
-      "command": "kubectl",
-      "min_version": "1.25.0",
-      "install_hint": "https://kubernetes.io/docs/tasks/tools/",
-      "detect_version": "kubectl version --client -o json | jq -r '.clientVersion.gitVersion' | sed 's/v//'"
+    "environment": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "config",
+      "priority": 50,
+      "short": "Environment configuration files and types",
+      "description": "Creates .env files for different environments (example, local, production) with sensible defaults, TypeScript environment type definitions, and validation support.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "environment",
+      "creates": [
+        ".env.example",
+        ".env.local",
+        ".env.production",
+        "env.d.ts"
+      ],
+      "depends": [
+        "project"
+      ],
+      "requires": [],
+      "detects": [
+        "has_env_example"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "API_KEY",
+        "DATABASE_URL",
+        "JWT_SECRET",
+        "REDIS_URL",
+        "SECRET_KEY",
+        "SENTRY_DSN"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .env.example .env.local .env.production env.d.ts",
+      "verify": "test -f .env.example",
+      "docs": "https://dotenvx.com/docs",
+      "defaults": "NODE_ENV=development, PORT=3000, HOST=localhost",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "helm": {
-      "command": "helm",
-      "min_version": "3.10.0",
-      "install_hint": "https://helm.sh/docs/intro/install/",
-      "detect_version": "helm version --short | sed 's/v//'"
+    "github": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "vcs",
+      "priority": 50,
+      "short": "GitHub configuration and issue/PR templates",
+      "description": "Creates GitHub-specific configuration including pull request templates, issue templates (bug/feature), GitHub Actions CI workflow, and discussion configuration for project collaboration.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "github",
+      "creates": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        ".github/ISSUE_TEMPLATE/bug_report.md",
+        ".github/ISSUE_TEMPLATE/feature_request.md",
+        ".github/workflows/ci.yml"
+      ],
+      "depends": [
+        "git",
+        "project"
+      ],
+      "requires": [],
+      "detects": [
+        "has_github_dir"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "GITHUB_DIR"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .github/PULL_REQUEST_TEMPLATE.md .github/ISSUE_TEMPLATE/bug_report.md .github/ISSUE_TEMPLATE/feature_request.md .github/workflows/ci.yml",
+      "verify": "test -f .github/PULL_REQUEST_TEMPLATE.md",
+      "docs": "https://docs.github.com/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "eslint": {
-      "command": "eslint",
-      "min_version": "8.0.0",
-      "install_hint": "npm install -g eslint",
-      "detect_version": "eslint --version | sed 's/v//'"
+    "git": {
+      "version": "1.0.0",
+      "phase": 1,
+      "category": "vcs",
+      "priority": 50,
+      "short": "Git configuration for new project",
+      "description": "Initializes Git repository and creates .gitignore with sensible defaults for Node.js, Python, IDE artifacts, environment files, and build outputs. Sets up Git attributes for consistent line endings and merge strategies.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "git",
+      "creates": [
+        ".gitignore",
+        ".gitattributes",
+        ".git/"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_gitignore"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .gitignore .gitattributes .git/",
+      "verify": "test -f .gitignore",
+      "docs": "https://git-scm.com/doc",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "prettier": {
-      "command": "prettier",
-      "min_version": "3.0.0",
-      "install_hint": "npm install -g prettier",
-      "detect_version": "prettier --version"
+    "husky": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "config",
+      "priority": 50,
+      "short": "Git hooks management using Husky",
+      "description": "Sets up Husky for Git hook management with pre-commit, commit-msg, prepare-commit-msg, and post-merge hooks. Adds commitlint for conventional commit enforcement.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "husky",
+      "creates": [
+        ".husky/pre-commit",
+        ".husky/commit-msg",
+        ".husky/prepare-commit-msg",
+        ".husky/post-merge",
+        ".commitlintrc.json"
+      ],
+      "depends": [
+        "git",
+        "packages"
+      ],
+      "requires": [],
+      "detects": [
+        "has_husky"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "HOOK_FILE",
+        "HOOKS",
+        "HUSKY_INSTALLED",
+        "PACKAGE_MANAGER"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .husky/pre-commit .husky/commit-msg .husky/prepare-commit-msg .husky/post-merge .commitlintrc.json",
+      "verify": "test -f .husky/pre-commit",
+      "docs": "https://typicode.github.io/husky/",
+      "defaults": "PACKAGE_MANAGER=npm",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "vitest": {
-      "command": "vitest",
-      "min_version": "0.34.0",
-      "install_hint": "npm install -D vitest",
-      "detect_version": "npx vitest --version 2>/dev/null || echo '0.0.0'"
+    "kubernetes": {
+      "version": "1.0.0",
+      "phase": 4,
+      "category": "deploy",
+      "priority": 50,
+      "short": "Kubernetes deployment and Helm chart config",
+      "description": "Generates Kubernetes deployment configuration with Kustomize for environment-specific overlays (dev/staging/prod) and Helm chart for package management. Includes base manifests for deployments, services, ingress, ConfigMaps, and secrets.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "kubernetes",
+      "creates": [
+        "kubernetes/base/deployment.yaml",
+        "kubernetes/base/service.yaml",
+        "kubernetes/base/ingress.yaml",
+        "kubernetes/base/kustomization.yaml",
+        "kubernetes/overlays/dev/kustomization.yaml",
+        "kubernetes/helm-chart/Chart.yaml",
+        "kubernetes/helm-chart/values.yaml",
+        "kubernetes/README.md"
+      ],
+      "depends": [
+        "docker"
+      ],
+      "requires": [],
+      "detects": [
+        "has_k8s_config"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "ANSWERS_FILE",
+        "APP_PORT",
+        "K8S_DIR",
+        "K8S_TEMPLATE_DIR"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf kubernetes/base/deployment.yaml kubernetes/base/service.yaml kubernetes/base/ingress.yaml kubernetes/base/kustomization.yaml kubernetes/overlays/dev/kustomization.yaml kubernetes/helm-chart/Chart.yaml kubernetes/helm-chart/values.yaml kubernetes/README.md",
+      "verify": "test -f kubernetes/base/deployment.yaml",
+      "docs": "https://kubernetes.io/docs/home/",
+      "defaults": "replicas=2, container_port=3000",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "playwright": {
-      "command": "playwright",
-      "min_version": "1.35.0",
-      "install_hint": "npm install -D @playwright/test",
-      "detect_version": "npx playwright --version 2>/dev/null || echo '0.0.0'"
-    }
-  },
-
-  "libraries": {
-    "common": {
-      "file": "lib/common.sh",
-      "description": "Shared logging, file ops, validation helpers"
+    "linting": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "config",
+      "priority": 50,
+      "short": "Code linting and code formatting enforcement",
+      "description": "Sets up ESLint for JavaScript/TypeScript linting with airbnb config, Prettier for code formatting, with ignore files for both tools to prevent conflicts and ensure consistent code style.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "linting",
+      "creates": [
+        ".eslintrc.json",
+        ".eslintignore",
+        ".prettierrc.json",
+        ".prettierignore"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_.eslintrc"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .eslintrc.json .eslintignore .prettierrc.json .prettierignore",
+      "verify": "test -f .eslintrc.json",
+      "docs": "https://eslint.org/docs/latest/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "paths": {
-      "file": "lib/paths.sh",
-      "description": "Centralized path initialization"
+    "monitoring": {
+      "version": "1.0.0",
+      "phase": 5,
+      "category": "config",
+      "priority": 50,
+      "short": "Observability and monitoring setup",
+      "description": "Configures monitoring and observability with Sentry for error tracking, Prometheus for metrics, Datadog and New Relic integration options, and alert configuration.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "monitoring",
+      "creates": [
+        ".sentryrc",
+        "prometheus.yml",
+        "monitoring/alerts/alerts.yml",
+        "datadog.yaml",
+        "newrelic.js",
+        ".env.monitoring"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_monitoring_config",
+        "has_monitoring_config"
+      ],
+      "tags": [],
+      "config_section": "monitoring",
+      "env_vars": [
+        "APP_PORT",
+        "DATADOG_API_KEY",
+        "DATADOG_APM_ENABLED",
+        "DATADOG_APM_SAMPLE_RATE",
+        "DATADOG_APP_KEY",
+        "DATADOG_LOGS_ENABLED",
+        "DATADOG_NETWORK_ENABLED",
+        "DATADOG_PROCESS_ENABLED",
+        "DATADOG_SITE",
+        "ENABLED",
+        "ENABLE_DATADOG",
+        "ENABLE_NEWRELIC",
+        "ENABLE_PROMETHEUS",
+        "ENABLE_SENTRY",
+        "ENVIRONMENT",
+        "FILES_TO_CREATE",
+        "NEWRELIC_APP_LOGGING",
+        "NEWRELIC_BROWSER_MONITORING",
+        "NEWRELIC_DISTRIBUTED_TRACING",
+        "NEWRELIC_ERROR_COLLECTOR",
+        "NEWRELIC_LICENSE_KEY",
+        "NEWRELIC_LOG_DECORATING",
+        "NEWRELIC_LOG_FORWARDING",
+        "NEWRELIC_LOG_LEVEL",
+        "NEWRELIC_LOG_METRICS",
+        "NEWRELIC_SLOW_SQL",
+        "NEWRELIC_TRANSACTION_TRACER",
+        "PROMETHEUS_EVAL_INTERVAL",
+        "PROMETHEUS_SCRAPE_INTERVAL",
+        "SENTRY_AUTH_TOKEN",
+        "SENTRY_DSN",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "SENTRY_TRACES_SAMPLE_RATE",
+        "SENTRY_URL",
+        "TEAM_NAME",
+        "VERSION"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .sentryrc prometheus.yml monitoring/alerts/alerts.yml datadog.yaml newrelic.js .env.monitoring",
+      "verify": "test -f .sentryrc",
+      "docs": "https://prometheus.io/docs/",
+      "defaults": "monitoring.enabled=true, monitoring.sentry_enabled=true",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "config-manager": {
-      "file": "lib/config-manager.sh",
-      "description": "INI config file read/write"
+    "mysql": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "database",
+      "priority": 50,
+      "short": "MySQL database setup with Docker",
+      "description": "Sets up MySQL database with Docker Compose orchestration, initialization scripts, seed data, and automated backup scripts with retention policies.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "mysql",
+      "creates": [
+        "database/mysql/init.sql",
+        "database/mysql/backup.sh",
+        "database/backups/",
+        ".env.mysql",
+        "docker-compose.mysql.yml"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_mysql_config",
+        "has_mysql_config"
+      ],
+      "tags": [],
+      "config_section": "mysql",
+      "env_vars": [
+        "BACKUP_DIR",
+        "BACKUP_ENABLED",
+        "BACKUP_FILE",
+        "BACKUP_SCRIPT",
+        "BLUE",
+        "CREATED_FILES",
+        "DB_HOST",
+        "DB_NAME",
+        "DB_PASSWORD",
+        "DB_PORT",
+        "DB_USER",
+        "DOCKER_COMPOSE_FILE",
+        "ENABLED",
+        "ENV_FILE",
+        "FILES_TO_CREATE",
+        "GREEN",
+        "INIT_FILE",
+        "MYSQL_ROOT_PASSWORD",
+        "MYSQL_VERSION",
+        "NC",
+        "POOL_SIZE",
+        "SKIPPED_FILES",
+        "TIMESTAMP",
+        "YELLOW"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [
+        "postgres"
+      ],
+      "rollback": "rm -rf database/mysql/init.sql database/mysql/backup.sh database/backups/ .env.mysql docker-compose.mysql.yml",
+      "verify": "test -f database/mysql/init.sql",
+      "docs": "https://dev.mysql.com/doc/",
+      "defaults": "mysql.enabled=true, mysql.version=8.0, mysql.port=3306",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "script-registry": {
-      "file": "lib/script-registry.sh",
-      "description": "Script discovery and manifest queries"
+    "network-vpn": {
+      "version": "1.0.0",
+      "phase": 5,
+      "category": "deploy",
+      "priority": 50,
+      "short": "VPN and secure networking configuration",
+      "description": "Configures VPN infrastructure using WireGuard with key generation, iptables rules, Docker networking, peer management, and security monitoring documentation.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "network-vpn",
+      "creates": [
+        "config/network/vpn/wireguard-config.conf",
+        "config/network/vpn/generate-keys.sh",
+        "config/network/vpn/iptables-rules.conf",
+        "config/network/vpn/docker-network.yml",
+        ".env.vpn"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_vpn_config"
+      ],
+      "tags": [],
+      "config_section": "vpn",
+      "env_vars": [
+        "ACTIVE_PEERS",
+        "BLUE",
+        "CREATED_FILES",
+        "DNS_SERVER_1",
+        "DNS_SERVER_2",
+        "DNS_SERVERS",
+        "DOCKER_NETWORK_DRIVER",
+        "DOCKER_NETWORK_FILE",
+        "DOCKER_NETWORK_NAME",
+        "DOCKER_NETWORK_SUBNET",
+        "ENABLED",
+        "ENV_FILE",
+        "EUID",
+        "FILES_TO_CREATE",
+        "FIREWALL_ENABLED",
+        "GREEN",
+        "IPTABLES_FILE",
+        "KEYGEN_SCRIPT",
+        "KEYS_DIR",
+        "MONITORING_DOC",
+        "NC",
+        "PEER_COUNT",
+        "PEER_IP",
+        "PEER_NAME",
+        "PEER_PRESHARED_KEY",
+        "PEER_PRIVATE_KEY",
+        "PEER_PUBLIC_KEY",
+        "PEERS_DIR",
+        "SERVER_PRIVATE_KEY",
+        "SERVER_PUBLIC_KEY",
+        "SKIPPED_FILES",
+        "VPN_CIDR",
+        "VPN_CIDR_BASE",
+        "VPN_CONFIG",
+        "VPN_CONFIG_FILE",
+        "VPN_ENDPOINT",
+        "VPN_INTERFACE",
+        "VPN_KEEPALIVE",
+        "VPN_KEY_BITS",
+        "VPN_PORT",
+        "VPN_PROTOCOL",
+        "VPN_PROVIDER",
+        "YELLOW"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf config/network/vpn/wireguard-config.conf config/network/vpn/generate-keys.sh config/network/vpn/iptables-rules.conf config/network/vpn/docker-network.yml .env.vpn",
+      "verify": "test -f config/network/vpn/wireguard-config.conf",
+      "docs": "https://www.wireguard.com/quickstart/",
+      "defaults": "vpn.enabled=false, vpn.provider=wireguard, vpn.port=51820",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "question-engine": {
-      "file": "lib/question-engine.sh",
-      "description": "Interactive Q&A and config persistence"
+    "nodejs": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "nodejs",
+      "priority": 50,
+      "short": "Node.js runtime and package manager configuration",
+      "description": "Configures Node.js runtime with version specification (.nvmrc), npm configuration (.npmrc), Yarn configuration (.yarnrc.yml), and PNPM configuration (.pnpmfile.cjs) for consistent package management across team and environments.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        ".nvmrc",
+        ".npmrc",
+        ".yarnrc.yml",
+        ".pnpmfile.cjs"
+      ],
+      "depends": [
+        "project"
+      ],
+      "requires": [],
+      "detects": [
+        "has_package_json",
+        "has_package_json"
+      ],
+      "tags": [],
+      "config_section": "nodejs",
+      "env_vars": [
+        "ENABLED",
+        "NODE_VERSION"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .nvmrc .npmrc .yarnrc.yml .pnpmfile.cjs",
+      "verify": "test -f .nvmrc",
+      "docs": "https://nodejs.org/docs/latest/api/",
+      "defaults": "nodejs.enabled=true, nodejs.version=20",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "cache-manager": {
-      "file": "lib/cache-manager.sh",
-      "description": "Menu state and scan result caching"
+    "packages": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "nodejs",
+      "priority": 50,
+      "short": "Package management and runtime configuration",
+      "description": "Sets up package management configuration including npm registry, Node version specification, tool-versions for asdf compatibility, direnv support, and package.json setup.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "packages",
+      "creates": [
+        ".npmrc",
+        ".nvmrc",
+        ".tool-versions",
+        ".envrc",
+        "package.json"
+      ],
+      "depends": [
+        "project"
+      ],
+      "requires": [],
+      "detects": [
+        "has_node_modules"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "CURRENT_NODE"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .npmrc .nvmrc .tool-versions .envrc package.json",
+      "verify": "test -f .npmrc",
+      "docs": "https://docs.npmjs.com/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "template-utils": {
-      "file": "lib/template-utils.sh",
-      "description": "Template copying and variable substitution"
+    "postgres": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "database",
+      "priority": 50,
+      "short": "PostgreSQL database setup with Docker",
+      "description": "Sets up PostgreSQL database with Docker Compose orchestration, initialization scripts with schema creation, seed data, automated backup scripts with retention policies, and environment configuration.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "postgres",
+      "creates": [
+        "database/postgres/init.sql",
+        "database/postgres/backup.sh",
+        "database/backups/",
+        ".env.postgres",
+        "docker-compose.postgres.yml"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_postgres_config",
+        "has_postgres_config"
+      ],
+      "tags": [],
+      "config_section": "postgres",
+      "env_vars": [
+        "BACKUP_DIR",
+        "BACKUP_ENABLED",
+        "BACKUP_FILE",
+        "BACKUP_SCRIPT",
+        "BLUE",
+        "CREATED_FILES",
+        "DB_HOST",
+        "DB_NAME",
+        "DB_PASSWORD",
+        "DB_PORT",
+        "DB_USER",
+        "DOCKER_COMPOSE_FILE",
+        "ENABLED",
+        "ENV_FILE",
+        "FILES_TO_CREATE",
+        "GREEN",
+        "INIT_FILE",
+        "NC",
+        "PG_VERSION",
+        "POOL_SIZE",
+        "SKIPPED_FILES",
+        "TIMESTAMP",
+        "YELLOW"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [
+        "mysql"
+      ],
+      "rollback": "rm -rf database/postgres/init.sql database/postgres/backup.sh database/backups/ .env.postgres docker-compose.postgres.yml",
+      "verify": "test -f database/postgres/init.sql",
+      "docs": "https://www.postgresql.org/docs/current/",
+      "defaults": "postgres.enabled=true, postgres.version=latest",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     },
-    "validation-common": {
-      "file": "lib/validation-common.sh",
-      "description": "Input validation helpers"
+    "project": {
+      "version": "1.0.0",
+      "phase": 1,
+      "category": "core",
+      "priority": 50,
+      "short": "Initialize project metadata and directory structure",
+      "description": "Creates foundational project files including CLAUDE.md with project guidelines, README.md, .claudeignore for context optimization, docs/ directory with architecture, API, development, and deployment documentation templates.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "project",
+      "creates": [
+        "CLAUDE.md",
+        "README.md",
+        ".claudeignore",
+        "docs/",
+        "docs/architecture.md",
+        "docs/api.md",
+        "docs/development.md",
+        "docs/deployment.md"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_project_config"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "DOCS"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf CLAUDE.md README.md .claudeignore docs/ docs/architecture.md docs/api.md docs/development.md docs/deployment.md",
+      "verify": "test -f CLAUDE.md",
+      "docs": "https://docs.npmjs.com/cli/configuring-npm/package-json",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "python": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "python",
+      "priority": 50,
+      "short": "Python virtual environment and dependencies",
+      "description": "Sets up Python virtual environment with isolated dependencies, creates .env for environment variables, configures .gitignore and .claudeignore for version control and Claude context, and sets up logs/ directory for Python application logs.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        ".venv/",
+        ".env",
+        ".gitignore",
+        ".claudeignore",
+        "logs/"
+      ],
+      "depends": [
+        "project"
+      ],
+      "requires": [],
+      "detects": [
+        "has_.venv_dir",
+        "has_.venv_dir"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "CLAUDEIGNORE_PATH",
+        "CURRENT_HASH",
+        "EDITABLE_INSTALL",
+        "ENV_PATH",
+        "GITIGNORE_PATH",
+        "HASH_FILE",
+        "INSTALL_DEPS",
+        "LAST_HASH",
+        "MANAGE_CLAUDEIGNORE",
+        "MANAGE_GITIGNORE",
+        "NEED_INSTALL",
+        "PY_BIN",
+        "PYPROJECT_TOML",
+        "PY_VERSION",
+        "REQ_FILES",
+        "REQUIRED_PY_SPEC",
+        "VENV_DIR",
+        "VENV_MODE",
+        "WRITE_ENV"
+      ],
+      "interactive": "yes",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .venv/ .env .gitignore .claudeignore logs/",
+      "verify": "test -f .venv/",
+      "docs": "https://docs.python.org/3/",
+      "defaults": "python.version=3.11, python.venv_mode=isolated",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "quality": {
+      "version": "1.0.0",
+      "phase": 4,
+      "category": "test",
+      "priority": 50,
+      "short": "Code quality metrics and baseline configuration",
+      "description": "Sets up code quality framework with SonarQube configuration, CodeClimate setup, quality gates, complexity rules, and baseline reporting for tracking code quality metrics and establishing minimum standards.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "quality",
+      "creates": [
+        "quality/sonar-project.properties",
+        "quality/.codeclimate.yml",
+        "quality/quality-gates.json",
+        "quality/complexity-rules.json",
+        "quality/baseline-report.md"
+      ],
+      "depends": [
+        "linting",
+        "testing"
+      ],
+      "requires": [],
+      "detects": [
+        "has_quality_config",
+        "has_quality_config"
+      ],
+      "tags": [],
+      "config_section": "quality",
+      "env_vars": [
+        "BASELINE_REPORT",
+        "CODECLIMATE_CONFIG",
+        "COMPLEXITY_RULES",
+        "COMPLEXITY_THRESHOLD",
+        "COVERAGE_REPORT",
+        "COVERAGE_THRESHOLD",
+        "CREATE_BASELINE",
+        "DUPLICATION_THRESHOLD",
+        "ENABLE_CODECLIMATE",
+        "ENABLED",
+        "ENABLE_SONARQUBE",
+        "EXCLUSIONS",
+        "FILES_TO_CREATE",
+        "QUALITY_GATES",
+        "SONAR_CONFIG",
+        "SONARQUBE_AVAILABLE",
+        "SOURCE_DIRS",
+        "TEST_FRAMEWORK"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf quality/sonar-project.properties quality/.codeclimate.yml quality/quality-gates.json quality/complexity-rules.json quality/baseline-report.md",
+      "verify": "test -f quality/sonar-project.properties",
+      "docs": "https://eslint.org/docs/latest/",
+      "defaults": "quality.enabled=true, quality.coverage_threshold=80",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "rate-limiting": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "config",
+      "priority": 50,
+      "short": "Redis-based rate limiting service configuration",
+      "description": "Sets up Redis-based rate limiting infrastructure with token bucket strategy, Lua scripts for atomic operations, endpoint configuration, Docker Compose for Redis, environment setup, and example integration code.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "rate-limiting",
+      "creates": [
+        "config/rate-limiting/rate-limit.config.json",
+        "config/rate-limiting/redis-init.lua",
+        "config/rate-limiting/strategies.lua",
+        "config/rate-limiting/endpoints.json",
+        "config/rate-limiting/example-integration.js",
+        ".env.rate-limiting",
+        "docker-compose.rate-limiting.yml"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_rate-limit.config",
+        "has_rate-limit.config"
+      ],
+      "tags": [],
+      "config_section": "rate_limiting",
+      "env_vars": [
+        "BLUE",
+        "CONFIG_FILE",
+        "CREATED_FILES",
+        "DOCKER_COMPOSE_FILE",
+        "ENABLED",
+        "ENDPOINTS_FILE",
+        "ENV_FILE",
+        "EXAMPLE_FILE",
+        "FILES_TO_CREATE",
+        "GREEN",
+        "LUA_INIT_FILE",
+        "NC",
+        "RATE_LIMIT_KEYS_PATTERN",
+        "RATE_LIMIT_MAX_REQUESTS",
+        "RATE_LIMIT_STRATEGY",
+        "RATE_LIMIT_WINDOW",
+        "REDIS_DB",
+        "REDIS_PASSWORD",
+        "REDIS_PORT",
+        "REDIS_VERSION",
+        "SKIPPED_FILES",
+        "STRATEGIES_FILE",
+        "YELLOW"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf config/rate-limiting/rate-limit.config.json config/rate-limiting/redis-init.lua config/rate-limiting/strategies.lua config/rate-limiting/endpoints.json config/rate-limiting/example-integration.js .env.rate-limiting docker-compose.rate-limiting.yml",
+      "verify": "test -f config/rate-limiting/rate-limit.config.json",
+      "docs": "https://github.com/express-rate-limit/express-rate-limit",
+      "defaults": "redis_version=7.0, redis_port=6379, window_seconds=60",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "redis": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "database",
+      "priority": 50,
+      "short": "Redis cache/session store setup with Docker",
+      "description": "Sets up Redis cache and session store with Docker Compose, Redis configuration, backup scripts with retention policies, persistent volume management, and environment configuration for caching and session management.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "redis",
+      "creates": [
+        "config/redis/redis.conf",
+        "config/redis/backup.sh",
+        "backups/redis/",
+        ".env.redis",
+        "docker-compose.redis.yml"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_redis_config",
+        "has_redis_config"
+      ],
+      "tags": [],
+      "config_section": "redis",
+      "env_vars": [
+        "BACKUP_DIR",
+        "BACKUP_ENABLED",
+        "BACKUP_SCRIPT",
+        "BLUE",
+        "CREATED_FILES",
+        "DOCKER_COMPOSE_FILE",
+        "ENABLED",
+        "ENV_FILE",
+        "FILES_TO_CREATE",
+        "GREEN",
+        "MAX_CLIENTS",
+        "MAX_MEMORY",
+        "NC",
+        "PERSISTENCE",
+        "REDIS_CONF_FILE",
+        "REDIS_HOST",
+        "REDIS_PASSWORD",
+        "REDIS_PORT",
+        "REDIS_VERSION",
+        "SKIPPED_FILES",
+        "TIMESTAMP",
+        "YELLOW"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf config/redis/redis.conf config/redis/backup.sh backups/redis/ .env.redis docker-compose.redis.yml",
+      "verify": "test -f config/redis/redis.conf",
+      "docs": "https://redis.io/docs/",
+      "defaults": "redis.enabled=true, redis.version=latest, redis.port=6379",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "secrets": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "config",
+      "priority": 50,
+      "short": "Environment secrets and .env file setup",
+      "description": "Sets up environment secrets management with .env files for different environments (example, local), direnv support for automatic environment loading, backup procedures for safe secret management, and .gitignore configuration to prevent accidental secret commits.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "secrets",
+      "creates": [
+        ".env.example",
+        ".env.local",
+        ".envrc",
+        ".env.backup/"
+      ],
+      "depends": [
+        "project",
+        "environment"
+      ],
+      "requires": [],
+      "detects": [
+        "has_secrets_config",
+        "has_secrets_config"
+      ],
+      "tags": [],
+      "config_section": "secrets",
+      "env_vars": [
+        "API_KEY",
+        "BACKUP_SECRETS",
+        "ENABLED",
+        "ENABLE_DIRENV",
+        "ENABLE_ENCRYPTION",
+        "FILES_TO_CREATE",
+        "GITIGNORE_ENTRIES",
+        "INTERACTIVE_PROMPTS",
+        "JWT_SECRET",
+        "NODE_ENV",
+        "SECRET_KEY",
+        "SECRETS_MANAGER",
+        "SESSION_SECRET"
+      ],
+      "interactive": "yes",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .env.example .env.local .envrc .env.backup/",
+      "verify": "test -f .env.example",
+      "docs": "https://docs.github.com/en/actions/security-guides/encrypted-secrets",
+      "defaults": "secrets.enabled=true, secrets.secrets_manager=none",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "security": {
+      "version": "1.0.0",
+      "phase": 4,
+      "category": "config",
+      "priority": 50,
+      "short": "Security scanning and vulnerability detection",
+      "description": "Sets up security scanning with npm audit for dependencies, Snyk for vulnerability detection (optional), license verification with whitelist, and security policy documentation for responsible disclosure.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "security",
+      "creates": [
+        "security/.snyk",
+        "security/security-policy.json",
+        "security/.npmauditrc",
+        "security/license-whitelist.json"
+      ],
+      "depends": [
+        "project",
+        "packages"
+      ],
+      "requires": [],
+      "detects": [
+        "has_security_config",
+        "has_security_config"
+      ],
+      "tags": [],
+      "config_section": "security",
+      "env_vars": [
+        "AUDIT_LEVEL",
+        "ENABLED",
+        "FILES_TO_CREATE"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf security/.snyk security/security-policy.json security/.npmauditrc security/license-whitelist.json",
+      "verify": "test -f security/.snyk",
+      "docs": "https://owasp.org/www-project-web-security-testing-guide/",
+      "defaults": "security.enabled=true, security.npm_audit=true",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "ssl": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "config",
+      "priority": 50,
+      "short": "Local HTTPS certificate generation for development",
+      "description": "Generates self-signed SSL/TLS certificates for localhost development with OpenSSL. Creates certificate info, installation script, and PEM format certificates for HTTPS development without external CA.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "ssl",
+      "creates": [
+        "ssl/openssl.cnf",
+        "ssl/cert-info.txt",
+        "ssl/install-cert.sh",
+        "ssl/localhost.crt",
+        "ssl/localhost.key",
+        "ssl/localhost.pem"
+      ],
+      "depends": [
+        "project"
+      ],
+      "requires": [],
+      "detects": [
+        "has_ssl_config"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "CERT_METHOD",
+        "EXPIRY",
+        "GITIGNORE",
+        "PERMS",
+        "SANS",
+        "SSL_DIR",
+        "SUBJECT",
+        "TIMESTAMP",
+        "VALIDITY_DAYS"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "needs-review"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf ssl/openssl.cnf ssl/cert-info.txt ssl/install-cert.sh ssl/localhost.crt ssl/localhost.key ssl/localhost.pem",
+      "verify": "test -f ssl/openssl.cnf",
+      "docs": "https://letsencrypt.org/docs/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "testing": {
+      "version": "1.0.0",
+      "phase": 3,
+      "category": "test",
+      "priority": 50,
+      "short": "Testing frameworks and coverage configuration",
+      "description": "Sets up testing frameworks including Jest for JavaScript/ TypeScript unit and integration tests, Pytest for Python, and coverage reporting configuration with .coveragerc for code coverage tracking and thresholds.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "testing",
+      "creates": [
+        "jest.config.js",
+        "pytest.ini",
+        ".coveragerc"
+      ],
+      "depends": [
+        "project",
+        "packages"
+      ],
+      "requires": [],
+      "detects": [
+        "has_jest_config"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf jest.config.js pytest.ini .coveragerc",
+      "verify": "test -f jest.config.js",
+      "docs": "https://vitest.dev/guide/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "test-suite": {
+      "version": "1.0.0",
+      "phase": 4,
+      "category": "test",
+      "priority": 50,
+      "short": "Complete test suite setup for projects",
+      "description": "Sets up comprehensive testing infrastructure with Jest for unit/integration testing, Pytest for Python, Vitest for modern TypeScript, Playwright for e2e browser testing, and test contract documentation with patterns and best practices.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "none",
+      "creates": [
+        "tests/conftest.py",
+        "tests/jest.config.js",
+        "tests/TEST_CONTRACT.md",
+        "tests/patterns.md",
+        "tests/unit/",
+        "tests/integration/",
+        "tests/e2e/",
+        "pytest.ini",
+        "vitest.config.ts",
+        "playwright.config.ts"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_test_suite"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "API_BASE_URL",
+        "API_PORT",
+        "DRY_RUN",
+        "FORCE",
+        "FRAMEWORK_LIST",
+        "FRAMEWORKS",
+        "GITIGNORE",
+        "GITIGNORE_ENTRIES",
+        "INSTALL_MODE",
+        "SRC_DIR",
+        "TESTS_DIR",
+        "TZ"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf tests/conftest.py tests/jest.config.js tests/TEST_CONTRACT.md tests/patterns.md tests/unit/ tests/integration/ tests/e2e/ pytest.ini vitest.config.ts playwright.config.ts",
+      "verify": "test -f tests/conftest.py",
+      "docs": "https://jestjs.io/docs/getting-started",
+      "defaults": "INSTALL_MODE=full",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "typescript": {
+      "version": "1.0.0",
+      "phase": 2,
+      "category": "nodejs",
+      "priority": 50,
+      "short": "TypeScript configuration and project structure setup",
+      "description": "Sets up TypeScript compiler configuration with strict mode, builds framework configs (Next.js, Babel, Vite), creates standard source directory structure (components, hooks, lib, types, services) for organized code organization.",
+      "safe": true,
+      "idempotent": true,
+      "questions": "typescript",
+      "creates": [
+        "tsconfig.json",
+        "next.config.js",
+        "babel.config.js",
+        "vite.config.ts",
+        "src/components",
+        "src/hooks",
+        "src/lib",
+        "src/types",
+        "src/services"
+      ],
+      "depends": [
+        "project",
+        "packages"
+      ],
+      "requires": [],
+      "detects": [
+        "has_tsconfig"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "LIB_DIR"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf tsconfig.json next.config.js babel.config.js vite.config.ts src/components src/hooks src/lib src/types src/services",
+      "verify": "test -f tsconfig.json",
+      "docs": "https://www.typescriptlang.org/docs/",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
+    },
+    "vscode": {
+      "version": "1.0.0",
+      "phase": 1,
+      "category": "config",
+      "priority": 50,
+      "short": "VS Code workspace configuration and extensions",
+      "description": "Sets up VS Code workspace configuration with recommended settings for development, extensions list for team standardization, debugging tasks, and launch configurations for different environments (Node, browser, etc).",
+      "safe": true,
+      "idempotent": true,
+      "questions": "vscode",
+      "creates": [
+        ".vscode/settings.json",
+        ".vscode/extensions.json",
+        ".vscode/tasks.json",
+        ".vscode/launch.json"
+      ],
+      "depends": [],
+      "requires": [],
+      "detects": [
+        "has_settings"
+      ],
+      "tags": [],
+      "config_section": "none",
+      "env_vars": [
+        "VSCODE_DIR"
+      ],
+      "interactive": "no",
+      "platforms": [
+        "all"
+      ],
+      "conflicts": [],
+      "rollback": "rm -rf .vscode/settings.json .vscode/extensions.json .vscode/tasks.json .vscode/launch.json",
+      "verify": "test -f .vscode/settings.json",
+      "docs": "https://code.visualstudio.com/docs",
+      "author": "Bootstrap System",
+      "updated": "2025-12-08"
     }
   }
 }

@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-docker-prod
+# @script         bootstrap-docker-prod
+# @version        1.0.0
 # @phase          3
 # @category       config
+# @priority       50
 # @short          Tier 3 prod hardened single-container + services
 # @description    Production-hardened environment with single container, services,
 #                 secrets management, read-only app filesystem, security scanning,
@@ -18,8 +20,9 @@
 # @creates        secrets/db_password.txt
 # @creates        secrets/redis_password.txt
 #
-# @requires_tools docker
 # @requires_env   DOCKER_PROD_POSTGRES_PASSWORD, DOCKER_PROD_REDIS_PASSWORD
+# @detects        has_docker_compose
+# @questions      docker-prod
 # @defaults       app_port=3000, postgres_port=5432, redis_port=6379
 #
 # @safe           yes
@@ -27,6 +30,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  project
+# @env_vars        ANSWERS_FILE,DOCKER_PROD_APP_PORT,DOCKER_PROD_COMPOSE_PROJECT_NAME,DOCKER_PROD_GROUP_ID,DOCKER_PROD_MOUNT_DOCKER_SOCKET,DOCKER_PROD_MOUNT_SSH_CREDENTIALS,DOCKER_PROD_POSTGRES_DB,DOCKER_PROD_POSTGRES_PASSWORD,DOCKER_PROD_POSTGRES_PORT,DOCKER_PROD_POSTGRES_USER,DOCKER_PROD_REDIS_PASSWORD,DOCKER_PROD_REDIS_PORT,DOCKER_PROD_USER_ID,ENV_FILE,ENV_FILE_NAME,SECRETS_DIR
+# @interactive     no
+# @platforms       all
+# @conflicts       docker-dev
+# @rollback        rm -rf docker-compose.yml Dockerfile .dockerignore entrypoint.sh healthcheck.js .env.docker-prod secrets/db_password.txt secrets/redis_password.txt
+# @verify          test -f docker-compose.yml
+# @docs            https://docs.docker.com/compose/
 # =============================================================================
 
 set -euo pipefail

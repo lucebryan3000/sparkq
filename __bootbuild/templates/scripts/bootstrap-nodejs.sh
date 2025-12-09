@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-nodejs
+# @script         bootstrap-nodejs
+# @version        1.0.0
 # @phase          2
-# @category       setup
+# @category       nodejs
+# @priority       50
 # @short          Node.js runtime and package manager configuration
 # @description    Configures Node.js runtime with version specification (.nvmrc),
 #                 npm configuration (.npmrc), Yarn configuration (.yarnrc.yml),
@@ -14,9 +16,12 @@
 # @creates        .yarnrc.yml
 # @creates        .pnpmfile.cjs
 #
-# @depends        bootstrap-project
-# @requires_tools node
+# @depends        project
+# @detects        has_package_json
+# @questions      none
 # @defaults       nodejs.enabled=true, nodejs.version=20
+# @detects        has_package_json
+# @questions      none
 # @defaults       nodejs.package_manager=npm
 #
 # @safe           yes
@@ -24,6 +29,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  nodejs
+# @env_vars        ENABLED,NODE_VERSION
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .nvmrc .npmrc .yarnrc.yml .pnpmfile.cjs
+# @verify          test -f .nvmrc
+# @docs            https://nodejs.org/docs/latest/api/
 # =============================================================================
 
 set -euo pipefail

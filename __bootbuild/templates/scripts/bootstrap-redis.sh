@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-redis
+# @script         bootstrap-redis
+# @version        1.0.0
 # @phase          3
-# @category       setup
+# @category       database
+# @priority       50
 # @short          Redis cache/session store setup with Docker
 # @description    Sets up Redis cache and session store with Docker Compose,
 #                 Redis configuration, backup scripts with retention policies,
@@ -15,7 +17,11 @@
 # @creates        .env.redis
 # @creates        docker-compose.redis.yml
 #
+# @detects        has_redis_config
+# @questions      redis
 # @defaults       redis.enabled=true, redis.version=latest, redis.port=6379
+# @detects        has_redis_config
+# @questions      redis
 # @defaults       redis.backup_enabled=true
 #
 # @safe           yes
@@ -23,6 +29,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  redis
+# @env_vars        BACKUP_DIR,BACKUP_ENABLED,BACKUP_SCRIPT,BLUE,CREATED_FILES,DOCKER_COMPOSE_FILE,ENABLED,ENV_FILE,FILES_TO_CREATE,GREEN,MAX_CLIENTS,MAX_MEMORY,NC,PERSISTENCE,REDIS_CONF_FILE,REDIS_HOST,REDIS_PASSWORD,REDIS_PORT,REDIS_VERSION,SKIPPED_FILES,TIMESTAMP,YELLOW
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf config/redis/redis.conf config/redis/backup.sh backups/redis/ .env.redis docker-compose.redis.yml
+# @verify          test -f config/redis/redis.conf
+# @docs            https://redis.io/docs/
 # =============================================================================
 
 set -euo pipefail

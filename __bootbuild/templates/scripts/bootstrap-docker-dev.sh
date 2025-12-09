@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-docker-dev
+# @script         bootstrap-docker-dev
+# @version        1.0.0
 # @phase          3
 # @category       config
+# @priority       50
 # @short          Tier 2 dev single-container app + Postgres + Redis
 # @description    Development environment with single container combining app,
 #                 PostgreSQL, and Redis. Includes hardened networking vs sandbox,
@@ -15,8 +17,11 @@
 # @creates        entrypoint.sh
 # @creates        .env.docker-dev
 #
-# @requires_tools docker
+# @detects        has_docker_compose
+# @questions      docker-dev
 # @defaults       app_port=3000, postgres_port=5432, redis_port=6379
+# @detects        has_docker_compose
+# @questions      docker-dev
 # @defaults       debug_port=9229, user_id=1000, group_id=1000
 #
 # @safe           yes
@@ -24,6 +29,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  project
+# @env_vars        ANSWERS_FILE,DOCKER_DEV_APP_PORT,DOCKER_DEV_COMPOSE_PROJECT_NAME,DOCKER_DEV_DEBUG_PORT,DOCKER_DEV_GROUP_ID,DOCKER_DEV_MOUNT_DOCKER_SOCKET,DOCKER_DEV_MOUNT_SSH_CREDENTIALS,DOCKER_DEV_POSTGRES_DB,DOCKER_DEV_POSTGRES_PASSWORD,DOCKER_DEV_POSTGRES_PORT,DOCKER_DEV_POSTGRES_USER,DOCKER_DEV_REDIS_PORT,DOCKER_DEV_USER_ID,ENV_FILE,ENV_FILE_NAME
+# @interactive     no
+# @platforms       all
+# @conflicts       docker-prod
+# @rollback        rm -rf docker-compose.yml Dockerfile .dockerignore entrypoint.sh .env.docker-dev
+# @verify          test -f docker-compose.yml
+# @docs            https://docs.docker.com/compose/
 # =============================================================================
 
 set -euo pipefail

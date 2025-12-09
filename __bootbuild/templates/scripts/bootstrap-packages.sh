@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-packages
+# @script         bootstrap-packages
+# @version        1.0.0
 # @phase          2
-# @category       setup
+# @category       nodejs
+# @priority       50
 # @short          Package management and runtime configuration
 # @description    Sets up package management configuration including npm
 #                 registry, Node version specification, tool-versions for
@@ -14,14 +16,24 @@
 # @creates        .envrc
 # @creates        package.json
 #
-# @depends        bootstrap-project
-# @requires_tools node, npm
+# @depends        project
 #
+# @detects        has_node_modules
+# @questions      packages
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        CURRENT_NODE
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .npmrc .nvmrc .tool-versions .envrc package.json
+# @verify          test -f .npmrc
+# @docs            https://docs.npmjs.com/
 # =============================================================================
 
 set -euo pipefail

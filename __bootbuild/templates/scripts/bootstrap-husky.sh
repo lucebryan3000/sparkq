@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-husky
+# @script         bootstrap-husky
+# @version        1.0.0
 # @phase          3
 # @category       config
+# @priority       50
 # @short          Git hooks management using Husky
 # @description    Sets up Husky for Git hook management with pre-commit,
 #                 commit-msg, prepare-commit-msg, and post-merge hooks.
@@ -16,8 +18,9 @@
 #
 # @modifies       package.json (adds prepare script)
 #
-# @depends        bootstrap-git, bootstrap-packages
-# @requires_tools git, node, npm
+# @depends        git, packages
+# @detects        has_husky
+# @questions      husky
 # @defaults       PACKAGE_MANAGER=npm
 #
 # @safe           yes
@@ -25,6 +28,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        HOOK_FILE,HOOKS,HUSKY_INSTALLED,PACKAGE_MANAGER
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .husky/pre-commit .husky/commit-msg .husky/prepare-commit-msg .husky/post-merge .commitlintrc.json
+# @verify          test -f .husky/pre-commit
+# @docs            https://typicode.github.io/husky/
 # =============================================================================
 
 set -euo pipefail

@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-detect
+# @script         bootstrap-detect
+# @version        1.0.0
 # @phase          1
-# @category       setup
+# @category       core
+# @priority       50
 # @short          Detect system tools, project files, and capabilities
 # @description    Performs comprehensive system and project detection to inform
 #                 bootstrap script recommendations. Detects installed tools
@@ -14,7 +16,8 @@
 # @creates        __bootbuild/logs/bootstrap-recommendations.json
 # @modifies       bootstrap.config [detected] section
 #
-# @requires_tools python3
+# @detects        has_bootstrap-detect-*
+# @questions      none
 # @defaults       None explicitly configured
 #
 # @safe           yes
@@ -22,6 +25,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        ARCH,CLAUDE_DIR,COLOR_GREEN,COLOR_RED,COLOR_RESET,COLOR_YELLOW,CONFIG_FILE,CURL_RESULT,CURRENT_BRANCH,DELETED_COUNT,DETECTION_FILES,DETECT_LATEST,DETECT_OUTPUT,DOCKER_COMPOSE,DOCKER_COMPOSE_RESULT,DOCKERFILE,DOCKER_RESULT,DOCKER_RUNNING,FILE_COUNT,FILES_TO_DELETE,GITIGNORE,GIT_REPO,GIT_RESULT,JQ_RESULT,LOGS_DIR,MAKE_RESULT,MYSQL_RESULT,NEXT_CONFIG,NODE_RESULT,NPM_RESULT,OS_TYPE,PACKAGE_JSON,PIPFILE,PIP_RESULT,PNPM_RESULT,PRISMA,PSQL_RESULT,PYTEST,PYTHON_RESULT,README,RECOMMENDATIONS_FILE,REGISTRY_AVAILABLE,REQUIREMENTS,TIMESTAMP,TSCONFIG,VITE_CONFIG,WSL_STATUS,YARN_RESULT
+# @interactive     no
+# @platforms       needs-review
+# @conflicts       none
+# @rollback        rm -rf __bootbuild/logs/bootstrap-detect-*.json __bootbuild/logs/bootstrap-recommendations.json
+# @verify          test -f __bootbuild/logs/bootstrap-detect-*.json
+# @docs            https://www.gnu.org/software/bash/manual/bash.html
 # =============================================================================
 
 set -euo pipefail

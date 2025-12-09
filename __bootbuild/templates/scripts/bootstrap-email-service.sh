@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-email-service
+# @script         bootstrap-email-service
+# @version        1.0.0
 # @phase          5
 # @category       config
+# @priority       50
 # @short          Email service integration setup
 # @description    Sets up email service integration with provider configuration
 #                 (SendGrid, AWS SES, etc), Handlebars email templates,
@@ -14,7 +16,11 @@
 # @creates        config/email/templates/password-reset.hbs
 # @creates        .env.email
 #
+# @detects        has_email-provider.config
+# @questions      none
 # @defaults       EMAIL_PROVIDER=sendgrid, EMAIL_QUEUE_ENABLED=true
+# @detects        has_email-provider.config
+# @questions      none
 # @defaults       TEMPLATE_ENGINE=handlebars, RATE_LIMIT_PER_HOUR=100
 #
 # @safe           yes
@@ -22,6 +28,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  email
+# @env_vars        AWS_ACCESS_KEY_ID,AWS_REGION,AWS_SECRET_ACCESS_KEY,BLUE,CREATED_FILES,EMAIL_API_KEY,EMAIL_FROM_ADDRESS,EMAIL_FROM_NAME,EMAIL_PROVIDER,EMAIL_QUEUE_ENABLED,EMAIL_QUEUE_SERVICE,ENABLED,ENV_FILE,FILES_TO_CREATE,GREEN,LAYOUT_TEMPLATE,MAILGUN_DOMAIN,NC,NOTIFICATION_TEMPLATE,PROVIDER_CONFIG,RATE_LIMIT_PER_HOUR,REDIS_HOST,REDIS_PASSWORD,REDIS_PORT,RESET_TEMPLATE,SKIPPED_FILES,SMTP_HOST,SMTP_PASSWORD,SMTP_PORT,SMTP_USER,WELCOME_TEMPLATE,YELLOW
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf config/email/email-provider.config.json config/email/templates/welcome.hbs config/email/templates/password-reset.hbs .env.email
+# @verify          test -f config/email/email-provider.config.json
+# @docs            https://nodemailer.com/about/
 # =============================================================================
 
 set -euo pipefail

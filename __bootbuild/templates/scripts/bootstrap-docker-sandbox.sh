@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-docker-sandbox
+# @script         bootstrap-docker-sandbox
+# @version        1.0.0
 # @phase          3
 # @category       config
+# @priority       50
 # @short          Tier 1 sandbox single-container for local dev
 # @description    Sandbox environment with single container for local development.
 #                 Combines app, PostgreSQL, and Redis with permissive settings,
@@ -15,7 +17,8 @@
 # @creates        entrypoint.sh
 # @creates        .env.docker-sandbox
 #
-# @requires_tools docker
+# @detects        has_docker_compose
+# @questions      docker-sandbox
 # @defaults       app_port=3000, postgres_port=5432, redis_port=6379
 #
 # @safe           yes
@@ -23,6 +26,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  project
+# @env_vars        ANSWERS_FILE,DOCKER_SANDBOX_APP_PORT,DOCKER_SANDBOX_COMPOSE_PROJECT_NAME,DOCKER_SANDBOX_MOUNT_DOCKER_SOCKET,DOCKER_SANDBOX_MOUNT_SSH_CREDENTIALS,DOCKER_SANDBOX_POSTGRES_DB,DOCKER_SANDBOX_POSTGRES_PASSWORD,DOCKER_SANDBOX_POSTGRES_PORT,DOCKER_SANDBOX_POSTGRES_USER,DOCKER_SANDBOX_REDIS_PORT,ENV_FILE,ENV_FILE_NAME
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf docker-compose.yml Dockerfile .dockerignore entrypoint.sh .env.docker-sandbox
+# @verify          test -f docker-compose.yml
+# @docs            https://docs.docker.com/compose/
 # =============================================================================
 
 set -euo pipefail

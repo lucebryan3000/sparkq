@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-mysql
+# @script         bootstrap-mysql
+# @version        1.0.0
 # @phase          3
-# @category       setup
+# @category       database
+# @priority       50
 # @short          MySQL database setup with Docker
 # @description    Sets up MySQL database with Docker Compose orchestration,
 #                 initialization scripts, seed data, and automated backup
@@ -14,7 +16,11 @@
 # @creates        .env.mysql
 # @creates        docker-compose.mysql.yml
 #
+# @detects        has_mysql_config
+# @questions      mysql
 # @defaults       mysql.enabled=true, mysql.version=8.0, mysql.port=3306
+# @detects        has_mysql_config
+# @questions      mysql
 # @defaults       mysql.backup_enabled=true
 #
 # @safe           yes
@@ -22,6 +28,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  mysql
+# @env_vars        BACKUP_DIR,BACKUP_ENABLED,BACKUP_FILE,BACKUP_SCRIPT,BLUE,CREATED_FILES,DB_HOST,DB_NAME,DB_PASSWORD,DB_PORT,DB_USER,DOCKER_COMPOSE_FILE,ENABLED,ENV_FILE,FILES_TO_CREATE,GREEN,INIT_FILE,MYSQL_ROOT_PASSWORD,MYSQL_VERSION,NC,POOL_SIZE,SKIPPED_FILES,TIMESTAMP,YELLOW
+# @interactive     no
+# @platforms       all
+# @conflicts       postgres
+# @rollback        rm -rf database/mysql/init.sql database/mysql/backup.sh database/backups/ .env.mysql docker-compose.mysql.yml
+# @verify          test -f database/mysql/init.sql
+# @docs            https://dev.mysql.com/doc/
 # =============================================================================
 
 set -euo pipefail

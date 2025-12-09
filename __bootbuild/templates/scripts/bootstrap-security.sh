@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-security
+# @script         bootstrap-security
+# @version        1.0.0
 # @phase          4
 # @category       config
+# @priority       50
 # @short          Security scanning and vulnerability detection
 # @description    Sets up security scanning with npm audit for dependencies,
 #                 Snyk for vulnerability detection (optional), license
@@ -14,8 +16,12 @@
 # @creates        security/.npmauditrc
 # @creates        security/license-whitelist.json
 #
-# @depends        bootstrap-project, bootstrap-packages
+# @depends        project, packages
+# @detects        has_security_config
+# @questions      security
 # @defaults       security.enabled=true, security.npm_audit=true
+# @detects        has_security_config
+# @questions      security
 # @defaults       security.snyk=false, security.audit_level=moderate
 #
 # @safe           yes
@@ -23,6 +29,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  security
+# @env_vars        AUDIT_LEVEL,ENABLED,FILES_TO_CREATE
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf security/.snyk security/security-policy.json security/.npmauditrc security/license-whitelist.json
+# @verify          test -f security/.snyk
+# @docs            https://owasp.org/www-project-web-security-testing-guide/
 # =============================================================================
 
 set -euo pipefail

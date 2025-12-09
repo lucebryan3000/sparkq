@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-environment
+# @script         bootstrap-environment
+# @version        1.0.0
 # @phase          2
 # @category       config
+# @priority       50
 # @short          Environment configuration files and types
 # @description    Creates .env files for different environments (example, local,
 #                 production) with sensible defaults, TypeScript environment
@@ -13,7 +15,9 @@
 # @creates        .env.production
 # @creates        env.d.ts
 #
-# @depends        bootstrap-project
+# @depends        project
+# @detects        has_env_example
+# @questions      environment
 # @defaults       NODE_ENV=development, PORT=3000, HOST=localhost
 #
 # @safe           yes
@@ -21,6 +25,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        API_KEY,DATABASE_URL,JWT_SECRET,REDIS_URL,SECRET_KEY,SENTRY_DSN
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .env.example .env.local .env.production env.d.ts
+# @verify          test -f .env.example
+# @docs            https://dotenvx.com/docs
 # =============================================================================
 
 set -euo pipefail

@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-python
+# @script         bootstrap-python
+# @version        1.0.0
 # @phase          2
-# @category       setup
+# @category       python
+# @priority       50
 # @short          Python virtual environment and dependencies
 # @description    Sets up Python virtual environment with isolated dependencies,
 #                 creates .env for environment variables, configures .gitignore
@@ -18,9 +20,12 @@
 # @modifies       .gitignore
 # @modifies       .claudeignore
 #
-# @depends        bootstrap-project
-# @requires_tools python3
+# @depends        project
+# @detects        has_.venv_dir
+# @questions      none
 # @defaults       python.version=3.11, python.venv_mode=isolated
+# @detects        has_.venv_dir
+# @questions      none
 # @defaults       python.install_deps=true
 #
 # @safe           yes
@@ -28,6 +33,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        CLAUDEIGNORE_PATH,CURRENT_HASH,EDITABLE_INSTALL,ENV_PATH,GITIGNORE_PATH,HASH_FILE,INSTALL_DEPS,LAST_HASH,MANAGE_CLAUDEIGNORE,MANAGE_GITIGNORE,NEED_INSTALL,PY_BIN,PYPROJECT_TOML,PY_VERSION,REQ_FILES,REQUIRED_PY_SPEC,VENV_DIR,VENV_MODE,WRITE_ENV
+# @interactive     yes
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .venv/ .env .gitignore .claudeignore logs/
+# @verify          test -f .venv/
+# @docs            https://docs.python.org/3/
 # =============================================================================
 
 set -euo pipefail

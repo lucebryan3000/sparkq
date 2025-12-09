@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-test-suite
+# @script         bootstrap-test-suite
+# @version        1.0.0
 # @phase          4
 # @category       test
+# @priority       50
 # @short          Complete test suite setup for projects
 # @description    Sets up comprehensive testing infrastructure with Jest for
 #                 unit/integration testing, Pytest for Python, Vitest for
@@ -22,6 +24,8 @@
 #
 # @modifies       .gitignore
 #
+# @detects        has_test_suite
+# @questions      none
 # @defaults       INSTALL_MODE=full
 #
 # @safe           yes
@@ -29,6 +33,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        API_BASE_URL,API_PORT,DRY_RUN,FORCE,FRAMEWORK_LIST,FRAMEWORKS,GITIGNORE,GITIGNORE_ENTRIES,INSTALL_MODE,SRC_DIR,TESTS_DIR,TZ
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf tests/conftest.py tests/jest.config.js tests/TEST_CONTRACT.md tests/patterns.md tests/unit/ tests/integration/ tests/e2e/ pytest.ini vitest.config.ts playwright.config.ts
+# @verify          test -f tests/conftest.py
+# @docs            https://jestjs.io/docs/getting-started
 # =============================================================================
 #
 # USAGE:

@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-monitoring
+# @script         bootstrap-monitoring
+# @version        1.0.0
 # @phase          5
 # @category       config
+# @priority       50
 # @short          Observability and monitoring setup
 # @description    Configures monitoring and observability with Sentry for error
 #                 tracking, Prometheus for metrics, Datadog and New Relic
@@ -15,7 +17,11 @@
 # @creates        newrelic.js
 # @creates        .env.monitoring
 #
+# @detects        has_monitoring_config
+# @questions      monitoring
 # @defaults       monitoring.enabled=true, monitoring.sentry_enabled=true
+# @detects        has_monitoring_config
+# @questions      monitoring
 # @defaults       monitoring.prometheus_enabled=true
 #
 # @safe           yes
@@ -23,6 +29,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  monitoring
+# @env_vars        APP_PORT,DATADOG_API_KEY,DATADOG_APM_ENABLED,DATADOG_APM_SAMPLE_RATE,DATADOG_APP_KEY,DATADOG_LOGS_ENABLED,DATADOG_NETWORK_ENABLED,DATADOG_PROCESS_ENABLED,DATADOG_SITE,ENABLED,ENABLE_DATADOG,ENABLE_NEWRELIC,ENABLE_PROMETHEUS,ENABLE_SENTRY,ENVIRONMENT,FILES_TO_CREATE,NEWRELIC_APP_LOGGING,NEWRELIC_BROWSER_MONITORING,NEWRELIC_DISTRIBUTED_TRACING,NEWRELIC_ERROR_COLLECTOR,NEWRELIC_LICENSE_KEY,NEWRELIC_LOG_DECORATING,NEWRELIC_LOG_FORWARDING,NEWRELIC_LOG_LEVEL,NEWRELIC_LOG_METRICS,NEWRELIC_SLOW_SQL,NEWRELIC_TRANSACTION_TRACER,PROMETHEUS_EVAL_INTERVAL,PROMETHEUS_SCRAPE_INTERVAL,SENTRY_AUTH_TOKEN,SENTRY_DSN,SENTRY_ORG,SENTRY_PROJECT,SENTRY_TRACES_SAMPLE_RATE,SENTRY_URL,TEAM_NAME,VERSION
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .sentryrc prometheus.yml monitoring/alerts/alerts.yml datadog.yaml newrelic.js .env.monitoring
+# @verify          test -f .sentryrc
+# @docs            https://prometheus.io/docs/
 # =============================================================================
 
 set -euo pipefail

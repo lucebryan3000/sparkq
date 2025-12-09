@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-linting
+# @script         bootstrap-linting
+# @version        1.0.0
 # @phase          2
 # @category       config
+# @priority       50
 # @short          Code linting and code formatting enforcement
 # @description    Sets up ESLint for JavaScript/TypeScript linting with airbnb
 #                 config, Prettier for code formatting, with ignore files for
@@ -13,11 +15,22 @@
 # @creates        .prettierrc.json
 # @creates        .prettierignore
 #
+# @detects        has_.eslintrc
+# @questions      linting
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        none
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .eslintrc.json .eslintignore .prettierrc.json .prettierignore
+# @verify          test -f .eslintrc.json
+# @docs            https://eslint.org/docs/latest/
 # =============================================================================
 
 set -euo pipefail

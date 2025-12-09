@@ -13,7 +13,57 @@ Create a new bootstrap script or standardize an existing one to follow the share
 1. Check if the script exists
 2. If it exists → standardize it
 3. If it doesn't exist → create it (then standardize)
-4. Output the final standardized script
+4. **Validate metadata header** (new requirement)
+5. Output the final standardized script
+
+## Metadata Header Format (REQUIRED)
+
+All scripts MUST have a standardized header block. The header is the **authoritative source** for all metadata:
+
+```bash
+#!/bin/bash
+# =============================================================================
+# @script         bootstrap-{name}
+# @version        1.0.0
+# @phase          {1-5}
+# @category       {core|vcs|nodejs|python|database|docs|config|deploy|test|ai|build|security}
+# @priority       {0-100, default: 50}
+#
+# @short          {One-line description}
+# @description    {Multi-line description of what the script does}
+#
+# @creates        {file1}
+# @creates        {file2}
+# @creates        {directory/}
+#
+# @depends        {script1}
+# @depends        {script2}
+#
+# @requires       tool:{tool_name}
+#
+# @detects        {detection_function_name}
+# @questions      {question_set_name|none}
+#
+# @safe           {yes|no}
+# @idempotent     {yes|no}
+#
+# @author         Bootstrap System
+# @updated        {YYYY-MM-DD}
+#
+# @config_section {config_section_name|none}
+# @env_vars       {VAR1,VAR2|none}
+# @interactive    {yes|no|optional}
+# @platforms      {linux,macos,windows|all}
+# @conflicts      {script_name|none}
+# @rollback       {command to undo|none}
+# @verify         {command to verify|none}
+# @docs           {https://authoritative-docs-url}
+# =============================================================================
+```
+
+**Required fields:** @script, @version, @phase, @category, @priority, @short, @description
+**Optional fields:** @creates, @depends, @requires, @detects, @questions, @defaults, @tags
+**Phase 2 fields:** @config_section, @env_vars, @interactive, @platforms, @conflicts, @rollback, @verify, @docs
 
 ## Process
 
@@ -100,7 +150,40 @@ Script is created in standardized form (skip to validation).
 
 **Critical requirement:** Preserve ALL original functionality and file contents.
 
-### 3. Validate
+### 3. Validate Metadata Header
+
+**Run the metadata validation check:**
+
+```bash
+__bootbuild/lib/validate-metadata.sh
+```
+
+**Manual metadata checklist:**
+
+| Field | Status | Notes |
+|-------|--------|-------|
+| @script | ✅/❌ | Must match filename (without bootstrap- prefix) |
+| @version | ✅/❌ | Semantic version (e.g., 1.0.0) |
+| @phase | ✅/❌ | Must be 1-5 |
+| @category | ✅/❌ | Must be valid enum value |
+| @priority | ✅/❌ | Must be numeric (0-100) |
+| @short | ✅/❌ | One-line description |
+| @description | ✅/❌ | Full description present |
+
+**Phase 2 metadata checklist:**
+
+| Field | Status | Notes |
+|-------|--------|-------|
+| @config_section | ✅/❌ | Config section name or "none" |
+| @env_vars | ✅/❌ | Comma-separated env vars or "none" |
+| @interactive | ✅/❌ | Must be yes/no/optional |
+| @platforms | ✅/❌ | Must be linux/macos/windows/all |
+| @conflicts | ✅/❌ | Script name or "none" |
+| @rollback | ✅/❌ | Rollback command or "none" |
+| @verify | ✅/❌ | Verification command |
+| @docs | ✅/❌ | Authoritative documentation URL |
+
+### 4. Validate Script Structure
 
 Show verification table:
 
@@ -109,6 +192,7 @@ Show verification table:
 
 | Requirement | Status |
 |-------------|--------|
+| Metadata header complete | ✅/❌ |
 | `set -euo pipefail` | ✅/❌ |
 | Sources `lib/common.sh` | ✅/❌ |
 | Uses path variables | ✅/❌ |
@@ -122,7 +206,17 @@ Show verification table:
 | Syntax validation passes | ✅/❌ |
 ```
 
-### 4. Output
+### 5. Regenerate Manifest
+
+After creating or updating any script, regenerate the manifest:
+
+```bash
+__bootbuild/lib/generate-manifest.sh
+```
+
+This ensures the manifest stays in sync with script headers.
+
+### 6. Output
 
 Write the standardized script and run `bash -n` syntax check.
 
@@ -139,10 +233,18 @@ Write the standardized script and run `bash -n` syntax check.
 - Common replacements table in playbook
 - Troubleshooting guide in playbook
 
+**For metadata validation:**
+- `__bootbuild/lib/validate-metadata.sh` - validates all script headers
+- `__bootbuild/lib/generate-manifest.sh` - regenerates manifest from headers
+- `__bootbuild/lib/generate-detections.sh` - regenerates detection functions
+- `__bootbuild/hooks/pre-commit-validate-metadata.sh` - pre-commit hook
+
 ---
 
 **Remember:**
 - Creating: Script is already created in standardized form
 - Standardizing: Preserve all functionality, improve structure only
+- **Always include complete metadata header** (script headers are authoritative)
 - Always validate syntax before output
+- Regenerate manifest after any script changes
 - All scripts must be idempotent (safe to run multiple times)

@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-rate-limiting
+# @script         bootstrap-rate-limiting
+# @version        1.0.0
 # @phase          2
 # @category       config
+# @priority       50
 # @short          Redis-based rate limiting service configuration
 # @description    Sets up Redis-based rate limiting infrastructure with token
 #                 bucket strategy, Lua scripts for atomic operations, endpoint
@@ -17,8 +19,11 @@
 # @creates        .env.rate-limiting
 # @creates        docker-compose.rate-limiting.yml
 #
-# @requires_tools openssl
+# @detects        has_rate-limit.config
+# @questions      rate-limiting
 # @defaults       redis_version=7.0, redis_port=6379, window_seconds=60
+# @detects        has_rate-limit.config
+# @questions      rate-limiting
 # @defaults       max_requests=100, strategy=token-bucket
 #
 # @safe           yes
@@ -26,6 +31,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  rate_limiting
+# @env_vars        BLUE,CONFIG_FILE,CREATED_FILES,DOCKER_COMPOSE_FILE,ENABLED,ENDPOINTS_FILE,ENV_FILE,EXAMPLE_FILE,FILES_TO_CREATE,GREEN,LUA_INIT_FILE,NC,RATE_LIMIT_KEYS_PATTERN,RATE_LIMIT_MAX_REQUESTS,RATE_LIMIT_STRATEGY,RATE_LIMIT_WINDOW,REDIS_DB,REDIS_PASSWORD,REDIS_PORT,REDIS_VERSION,SKIPPED_FILES,STRATEGIES_FILE,YELLOW
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf config/rate-limiting/rate-limit.config.json config/rate-limiting/redis-init.lua config/rate-limiting/strategies.lua config/rate-limiting/endpoints.json config/rate-limiting/example-integration.js .env.rate-limiting docker-compose.rate-limiting.yml
+# @verify          test -f config/rate-limiting/rate-limit.config.json
+# @docs            https://github.com/express-rate-limit/express-rate-limit
 # =============================================================================
 
 set -euo pipefail

@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-project
+# @script         bootstrap-project
+# @version        1.0.0
 # @phase          1
-# @category       setup
+# @category       core
+# @priority       50
 # @short          Initialize project metadata and directory structure
 # @description    Creates foundational project files including CLAUDE.md with
 #                 project guidelines, README.md, .claudeignore for context
@@ -18,11 +20,22 @@
 # @creates        docs/development.md
 # @creates        docs/deployment.md
 #
+# @detects        has_project_config
+# @questions      project
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        DOCS
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf CLAUDE.md README.md .claudeignore docs/ docs/architecture.md docs/api.md docs/development.md docs/deployment.md
+# @verify          test -f CLAUDE.md
+# @docs            https://docs.npmjs.com/cli/configuring-npm/package-json
 # =============================================================================
 
 set -euo pipefail

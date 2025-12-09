@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-ci-cd
+# @script         bootstrap-ci-cd
+# @version        1.0.0
 # @phase          4
 # @category       deploy
+# @priority       50
 # @short          Multi-platform CI/CD pipeline configurations
 # @description    Creates comprehensive CI/CD pipeline configurations for five
 #                 platforms: GitLab CI, Jenkins, CircleCI, Azure Pipelines,
@@ -15,14 +17,24 @@
 # @creates        azure-pipelines.yml
 # @creates        bitbucket-pipelines.yml
 #
-# @depends        bootstrap-git, bootstrap-github
-# @requires_tools git
+# @depends        git, github
 #
+# @detects        has_gitlab_ci
+# @questions      ci-cd
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  cicd
+# @env_vars        ANSWERS_FILE,DETECTED_PLATFORM
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .gitlab-ci.yml Jenkinsfile .circleci/config.yml azure-pipelines.yml bitbucket-pipelines.yml
+# @verify          test -f .gitlab-ci.yml
+# @docs            https://docs.github.com/en/actions
 # =============================================================================
 
 set -euo pipefail

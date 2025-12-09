@@ -1,11 +1,45 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-api.sh
+# =============================================================================
+# @script         bootstrap-api
+# @version        1.0.0
+# @phase          2
+# @category       config
+# @priority       50
 #
-# Bootstrap API configuration and standards
-# Creates OpenAPI/Swagger specs, GraphQL schemas, API routes, and mock server
-# ===================================================================
+# @short          API configuration and OpenAPI/GraphQL standards
+# @description    Bootstrap API configuration including OpenAPI/Swagger specs,
+#                 GraphQL schemas, API routes structure, and mock server setup
+#                 for development and testing.
+#
+# @creates        openapi.yaml
+# @creates        graphql/schema.graphql
+# @creates        api/
+# @creates        mock-server.js
+#
+# @depends        project
+# @depends        typescript
+#
+# @requires       tool:node
+# @requires       tool:npm
+#
+# @detects        has_openapi
+# @questions      none
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        PORT
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf openapi.yaml graphql/schema.graphql api/ mock-server.js
+# @verify          test -f openapi.yaml
+# @docs            https://swagger.io/specification/
+# =============================================================================
 
 set -euo pipefail
 

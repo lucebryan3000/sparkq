@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-elasticsearch
+# @script         bootstrap-elasticsearch
+# @version        1.0.0
 # @phase          5
 # @category       config
+# @priority       50
 # @short          Elasticsearch cluster infrastructure config
 # @description    Configures Elasticsearch cluster with analysis plugins,
 #                 security settings, Docker Compose orchestration, persistent
@@ -14,7 +16,11 @@
 # @creates        .env.elasticsearch
 # @creates        docker-compose.elasticsearch.yml
 #
+# @detects        has_elasticsearch_config
+# @questions      elasticsearch
 # @defaults       ES_VERSION=8.0, ES_PORT=9200, ES_MEMORY=512m
+# @detects        has_elasticsearch_config
+# @questions      elasticsearch
 # @defaults       ES_DISCOVERY_TYPE=single-node, ES_SECURITY_ENABLED=false
 #
 # @safe           yes
@@ -22,6 +28,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  elasticsearch
+# @env_vars        ANALYSIS_FILE,BLUE,CREATED_FILES,DOCKER_COMPOSE_FILE,ENABLED,ENV_FILE,ES_BIND_HOST,ES_CLUSTER_NAME,ES_CONFIG_FILE,ES_DISCOVERY_TYPE,ES_MEMORY,ES_NODE_NAME,ES_PASSWORD,ES_PORT,ES_SECURITY_ENABLED,ES_VERSION,FILES_TO_CREATE,GREEN,NC,SKIPPED_FILES,YELLOW
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf infrastructure/elasticsearch/elasticsearch.yml infrastructure/elasticsearch/analysis.yml .env.elasticsearch docker-compose.elasticsearch.yml
+# @verify          test -f infrastructure/elasticsearch/elasticsearch.yml
+# @docs            https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html
 # =============================================================================
 
 set -euo pipefail

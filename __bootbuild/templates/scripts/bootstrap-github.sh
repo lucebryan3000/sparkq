@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-github
+# @script         bootstrap-github
+# @version        1.0.0
 # @phase          2
-# @category       setup
+# @category       vcs
+# @priority       50
 # @short          GitHub configuration and issue/PR templates
 # @description    Creates GitHub-specific configuration including pull request
 #                 templates, issue templates (bug/feature), GitHub Actions CI
@@ -13,14 +15,24 @@
 # @creates        .github/ISSUE_TEMPLATE/feature_request.md
 # @creates        .github/workflows/ci.yml
 #
-# @depends        bootstrap-git, bootstrap-project
-# @requires_tools git
+# @depends        git, project
 #
+# @detects        has_github_dir
+# @questions      github
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        GITHUB_DIR
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .github/PULL_REQUEST_TEMPLATE.md .github/ISSUE_TEMPLATE/bug_report.md .github/ISSUE_TEMPLATE/feature_request.md .github/workflows/ci.yml
+# @verify          test -f .github/PULL_REQUEST_TEMPLATE.md
+# @docs            https://docs.github.com/
 # =============================================================================
 
 set -euo pipefail

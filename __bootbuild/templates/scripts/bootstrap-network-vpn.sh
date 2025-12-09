@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-network-vpn
-# @phase          7
+# @script         bootstrap-network-vpn
+# @version        1.0.0
+# @phase          5
 # @category       deploy
+# @priority       50
 # @short          VPN and secure networking configuration
 # @description    Configures VPN infrastructure using WireGuard with key
 #                 generation, iptables rules, Docker networking, peer
@@ -14,6 +16,8 @@
 # @creates        config/network/vpn/docker-network.yml
 # @creates        .env.vpn
 #
+# @detects        has_vpn_config
+# @questions      network-vpn
 # @defaults       vpn.enabled=false, vpn.provider=wireguard, vpn.port=51820
 #
 # @safe           yes
@@ -21,6 +25,15 @@
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  vpn
+# @env_vars        ACTIVE_PEERS,BLUE,CREATED_FILES,DNS_SERVER_1,DNS_SERVER_2,DNS_SERVERS,DOCKER_NETWORK_DRIVER,DOCKER_NETWORK_FILE,DOCKER_NETWORK_NAME,DOCKER_NETWORK_SUBNET,ENABLED,ENV_FILE,EUID,FILES_TO_CREATE,FIREWALL_ENABLED,GREEN,IPTABLES_FILE,KEYGEN_SCRIPT,KEYS_DIR,MONITORING_DOC,NC,PEER_COUNT,PEER_IP,PEER_NAME,PEER_PRESHARED_KEY,PEER_PRIVATE_KEY,PEER_PUBLIC_KEY,PEERS_DIR,SERVER_PRIVATE_KEY,SERVER_PUBLIC_KEY,SKIPPED_FILES,VPN_CIDR,VPN_CIDR_BASE,VPN_CONFIG,VPN_CONFIG_FILE,VPN_ENDPOINT,VPN_INTERFACE,VPN_KEEPALIVE,VPN_KEY_BITS,VPN_PORT,VPN_PROTOCOL,VPN_PROVIDER,YELLOW
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf config/network/vpn/wireguard-config.conf config/network/vpn/generate-keys.sh config/network/vpn/iptables-rules.conf config/network/vpn/docker-network.yml .env.vpn
+# @verify          test -f config/network/vpn/wireguard-config.conf
+# @docs            https://www.wireguard.com/quickstart/
 # =============================================================================
 
 set -euo pipefail

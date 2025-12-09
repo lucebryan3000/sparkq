@@ -1,8 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# @name           bootstrap-editor
+# @script         bootstrap-editor
+# @version        1.0.0
 # @phase          2
 # @category       config
+# @priority       50
 # @short          Editor formatting and coding standards
 # @description    Sets up editor configuration with EditorConfig for consistent
 #                 formatting across different editors and IDEs, plus Stylelint
@@ -11,11 +13,22 @@
 # @creates        .editorconfig
 # @creates        .stylelintrc.json
 #
+# @detects        has_editorconfig
+# @questions      editor
 # @safe           yes
 # @idempotent     yes
 #
 # @author         Bootstrap System
 # @updated        2025-12-08
+#
+# @config_section  none
+# @env_vars        none
+# @interactive     no
+# @platforms       all
+# @conflicts       none
+# @rollback        rm -rf .editorconfig .stylelintrc.json
+# @verify          test -f .editorconfig
+# @docs            https://editorconfig.org/
 # =============================================================================
 
 set -euo pipefail
