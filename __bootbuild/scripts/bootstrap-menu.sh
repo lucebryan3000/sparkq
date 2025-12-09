@@ -1228,7 +1228,7 @@ run_menu() {
     display_menu
 
     while true; do
-        read -p "Selection: " -r choice || continue
+        read -p "Selection: " -r choice || break
 
         # Validate input before processing
         if ! validate_menu_command "$choice"; then
