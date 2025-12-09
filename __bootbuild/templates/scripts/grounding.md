@@ -463,10 +463,15 @@ main() {
 main "$@"
 ```
 
-### CI/CD Integration
+### CI/CD Integration (OPTIONAL TEMPLATE)
+
+**Note:** GitHub Actions template provided below as optional reference. **NOT ENABLED BY DEFAULT** to avoid cost. Local pre-commit hooks provide sufficient validation for most workflows.
+
+To enable: Create `.github/workflows/validate-scripts.yml` from template and enable in GitHub Settings.
 
 ```yaml
-# .github/workflows/validate-scripts.yml
+# .github/workflows/validate-scripts.yml.template
+# Optional: Create from template if CI/CD validation desired
 name: Validate Bootstrap Scripts
 on: [pull_request]
 
@@ -530,20 +535,25 @@ jobs:
 - **Docker Grounding:** `__bootbuild/templates/docker/grounding.md` (sibling domain grounding, TBD)
 - **Manifest:** `__bootbuild/config/bootstrap-manifest.json` (source of truth for script metadata)
 - **Validation Library:** `__bootbuild/lib/validate-constraints.sh` (implements all constraint checks)
-- **Pre-Commit Hooks:** `.husky/pre-commit` (enforces constraints on commit)
+- **Pre-Commit Hooks:** `.git/hooks/pre-commit` (local enforcement, disabled by default)
+- **CI/CD Template:** `.github/workflows/validate-scripts.yml.template` (optional, not enabled by default)
 
 ---
 
-## First Implementation Checklist
+## Implementation Roadmap
 
+**Priority 1: LOCAL PRE-COMMIT (Required)**
 - [x] All 42 existing scripts follow @script tag pattern
 - [x] @script metadata system established across codebase
 - [x] Bootstrap manifest exists with script metadata
-- [x] Pre-commit hooks can be configured to validate
-- [ ] Validation library implemented (TODO: create __bootbuild/lib/validate-constraints.sh)
-- [ ] Pre-commit hooks integrated (TODO: configure .husky/pre-commit)
-- [ ] CI/CD pipeline configured (TODO: add GitHub Actions workflow)
-- [ ] Team awareness: All developers know constraints (TODO: internal documentation)
+- [ ] Validation library implemented (TODO: create `__bootbuild/lib/validate-constraints.sh`)
+- [ ] Local pre-commit hooks integrated (TODO: configure `.git/hooks/pre-commit`)
+- [ ] Disabled by default (users must explicitly enable via git config)
+
+**Priority 2: OPTIONAL CI/CD TEMPLATES**
+- [ ] GitHub Actions workflow template created (`.github/workflows/validate-scripts.yml.template`)
+- [ ] Template provided as reference, not enabled by default
+- [ ] Documentation on how to enable if desired
 
 ---
 

@@ -550,19 +550,20 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
   - Status: Ready for validation library implementation (`__bootbuild/lib/validate-constraints.sh`)
   - Next: Integrate with pre-commit hooks (.husky/pre-commit) and CI/CD pipeline
 
-### In Progress
+### In Progress (LOCAL PRE-COMMIT FOCUS)
 
 - [ ] **Create validation library** (`__bootbuild/lib/validate-constraints.sh`)
   - Goal: Implement all 24 constraint checks from Shell Scripts grounding
   - Automatable: script name, version, phase, category, priority, spacing, manifest sync, phase sequencing
-  - Integrates with: pre-commit hooks, CI/CD pipeline
+  - **Scope: LOCAL ONLY** (no external calls, no network I/O)
   - ROI: 3.5x (enables automated constraint enforcement)
 
-- [ ] **Integrate pre-commit hooks**
-  - Location: `.husky/pre-commit`
+- [ ] **Integrate local pre-commit hooks** (PRIMARY FOCUS)
+  - Location: `.git/hooks/pre-commit` or `.husky/pre-commit`
   - Actions: Run validation library on bootstrap-*.sh changes before commit
   - Also: Update manifest.json if metadata changed
-  - ROI: 4.1x (prevents invalid scripts entering repository)
+  - **Disabled by default** (user must run `git config core.hooksPath .git/hooks` to enable)
+  - ROI: 4.1x (prevents invalid scripts entering repository locally)
 
 ### Coming Soon (Phase 2)
 
@@ -581,6 +582,15 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
   - Location: `__bootbuild/config/category-bridge.json`
   - Goal: Canonical mapping between shell @category, Kubernetes labels, and IaC tags
   - Structure: Follows example from precedence framework section
+
+### Optional: GitHub Actions Templates (DISABLED BY DEFAULT)
+
+- [ ] **CI/CD pipeline template** (template only, not enabled)
+  - Location: `.github/workflows/validate-bootstrap.yml.template`
+  - Status: Create as optional reference, not required
+  - Activation: Teams must explicitly enable in GitHub settings if desired
+  - Cost concern: Disabled to avoid excessive Actions usage
+  - Note: Local pre-commit hooks provide sufficient validation for most workflows
 
 ### Future (Phase 3+)
 
