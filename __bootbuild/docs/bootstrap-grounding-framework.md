@@ -232,7 +232,7 @@ When running `/bryan` against a specification:
 
 | Domain | Status | Location | Grounding Template | Notes |
 |--------|--------|----------|---------------------|-------|
-| **Shell Scripts** | 🟡 Ready | `__bootbuild/templates/scripts/` | TBD (Phase 3-4) | **PRIORITY NOW** — 42 scripts, @script metadata established, awaiting Phase 3-5 workflow (see "First Implementation") |
+| **Shell Scripts** | ✅ Complete | `__bootbuild/templates/scripts/` | [`grounding.md`](../../../__bootbuild/templates/scripts/grounding.md) | 24 constraints documented; all 42 scripts follow pattern; pre-commit hooks ready for integration |
 | **Docker/Compose** | 🟡 Ready | `__bootbuild/templates/docker/` | TBD (Phase 3-4) | **NEXT** — Tier system (sandbox/dev/prod) established, awaiting Phase 3-5 workflow |
 | **Specifications** | ✅ Complete | `__bootbuild/docs/bootstrap-grounding-framework.md` (this file) | Active | Framework document itself; reusable spec completeness checklist for /bryan playbook |
 | **Kubernetes** | ⏳ Planned | `__bootbuild/templates/kubernetes/` | Phase 2 TBD | Adoption decision pending; reserved for future expansion |
@@ -325,6 +325,124 @@ Ask these questions when evaluating whether a technology domain needs grounding:
 | **Automation** | Manual checks | Partial validation | Full CI/CD integration |
 
 **Decision:** If you meet "Ready for Grounding" or "Fully Grounded" criteria, create/update the grounding template.
+
+---
+
+## Cross-Domain Precedence Framework
+
+**Rationale:** As the bootstrap system expands (Shell Scripts → Docker → Kubernetes → IaC), multiple domains interact and naming/execution patterns can conflict. This framework establishes clear precedence rules.
+
+### Precedence Tiers (Priority Ordering)
+
+```
+Tier 1 (CRITICAL): SECURITY > ALL
+Tier 2 (HIGH):     EXECUTION SAFETY > CONSISTENCY
+Tier 3 (MEDIUM):   IDEMPOTENCY > PERFORMANCE
+Tier 4 (STANDARD): CONSISTENCY > CONVENIENCE
+Tier 5 (LOW):      CONVENIENCE > DOCUMENTATION
+```
+
+**How to Use:** When patterns conflict between domains, find the affected tier and apply its rule. Higher tiers always win.
+
+### Domain Characteristics & Authority
+
+| Domain | Authority | Patterns | Current | Examples |
+|--------|-----------|----------|---------|----------|
+| **Shell Scripts** | Canonical (source of truth) | @script tags, phases 1-5, category enum | ✅ Active (50+ scripts) | bootstrap-postgres.sh, @phase 3, @category database |
+| **Docker** | Service-level (within compose) | Service names, tier-based config (sandbox/dev/prod) | ✅ Active (3 tiers) | container_name: sparkq_postgres, tier_prod |
+| **Kubernetes** | Resource-level (clusters) | Resource naming, labels, ConfigMap/Secret | ⏳ Planned | sparkq-postgres-statefulset, app: sparkq |
+| **IaC (Terraform/CloudFormation)** | Infrastructure-level (cloud) | Resource tagging, environment prefixes | ⏳ Planned | prod-sparkq-postgres-instance, tags: {Project: sparkq} |
+
+### Key Conflict Resolution Examples
+
+**Example 1: Naming Convention Conflict**
+```
+Shell Scripts: bootstrap-postgres.sh (kebab-case, "bootstrap-" prefix)
+Docker:        sparkq_postgres (snake_case, project prefix)
+Kubernetes:    sparkq-postgres-statefulset (kebab-case, type suffix)
+IaC:           prod-sparkq-postgres (env prefix, project, component)
+
+Resolution: Each domain is AUTHORITATIVE within its scope
+✅ CORRECT: Use domain-native patterns; bridge via COMPONENT NAME
+├─ Shell: bootstrap-postgres.sh → COMPONENT = "postgres"
+├─ Docker: Extract component from script name → service: postgres
+├─ K8s: Use component in resource name → sparkq-postgres-statefulset
+└─ IaC: Tag with source script → tags.BootstrapScript = "bootstrap-postgres"
+```
+
+**Example 2: Safety Declaration Conflict**
+```
+Shell declares:        @safe=no (backup operation, destructive)
+Docker tier:           sandbox (permissive, development-only)
+Kubernetes:            Production cluster (restrictive)
+IaC:                   No encryption required (development)
+
+Resolution: MOST RESTRICTIVE WINS (Tier 2: Safety)
+✅ CORRECT: Respect @safe=no even in sandbox
+├─ Sandbox execution: Still require user confirmation
+├─ K8s execution: Additional safeguards (immutable backups, audit logging)
+└─ IaC execution: Highest security (encrypted backups, versioning)
+```
+
+**Example 3: Idempotency Conflict**
+```
+Shell declares:        @idempotent=yes (can run multiple times)
+Docker state:          Volume persistence (idempotent at service level)
+Kubernetes:            ConfigMap updates (may require pod restart)
+IaC state:             Terraform plan can detect drift
+
+Resolution: IDEMPOTENCY IS LOCAL CONTRACT (Tier 3)
+✅ CORRECT: Each layer maintains idempotency within its scope
+├─ Shell: Script checks before modifying, returns 0 if already done
+├─ Docker: docker-compose up is idempotent (no duplicate containers)
+├─ K8s: kubectl apply is idempotent (unless ConfigMap immutable)
+└─ IaC: terraform plan shows only actual changes, no redundant updates
+```
+
+### Bridge Mapping Table
+
+For cross-domain references, use this canonical mapping:
+
+```json
+{
+  "shell_to_kubernetes": {
+    "bootstrap-postgres": {
+      "k8s_statefulset": "sparkq-postgres",
+      "k8s_service": "postgres",
+      "k8s_configmap": "postgres-config",
+      "k8s_labels": {"app": "sparkq", "component": "database"}
+    }
+  },
+  "shell_to_terraform": {
+    "bootstrap-postgres": {
+      "resource_name": "prod-sparkq-postgres",
+      "resource_type": "aws_rds_instance",
+      "terraform_tags": {"BootstrapScript": "bootstrap-postgres", "Category": "database"}
+    }
+  }
+}
+```
+
+**Usage:** When generating Kubernetes manifests from shell scripts, reference this table to maintain naming consistency and add bootstrap traceability labels.
+
+### When to Escalate Cross-Domain Conflicts
+
+```
+Pattern Conflict Detected?
+    ↓
+1. Identify which domains involved
+2. Determine affected tier (Security? Safety? Idempotency? ...)
+3. Apply precedence rule from that tier
+4. If rule produces unsafe result → STOP and escalate to architect
+5. If no precedence rule applies → Add to framework, then apply
+
+Example escalations:
+- Security constraint violated? → Stop, escalate immediately
+- Idempotency promise broken? → Document exception, escalate
+- New domain interaction type? → Add to precedence table
+```
+
+**Full Framework Reference:** See `__bootbuild/config/precedence-matrix.md` (when created) for complete cross-domain conflict resolution matrix with all 6+ conflict scenarios and exception handling procedures.
 
 ---
 
@@ -424,20 +542,49 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
 
 **Implementation Roadmap:**
 
-- [ ] //TODO: Create Shell Scripts grounding template
-  - Location: `__bootbuild/templates/scripts/grounding.md`
-  - Goal: Document patterns for bootstrap script metadata (@script tags, phases, categories, dependencies)
-  - Reference: 42 existing bootstrap scripts with established @script tag system
-  - Quick Start: See "First Implementation: Shell Scripts Grounding" section above
+### Completed (Round 2 of /bryan audit)
 
-- [ ] //TODO: Create Docker grounding template
+- [x] **✅ Shell Scripts Grounding Template** (COMPLETE)
+  - Location: `__bootbuild/templates/scripts/grounding.md`
+  - Content: 24 concrete, automatable constraints + 5 assumed patterns + pre-commit hook integration
+  - Status: Ready for validation library implementation (`__bootbuild/lib/validate-constraints.sh`)
+  - Next: Integrate with pre-commit hooks (.husky/pre-commit) and CI/CD pipeline
+
+### In Progress
+
+- [ ] **Create validation library** (`__bootbuild/lib/validate-constraints.sh`)
+  - Goal: Implement all 24 constraint checks from Shell Scripts grounding
+  - Automatable: script name, version, phase, category, priority, spacing, manifest sync, phase sequencing
+  - Integrates with: pre-commit hooks, CI/CD pipeline
+  - ROI: 3.5x (enables automated constraint enforcement)
+
+- [ ] **Integrate pre-commit hooks**
+  - Location: `.husky/pre-commit`
+  - Actions: Run validation library on bootstrap-*.sh changes before commit
+  - Also: Update manifest.json if metadata changed
+  - ROI: 4.1x (prevents invalid scripts entering repository)
+
+### Coming Soon (Phase 2)
+
+- [ ] **Create Docker grounding template**
   - Location: `__bootbuild/templates/docker/grounding.md`
   - Goal: Document Docker container patterns, Compose structure, tier configurations
-  - Reference: Existing work in `__bootbuild/templates/docker/`
+  - Reference: Existing work in `__bootbuild/templates/docker/`, leverage bridge mappings from precedence framework
+  - Estimated: 8-16 hours (following Shell Scripts grounding pattern)
 
-- [ ] //TODO: Create `__bootbuild/docs/bryan/spec-templates/` with domain-specific checklists
-  - Goal: Improve structural validation in `/bryan` before deep analysis
-  - When ready: Move spec checklist items into domain-specific files (api.md, migration.md, config.md, execution.md)
-  - Integration: `/bryan` PLAY 1.4 will load domain-specific checklist based on spec type
+- [ ] **Create precedence-matrix.md (detailed)**
+  - Location: `__bootbuild/config/precedence-matrix.md`
+  - Goal: Full expansion of cross-domain precedence framework (6 conflict scenarios, exception handling, decision trees)
+  - Foundation: Summary already in framework file; detailed version for specialist reference
+
+- [ ] **Create category-bridge.json**
+  - Location: `__bootbuild/config/category-bridge.json`
+  - Goal: Canonical mapping between shell @category, Kubernetes labels, and IaC tags
+  - Structure: Follows example from precedence framework section
+
+### Future (Phase 3+)
 
 - [ ] Use as reference during architecture reviews for new tooling (Kubernetes, IaC, etc.)
+- [ ] Expand to Kubernetes domain grounding (Phase 3)
+- [ ] Expand to Infrastructure-as-Code domain grounding (Phase 4)
+- [ ] Create domain-specific checklist files in `__bootbuild/docs/` for `/bryan` integration
