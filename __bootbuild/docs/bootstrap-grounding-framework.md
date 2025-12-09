@@ -10,6 +10,27 @@
 
 ---
 
+## Who Uses This & When
+
+**This document is for:**
+- 👨‍🏛️ **Architects** planning new technology domains (Kubernetes, IaC, databases)
+- 👨‍💻 **Developers** implementing scripts in grounded domains
+- 🤖 **Claude** (AI assistant) executing within grounded system domains
+- 📋 **Standards reviewers** validating specification completeness
+
+**When to consult this document:**
+
+| Scenario | Action | Reference |
+|----------|--------|-----------|
+| **Planning a new technology domain** | Read "Creating a Domain-Specific Grounding Template" (Phase 1-5 workflow) | Lines 99-165 |
+| **Implementing scripts in Docker/Shell Scripts** | Load domain-specific grounding from `__bootbuild/templates/[domain]/grounding.md` | Section "How Claude Uses Grounding Templates" |
+| **Validating a specification is complete** | Use the "Specification Completeness Checklist" before gap analysis | Lines 168-207 |
+| **Evaluating if a domain needs grounding** | Use the "Decision Framework: When to Ground a Domain" matrix | Lines 283-306 |
+| **Writing a domain grounding template** | Follow the "Generic Grounding Template Structure" as a template | Lines 34-58 |
+| **Documenting exceptions to patterns** | Reference the "Failure Recovery & Escalation" section | Lines 223-250 |
+
+---
+
 ## What Are Grounding Templates?
 
 Grounding templates are **standardized reference documents** that establish common patterns, constraints, and execution context for scripts within a specific technology domain.
@@ -211,20 +232,20 @@ When running `/bryan` against a specification:
 
 | Domain | Status | Location | Grounding Template | Notes |
 |--------|--------|----------|---------------------|-------|
-| **Shell Scripts** | ✅ Core | `__bootbuild/scripts/` + `__bootbuild/templates/scripts/` | TBD (in-progress) | Foundation; @script tag metadata system established; awaiting formal grounding doc |
-| **Docker/Compose** | 🟡 Emerging | `__bootbuild/templates/docker/` | TBD (in-progress) | Patterns established during bootstrap expansion; tier system (sandbox/dev/prod) |
-| **Specifications** | 📋 Framework | `__bootbuild/docs/bootstrap-grounding-framework.md` (this file) | Active | Generic spec completeness validation; applies to API specs, migrations, configs, execution plans |
-| **Kubernetes** | ⏳ Reserved | `__bootbuild/templates/kubernetes/` | TBD | Planned for Phase 2; no grounding yet |
-| **Infrastructure-as-Code** | ⏳ Reserved | `__bootbuild/templates/iac/` | TBD | Planned for Phase 3; Terraform, CloudFormation patterns |
-| **[Custom Domain]** | ⏳ TBD | `__bootbuild/templates/[domain]/` | TBD | Reserved for project-specific expansions |
+| **Shell Scripts** | 🟡 Ready | `__bootbuild/templates/scripts/` | TBD (Phase 3-4) | **PRIORITY NOW** — 42 scripts, @script metadata established, awaiting Phase 3-5 workflow (see "First Implementation") |
+| **Docker/Compose** | 🟡 Ready | `__bootbuild/templates/docker/` | TBD (Phase 3-4) | **NEXT** — Tier system (sandbox/dev/prod) established, awaiting Phase 3-5 workflow |
+| **Specifications** | ✅ Complete | `__bootbuild/docs/bootstrap-grounding-framework.md` (this file) | Active | Framework document itself; reusable spec completeness checklist for /bryan playbook |
+| **Kubernetes** | ⏳ Planned | `__bootbuild/templates/kubernetes/` | Phase 2 TBD | Adoption decision pending; reserved for future expansion |
+| **Infrastructure-as-Code** | ⏳ Planned | `__bootbuild/templates/iac/` | Phase 3 TBD | Terraform, CloudFormation patterns; after Kubernetes adoption |
+| **[Custom Domain]** | ⏳ Reserved | `__bootbuild/templates/[domain]/` | TBD | Use framework to ground custom domains as needed |
 
 ---
 
 ## Failure Recovery & Escalation
 
-**STATUS: REQUIRED SECTION - IN PROGRESS**
+**STATUS: COMPLETE** ✅
 
-When a script or pattern conflicts with established grounding:
+Defines procedures when script or pattern conflicts with established grounding:
 
 1. **Pattern Violation Detected**
    - Script doesn't follow documented patterns for its domain
@@ -252,7 +273,7 @@ When a script or pattern conflicts with established grounding:
 
 ## Grounding Success Criteria
 
-**STATUS: REQUIRED SECTION - IN PROGRESS**
+**STATUS: COMPLETE** ✅
 
 A domain is considered "successfully grounded" when:
 
@@ -307,14 +328,107 @@ Ask these questions when evaluating whether a technology domain needs grounding:
 
 ---
 
+## Resource Requirements
+
+**Effort Estimates for Creating Domain Groundings:**
+
+| Phase | Activity | Effort | Owner | Notes |
+|-------|----------|--------|-------|-------|
+| **Phase 1: Recognize** | Identify need, gather existing patterns, document context | 1-2 hours | Architect | Meeting + analysis |
+| **Phase 2: Establish** | Create folder structure, setup naming conventions | 30 minutes | Developer | One-time setup |
+| **Phase 3: Write** | Create grounding template + documentation | 4-8 hours | Architect + Codex | Document patterns, decision rationale |
+| **Phase 4: Validate** | Collect 3+ implementation examples, verify consistency | 2-4 hours | Team + Architect | Review existing scripts, test patterns |
+| **Phase 5: Integrate** | Update framework file, link documentation, announce | 1 hour | Developer | File updates + communication |
+| **TOTAL** | Complete domain grounding | **8-16 hours** | Team | Typically 1-2 sprints |
+
+**Token Budget (AI-Assisted):**
+- Codex (documentation generation): 200-400 tokens (writing grounding template)
+- Haiku (pattern validation): 100-200 tokens (checking examples)
+- Sonnet (decision rationale): 300-500 tokens (why decisions made)
+- **Total AI tokens: ~700-1,100 tokens per domain**
+
+**Dependencies:**
+- ✅ Existing patterns must be documented (implicit or explicit)
+- ✅ 3+ working implementations available for validation
+- ✅ Domain expert (architect) available for decision rationale
+- ✅ Team consensus on "stable" patterns before grounding
+
+**Rollback Plan (if grounding proves wrong):**
+1. Document the failure reason (why patterns don't fit)
+2. Create "exception" subsection in grounding
+3. Escalate to architect for re-evaluation (PLAY 1 of /bryan)
+4. Do NOT delete grounding; instead mark as "revised" with date
+
+---
+
+## Known Limitations & Exceptions
+
+**This framework covers:**
+- ✅ Standardizing patterns WITHIN a technology domain (Docker, Kubernetes, Shell Scripts, etc.)
+- ✅ Establishing constraints and consistency rules for script generation
+- ✅ Defining failure recovery procedures when patterns conflict
+- ✅ Providing reusable spec completeness checklist for any specification type
+
+**This framework does NOT cover:**
+- ❌ **CI/CD Pipeline Templates** — Pipeline orchestration patterns belong in CI/CD-specific grounding (future)
+- ❌ **Infrastructure-as-Code Definitions** — Terraform/CloudFormation state patterns belong in IaC grounding (Phase 3)
+- ❌ **Project-Specific Policies** — Team agreements (code review, testing standards) belong in project CLAUDE.md
+- ❌ **Runtime Deployment Orchestration** — Docker Swarm, Kubernetes deployment strategies belong in operations documentation
+- ❌ **Security Policies** — Authentication, encryption, secrets management belong in security framework
+- ❌ **Database Schema Patterns** — SQL patterns, migrations belong in database-specific grounding (future)
+
+**When to Create Additional Frameworks:**
+If your technology domain needs standards that span beyond what grounding templates provide, consider creating a domain-specific **Execution Framework** alongside the grounding. Example:
+
+```
+__bootbuild/templates/cicd/
+├── grounding.md              # Patterns for CI/CD scripts
+└── execution-framework.md    # Full pipeline orchestration standards
+```
+
+---
+
+## First Implementation: Shell Scripts Grounding (Quick Start)
+
+**Current Status:** Grounding framework ACTIVE, Shell Scripts domain READY FOR GROUNDING
+
+**Shell Scripts Domain Assessment:**
+- ✅ Trigger: 42+ scripts exist with @script tag metadata system
+- ✅ Pattern Maturity: Established (@script tags, phase system, categories documented)
+- ✅ Implementation Count: 42 scripts follow @script pattern consistently
+- ⏳ Status: Ready for Phase 1-5 workflow (see "Creating a Domain-Specific Grounding Template")
+
+**Immediate Next Step (Now):**
+Create `__bootbuild/templates/scripts/grounding.md` documenting:
+1. **Purpose:** Shell script metadata and @script tag patterns
+2. **Core Constraints:** Mandatory @script tags, required fields (version, phase, category, priority)
+3. **Assumed Patterns:** All scripts follow bash 4+, use standard shebang, include metadata headers
+4. **Key Decisions:** Why @script tags, why phase-based organization, dependency graph format
+5. **References:** Point to existing implementations like `bootstrap-typescript`, `bootstrap-docker`
+
+**Who Creates This:**
+- **Architect review:** Architecture alignment (Opus/Sonnet 1-2 hours)
+- **Template writing:** Codex generation from specification (300 tokens)
+- **Validation:** Review 3+ implementations, verify consistency (1-2 hours)
+
+**Success Criteria (for Shell Scripts grounding):**
+- [ ] Grounding template created at `__bootbuild/templates/scripts/grounding.md`
+- [ ] All 4 Success Criteria met (see "Grounding Success Criteria" section)
+- [ ] All 42 existing scripts validate against grounding
+- [ ] New scripts are validated by pre-commit hook against grounding
+- [ ] Domain marked as "✅ FULLY GROUNDED" in Current Domains table
+
+---
+
 ## Next Steps
 
 **Implementation Roadmap:**
 
-- [ ] //TODO: Expand Shell Scripts grounding template
+- [ ] //TODO: Create Shell Scripts grounding template
   - Location: `__bootbuild/templates/scripts/grounding.md`
   - Goal: Document patterns for bootstrap script metadata (@script tags, phases, categories, dependencies)
-  - Reference: Bootstrap header structure in `__bootbuild/templates/scripts/`
+  - Reference: 42 existing bootstrap scripts with established @script tag system
+  - Quick Start: See "First Implementation: Shell Scripts Grounding" section above
 
 - [ ] //TODO: Create Docker grounding template
   - Location: `__bootbuild/templates/docker/grounding.md`
