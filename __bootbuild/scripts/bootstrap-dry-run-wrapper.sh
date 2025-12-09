@@ -208,16 +208,28 @@ generate_summary_report() {
     log_section "Dry Run Summary"
     echo ""
 
+    # Safe counter helper to avoid empty/duplicated output under set -euo
+    _count_changes() {
+        local type="$1"
+        if [[ ! -f "$DRY_RUN_LOG" ]]; then
+            echo 0
+            return
+        fi
+        local cnt
+        cnt=$(grep -c "^${type}|" "$DRY_RUN_LOG" 2>/dev/null || true)
+        echo "${cnt:-0}"
+    }
+
     # Count changes by type
-    local create_dirs=$(grep -c "^CREATE_DIR|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
-    local copy_files=$(grep -c "^COPY_FILE|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
-    local move_files=$(grep -c "^MOVE_FILE|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
-    local delete_files=$(grep -c "^DELETE_FILE|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
-    local modify_files=$(grep -c "^MODIFY_FILE|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
-    local touch_files=$(grep -c "^TOUCH_FILE|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
-    local write_files=$(grep -c "^WRITE_FILE|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
-    local chmod_files=$(grep -c "^CHMOD_FILE|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
-    local chown_files=$(grep -c "^CHOWN_FILE|" "$DRY_RUN_LOG" 2>/dev/null || echo 0)
+    local create_dirs=$(_count_changes "CREATE_DIR")
+    local copy_files=$(_count_changes "COPY_FILE")
+    local move_files=$(_count_changes "MOVE_FILE")
+    local delete_files=$(_count_changes "DELETE_FILE")
+    local modify_files=$(_count_changes "MODIFY_FILE")
+    local touch_files=$(_count_changes "TOUCH_FILE")
+    local write_files=$(_count_changes "WRITE_FILE")
+    local chmod_files=$(_count_changes "CHMOD_FILE")
+    local chown_files=$(_count_changes "CHOWN_FILE")
 
     local total=$((create_dirs + copy_files + move_files + delete_files + modify_files + touch_files + write_files + chmod_files + chown_files))
 

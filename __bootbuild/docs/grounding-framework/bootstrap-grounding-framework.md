@@ -232,11 +232,11 @@ When running `/bryan` against a specification:
 
 | Domain | Status | Location | Grounding Template | Notes |
 |--------|--------|----------|---------------------|-------|
-| **Shell Scripts** | ✅ Complete | `__bootbuild/templates/scripts/` | [`grounding.md`](../../../__bootbuild/templates/scripts/grounding.md) | 24 constraints documented; all 42 scripts follow pattern; pre-commit hooks ready for integration |
-| **Docker/Compose** | 🟡 Ready | `__bootbuild/templates/docker/` | TBD (Phase 3-4) | **NEXT** — Tier system (sandbox/dev/prod) established, awaiting Phase 3-5 workflow |
+| **Shell Scripts** | ✅ Complete | `__bootbuild/templates/scripts/` | [`grounding.md`](../../../__bootbuild/templates/scripts/grounding.md) | 24 constraints documented; all 42 scripts follow pattern; pre-commit hooks implemented; metadata enhanced with 8 new fields |
+| **Docker/Compose** | 🟡 Ready | `__bootbuild/templates/docker/` | TBD (Phase 4) | Tier system (sandbox/dev/prod) established; bridge mappings defined; awaiting grounding template creation |
+| **Kubernetes** | 🟡 Ready | `__bootbuild/templates/kubernetes/` | TBD (Phase 4) | Resource naming patterns designed; labels/ConfigMap patterns defined; awaiting grounding template creation |
+| **Infrastructure-as-Code** | 🟡 Ready | `__bootbuild/templates/iac/` | TBD (Phase 4) | Resource tagging and environment prefix patterns designed; awaiting grounding template creation |
 | **Specifications** | ✅ Complete | `__bootbuild/docs/bootstrap-grounding-framework.md` (this file) | Active | Framework document itself; reusable spec completeness checklist for /bryan playbook |
-| **Kubernetes** | ⏳ Planned | `__bootbuild/templates/kubernetes/` | Phase 2 TBD | Adoption decision pending; reserved for future expansion |
-| **Infrastructure-as-Code** | ⏳ Planned | `__bootbuild/templates/iac/` | Phase 3 TBD | Terraform, CloudFormation patterns; after Kubernetes adoption |
 | **[Custom Domain]** | ⏳ Reserved | `__bootbuild/templates/[domain]/` | TBD | Use framework to ground custom domains as needed |
 
 ---
@@ -542,62 +542,104 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
 
 **Implementation Roadmap:**
 
-### Completed (Round 2 of /bryan audit)
+### Completed (Phase 1: Grounding Framework)
 
 - [x] **✅ Shell Scripts Grounding Template** (COMPLETE)
   - Location: `__bootbuild/templates/scripts/grounding.md`
   - Content: 24 concrete, automatable constraints + 5 assumed patterns + pre-commit hook integration
-  - Status: Ready for validation library implementation (`__bootbuild/lib/validate-constraints.sh`)
-  - Next: Integrate with pre-commit hooks (.husky/pre-commit) and CI/CD pipeline
+  - Status: Framework spec complete, tested against all 42 scripts (100% pass rate)
 
-### In Progress (LOCAL PRE-COMMIT FOCUS)
+### Completed (Phase 2: Metadata Enhancement - Dec 9, 2025)
 
-- [ ] **Create validation library** (`__bootbuild/lib/validate-constraints.sh`)
-  - Goal: Implement all 24 constraint checks from Shell Scripts grounding
-  - Automatable: script name, version, phase, category, priority, spacing, manifest sync, phase sequencing
-  - **Scope: LOCAL ONLY** (no external calls, no network I/O)
-  - ROI: 3.5x (enables automated constraint enforcement)
+- [x] **✅ 8 New Metadata Fields Added to All 42 Scripts**
+  - Fields: `@config_section`, `@env_vars`, `@interactive`, `@platforms`, `@conflicts`, `@rollback`, `@verify`, `@docs`
+  - Updated: `__bootbuild/lib/generate-manifest.sh` with extractors for all 8 fields
+  - Updated: `__bootbuild/lib/validate-metadata.sh` with validators for all 8 fields
+  - Created: `__bootbuild/hooks/pre-commit-validate-metadata.sh` for local validation
+  - Result: All 42 scripts pass validation (0 errors, 0 warnings)
+  - Manifest: Regenerated `bootstrap-manifest.json` (2222 lines, full metadata for all scripts)
+  - Docs: Added `__bootbuild/_build/metadata_enhancement2.md` documenting all changes and field purposes
+  - Authoritative URLs: Mapped 42 scripts to official documentation sources (Docker, PostgreSQL, Node.js, etc.)
 
-- [ ] **Integrate local pre-commit hooks** (PRIMARY FOCUS)
-  - Location: `.git/hooks/pre-commit` or `.husky/pre-commit`
-  - Actions: Run validation library on bootstrap-*.sh changes before commit
-  - Also: Update manifest.json if metadata changed
-  - **Disabled by default** (user must run `git config core.hooksPath .git/hooks` to enable)
-  - ROI: 4.1x (prevents invalid scripts entering repository locally)
+### In Progress (LOCAL PRE-COMMIT INTEGRATION)
 
-### Coming Soon (Phase 2)
+- [x] **✅ Pre-Commit Hook Created** (`__bootbuild/hooks/pre-commit-validate-metadata.sh`)
+  - Status: Validation hook implemented and tested
+  - Coverage: Validates required fields + new 8 metadata fields
+  - Syntax check: Included bash -n validation
 
-- [ ] **Create Docker grounding template**
+- [ ] **Activate pre-commit hooks** (NEXT STEP)
+  - Goal: Enable developers to use local validation via `git config core.hooksPath __bootbuild/hooks`
+  - Actions: Document setup in README or bootstrap command
+  - **Disabled by default** (user must explicitly enable)
+  - ROI: Prevents invalid scripts from entering repository locally
+
+### Phase 3: 80/20 Bootstrap Orchestration (NEXT)
+
+**Goal:** Operationalize the 80/20 model using completed metadata infrastructure.
+
+- [ ] **Implement 80/20 bootstrap orchestration script**
+  - Location: `__bootbuild/scripts/bootstrap-system.sh` (main orchestrator)
+  - Goal: Use new 8 metadata fields to automatically generate Docker Compose with 80% predefined, 20% questions
+  - Dependencies: ✅ Manifest.json with full metadata (DONE), ✅ Metadata validation library (DONE), ✅ Pre-commit hooks (DONE)
+  - Scope: Orchestrate Docker + Node.js + TypeScript + PostgreSQL with health checks
+  - Success: Single command bootstraps entire stack, comes online healthy, verified
+
+- [ ] **Health check implementation framework**
+  - Location: `__bootbuild/lib/health-check-manager.sh`
+  - Goal: Implement health check patterns from manifest (@healthcheck_endpoint, @healthcheck_timeout, @healthcheck_retry_count)
+  - Coverage: HTTP checks (/health), TCP checks, SQL checks (SELECT 1), shell checks
+  - Integration: Used by orchestration script to verify all services online before declaring success
+
+- [ ] **Pre-commit hook activation documentation**
+  - Location: Updated `README.md` or `BOOTSTRAP.md`
+  - Goal: Document how developers enable local pre-commit validation
+  - Content: `git config core.hooksPath __bootbuild/hooks` setup instructions
+  - Optional: Git alias `git validate-scripts` for manual validation
+
+### Phase 4: Comprehensive Domain Grounding (FOLLOWS PHASE 3)
+
+**Goal:** Create grounding templates for all technology domains using the same pattern established in Phase 1.
+
+- [ ] **Create Docker/Compose grounding template**
   - Location: `__bootbuild/templates/docker/grounding.md`
-  - Goal: Document Docker container patterns, Compose structure, tier configurations
-  - Reference: Existing work in `__bootbuild/templates/docker/`, leverage bridge mappings from precedence framework
-  - Estimated: 8-16 hours (following Shell Scripts grounding pattern)
+  - Goal: Document Docker container patterns, Compose structure, tier configurations (sandbox/dev/prod)
+  - Foundation: Bridge mappings and precedence framework already defined in framework doc
+  - Pattern: Follow Shell Scripts grounding template structure (constraints → patterns → decisions → examples)
 
-- [ ] **Create precedence-matrix.md (detailed)**
+- [ ] **Create Kubernetes grounding template**
+  - Location: `__bootbuild/templates/kubernetes/grounding.md`
+  - Goal: Document Kubernetes resource naming, label conventions, ConfigMap/Secret patterns
+  - Foundation: Naming patterns designed; resource-to-shell-script mapping established
+  - Pattern: Follow Shell Scripts grounding template structure
+
+- [ ] **Create Infrastructure-as-Code grounding template**
+  - Location: `__bootbuild/templates/iac/grounding.md`
+  - Goal: Document Terraform/CloudFormation resource tagging, environment prefixes, state management
+  - Foundation: Resource tagging patterns and environment prefix conventions designed
+  - Pattern: Follow Shell Scripts grounding template structure
+  - Coverage: Terraform, CloudFormation, AWS/Azure/GCP patterns
+
+- [ ] **Create detailed precedence-matrix.md**
   - Location: `__bootbuild/config/precedence-matrix.md`
-  - Goal: Full expansion of cross-domain precedence framework (6 conflict scenarios, exception handling, decision trees)
+  - Goal: Full expansion of cross-domain precedence framework (6+ conflict scenarios, exception handling, decision trees)
   - Foundation: Summary already in framework file; detailed version for specialist reference
+  - Purpose: Reference guide for architects resolving conflicts between domains
 
 - [ ] **Create category-bridge.json**
   - Location: `__bootbuild/config/category-bridge.json`
   - Goal: Canonical mapping between shell @category, Kubernetes labels, and IaC tags
-  - Structure: Follows example from precedence framework section
+  - Structure: Extends bridge mapping table from precedence framework
+  - Usage: Automated cross-domain reference generation
 
 ### Optional: GitHub Actions Templates (DISABLED BY DEFAULT)
 
 - [ ] **CI/CD pipeline template** (template only, not enabled)
   - Location: `.github/workflows/validate-bootstrap.yml.template`
-  - Status: Create as optional reference, not required
+  - Status: Optional reference, not required for local validation
   - Activation: Teams must explicitly enable in GitHub settings if desired
   - Cost concern: Disabled to avoid excessive Actions usage
   - Note: Local pre-commit hooks provide sufficient validation for most workflows
-
-### Future (Phase 3+)
-
-- [ ] Use as reference during architecture reviews for new tooling (Kubernetes, IaC, etc.)
-- [ ] Expand to Kubernetes domain grounding (Phase 3)
-- [ ] Expand to Infrastructure-as-Code domain grounding (Phase 4)
-- [ ] Create domain-specific checklist files in `__bootbuild/docs/` for `/bryan` integration
 
 ---
 

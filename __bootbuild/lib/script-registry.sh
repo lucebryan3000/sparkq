@@ -140,7 +140,8 @@ registry_script_exists() {
 registry_script_file_exists() {
     local script_name="$1"
     local file=$(registry_get_script_field "$script_name" "file")
-    [[ -n "$file" && -f "${TEMPLATES_SCRIPTS}/${file}" ]]
+    local resolved_path=$(_registry_resolve_script_path "$file")
+    [[ -n "$resolved_path" && -f "$resolved_path" ]]
 }
 
 # Get script filename
@@ -150,14 +151,52 @@ registry_get_script_file() {
     registry_get_script_field "$script_name" "file"
 }
 
+# Resolve a manifest file entry to an absolute script path.
+# Supports file values that are absolute, repo-relative (e.g. "__bootbuild/..."),
+# template-relative ("templates/scripts/..."), or just the bare filename.
+_registry_resolve_script_path() {
+    local file="$1"
+    [[ -z "$file" ]] && return 0
+
+    local repo_root
+    repo_root=$(cd "${BOOTSTRAP_DIR}/.." && pwd)
+    local basefile
+    basefile=$(basename "$file")
+
+    # Build candidate paths in order of likelihood and return the first that exists
+    local -a candidates=()
+
+    # Absolute path provided
+    [[ "$file" = /* ]] && candidates+=("$file")
+
+    # Repo-root relative (handles "__bootbuild/..." values)
+    candidates+=("${repo_root}/${file}")
+
+    # Bootstrap dir relative (handles "templates/scripts/..." values)
+    candidates+=("${BOOTSTRAP_DIR}/${file}")
+
+    # Template scripts directory (handles bare filenames)
+    candidates+=("${TEMPLATES_SCRIPTS}/${file}")
+    candidates+=("${TEMPLATES_SCRIPTS}/${basefile}")
+
+    for candidate in "${candidates[@]}"; do
+        [[ -z "$candidate" ]] && continue
+        if [[ -f "$candidate" ]]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+
+    # Fallback: return best-guess path even if it doesn't exist (upstream handles the check)
+    echo "${TEMPLATES_SCRIPTS}/${basefile}"
+}
+
 # Get script's full path
 # Usage: path=$(registry_get_script_path "docker")
 registry_get_script_path() {
     local script_name="$1"
     local file=$(registry_get_script_file "$script_name")
-    if [[ -n "$file" ]]; then
-        echo "${TEMPLATES_SCRIPTS}/${file}"
-    fi
+    _registry_resolve_script_path "$file"
 }
 
 # Check if script has questions
@@ -210,21 +249,29 @@ registry_get_phases() {
 # Usage: name=$(registry_get_phase_name 1)
 registry_get_phase_name() {
     local phase="$1"
-    _get_manifest_json | jq -r ".phases.\"$phase\".name // \"Phase $phase\""
+    case "$phase" in
+        1) echo "Foundation" ;;
+        2) echo "Development Environment" ;;
+        3) echo "Infrastructure & Databases" ;;
+        4) echo "Services & Deployment" ;;
+        5) echo "Advanced Services" ;;
+        *) echo "Phase $phase" ;;
+    esac
 }
 
 # Get phase description
 # Usage: desc=$(registry_get_phase_description 1)
 registry_get_phase_description() {
     local phase="$1"
-    _get_manifest_json | jq -r ".phases.\"$phase\".description // empty"
+    # Phases in manifest are arrays of script names, no metadata
+    return 0
 }
 
 # Get phase color
 # Usage: color=$(registry_get_phase_color 1)
 registry_get_phase_color() {
     local phase="$1"
-    _get_manifest_json | jq -r ".phases.\"$phase\".color // \"blue\""
+    echo "blue"
 }
 
 # ===================================================================

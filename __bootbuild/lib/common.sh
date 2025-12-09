@@ -226,17 +226,23 @@ is_auto_approved() {
 init_script() {
     local script_name="$1"
 
-    # Derive BOOTSTRAP_DIR from calling script
+    # Derive BOOTSTRAP_DIR from calling script, walking up until lib/paths.sh is found.
     local script_dir="$(cd "$(dirname "${BASH_SOURCE[1]}")" && pwd)"
-    export BOOTSTRAP_DIR="$(cd "${script_dir}/.." && pwd)"
-    export SCRIPT_NAME="$script_name"
-    export SCRIPT_DIR="$script_dir"
+    local candidate="$script_dir"
+    local depth=0
+    while [[ $depth -lt 5 && ! -f "${candidate}/lib/paths.sh" && "$candidate" != "/" ]]; do
+        candidate="$(cd "${candidate}/.." && pwd)"
+        depth=$((depth + 1))
+    done
 
-    # Source lib/paths.sh to initialize all paths
-    if [[ ! -f "${BOOTSTRAP_DIR}/lib/paths.sh" ]]; then
-        log_error "lib/paths.sh not found in ${BOOTSTRAP_DIR}/lib/"
+    if [[ ! -f "${candidate}/lib/paths.sh" ]]; then
+        log_error "lib/paths.sh not found relative to ${script_dir}"
         return 1
     fi
+
+    export BOOTSTRAP_DIR="$candidate"
+    export SCRIPT_NAME="$script_name"
+    export SCRIPT_DIR="$script_dir"
 
     source "${BOOTSTRAP_DIR}/lib/paths.sh" || {
         log_error "Failed to initialize paths"
