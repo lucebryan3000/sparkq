@@ -1,0 +1,615 @@
+{
+  "version": "2.0",
+  "generated": "2025-12-07T21:00:00Z",
+
+  "paths": {
+    "BOOTSTRAP_DIR": ".",
+    "MANIFEST_FILE": "config/bootstrap-manifest.json",
+    "CONFIG_FILE": "config/bootstrap.config",
+    "QUESTIONS_FILE": "config/bootstrap-questions.json",
+    "CONFIG_DIR": "config",
+    "LIB_DIR": "lib",
+    "SCRIPTS_DIR": "scripts",
+    "TEMPLATES_DIR": "templates",
+    "TEMPLATES_ROOT": "templates/root",
+    "TEMPLATES_SCRIPTS": "templates/scripts",
+    "TEMPLATES_CLAUDE": "templates/.claude",
+    "TEMPLATES_VSCODE": "templates/.vscode",
+    "TEMPLATES_GITHUB": "templates/.github",
+    "TEMPLATES_DEVCONTAINER": "templates/.devcontainer",
+    "DOCS_DIR": "docs",
+    "PLAYBOOKS_DIR": "docs/playbooks",
+    "KB_ROOT": "kb-bootstrap",
+    "LOGS_DIR": "logs",
+    "CACHE_DIR": ".cache"
+  },
+
+  "phases": {
+    "1": {
+      "name": "AI Development Toolkit",
+      "description": "Core AI and development setup - run first",
+      "color": "red",
+      "icon": "rocket"
+    },
+    "2": {
+      "name": "Infrastructure",
+      "description": "Docker, databases, and services",
+      "color": "red",
+      "icon": "server"
+    },
+    "3": {
+      "name": "Code Quality",
+      "description": "Linting, testing, and quality gates",
+      "color": "yellow",
+      "icon": "check"
+    },
+    "4": {
+      "name": "CI/CD & Deployment",
+      "description": "GitHub Actions, Kubernetes, monitoring",
+      "color": "green",
+      "icon": "cloud"
+    }
+  },
+
+  "scripts": {
+    "claude": {
+      "file": "bootstrap-claude.sh",
+      "phase": 1,
+      "category": "ai",
+      "description": "Claude Code configuration (.claude/, CLAUDE.md, agents, commands)",
+      "templates": [".claude/", "project/CLAUDE.md", "project/.claudeignore"],
+      "questions": "claude",
+      "detects": ["has_claude_dir"],
+      "depends": []
+    },
+    "git": {
+      "file": "bootstrap-git.sh",
+      "phase": 1,
+      "category": "vcs",
+      "description": "Git repository setup (.gitignore, .gitattributes, hooks)",
+      "templates": ["project/.gitignore", "project/.gitattributes"],
+      "questions": "git",
+      "detects": ["has_git_repo"],
+      "depends": [],
+      "requires": { "tools": ["git"], "optional": [] }
+    },
+    "vscode": {
+      "file": "bootstrap-vscode.sh",
+      "phase": 1,
+      "category": "editor",
+      "description": "VS Code workspace settings and extensions",
+      "templates": [".vscode/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "codex": {
+      "file": "bootstrap-codex.sh",
+      "phase": 1,
+      "category": "ai",
+      "description": "Codex AI context optimization",
+      "templates": [".claude/codex.md", ".claude/codex_prompt.md"],
+      "questions": null,
+      "detects": [],
+      "depends": ["claude"]
+    },
+    "packages": {
+      "file": "bootstrap-packages.sh",
+      "phase": 1,
+      "category": "nodejs",
+      "description": "Package manager setup (npm/pnpm/yarn, .nvmrc, .npmrc)",
+      "templates": ["nodejs/.nvmrc", "nodejs/.npmrc", "nodejs/package.json"],
+      "questions": "packages",
+      "detects": ["has_package_json"],
+      "depends": [],
+      "requires": { "tools": ["node", "npm"], "optional": ["pnpm", "yarn"] }
+    },
+    "python": {
+      "file": "bootstrap-python.sh",
+      "phase": 1,
+      "category": "runtime",
+      "description": "Python virtual environment and dependency management (.venv, requirements.txt, pyproject.toml)",
+      "templates": ["python/"],
+      "questions": null,
+      "detects": ["has_pyproject_toml", "has_requirements_txt"],
+      "depends": ["project"],
+      "requires": { "tools": ["python3"], "optional": ["pyenv"] }
+    },
+    "typescript": {
+      "file": "bootstrap-typescript.sh",
+      "phase": 1,
+      "category": "nodejs",
+      "description": "TypeScript configuration (tsconfig.json, strict mode)",
+      "templates": ["typescript/tsconfig.json"],
+      "questions": "typescript",
+      "detects": ["has_tsconfig"],
+      "depends": ["packages"]
+    },
+    "environment": {
+      "file": "bootstrap-environment.sh",
+      "phase": 1,
+      "category": "config",
+      "description": "Environment files (.env.example, .envrc)",
+      "templates": ["secrets/.env.example"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "project": {
+      "file": "bootstrap-project.sh",
+      "phase": 1,
+      "category": "core",
+      "description": "Project scaffolding (README, .editorconfig, .tool-versions)",
+      "templates": ["project/README.md", "project/.editorconfig", "project/.tool-versions"],
+      "questions": "project",
+      "detects": [],
+      "depends": []
+    },
+    "docker": {
+      "file": "bootstrap-docker.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Docker and docker-compose configuration",
+      "templates": ["docker/"],
+      "questions": "docker",
+      "detects": ["docker_installed", "docker_running"],
+      "depends": [],
+      "requires": { "tools": ["docker"], "optional": ["docker-compose"] }
+    },
+    "database": {
+      "file": "bootstrap-database.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Database setup (Postgres/MySQL init scripts, migrations)",
+      "templates": ["database/"],
+      "questions": "database",
+      "detects": [],
+      "depends": ["docker"]
+    },
+    "postgres": {
+      "file": "bootstrap-postgres.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "PostgreSQL-specific setup (Docker Compose, init scripts, backups, environment)",
+      "templates": ["postgres/"],
+      "questions": "postgres",
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["psql", "pg_dump"] }
+    },
+    "redis": {
+      "file": "bootstrap-redis.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Redis cache/session store setup (Docker Compose, config, backups, environment)",
+      "templates": ["redis/"],
+      "questions": "redis",
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["redis-cli"] }
+    },
+    "secrets": {
+      "file": "bootstrap-secrets.sh",
+      "phase": 2,
+      "category": "security",
+      "description": "Secrets management (.vault, credential templates)",
+      "templates": ["secrets/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "linting": {
+      "file": "bootstrap-linting.sh",
+      "phase": 3,
+      "category": "quality",
+      "description": "Linting setup (ESLint, Prettier, Stylelint)",
+      "templates": ["linting/"],
+      "questions": "linting",
+      "detects": [],
+      "depends": ["packages"],
+      "requires": { "tools": ["python3"], "optional": ["node", "npm", "eslint", "prettier"] }
+    },
+    "editor": {
+      "file": "bootstrap-editor.sh",
+      "phase": 3,
+      "category": "editor",
+      "description": "Editor integration (format on save, lint on save)",
+      "templates": [],
+      "questions": null,
+      "detects": [],
+      "depends": ["linting", "vscode"]
+    },
+    "husky": {
+      "file": "bootstrap-husky.sh",
+      "phase": 3,
+      "category": "quality",
+      "description": "Git hooks with Husky (pre-commit, commit-msg)",
+      "templates": ["husky/"],
+      "questions": "husky",
+      "detects": [],
+      "depends": ["git", "packages"],
+      "requires": { "tools": ["git", "node", "npm"], "optional": ["jq"] }
+    },
+    "testing": {
+      "file": "bootstrap-testing.sh",
+      "phase": 3,
+      "category": "quality",
+      "description": "Testing framework setup (Vitest/Jest, Playwright)",
+      "templates": ["testing/"],
+      "questions": "testing",
+      "detects": [],
+      "depends": ["packages", "typescript"],
+      "requires": { "tools": ["node", "npm"], "optional": ["vitest", "playwright"] }
+    },
+    "quality": {
+      "file": "bootstrap-quality.sh",
+      "phase": 3,
+      "category": "quality",
+      "description": "Code quality gates (SonarQube, CodeClimate)",
+      "templates": ["quality/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["testing"]
+    },
+    "security": {
+      "file": "bootstrap-security.sh",
+      "phase": 3,
+      "category": "security",
+      "description": "Security scanning (npm audit, Snyk, license checks)",
+      "templates": ["security/"],
+      "questions": "security",
+      "detects": [],
+      "depends": ["packages"]
+    },
+    "github": {
+      "file": "bootstrap-github.sh",
+      "phase": 4,
+      "category": "cicd",
+      "description": "GitHub configuration (Actions, templates, CODEOWNERS)",
+      "templates": [".github/"],
+      "questions": "github",
+      "detects": [],
+      "depends": ["git"],
+      "requires": { "tools": ["git"], "optional": ["gh"] }
+    },
+    "ci-cd": {
+      "file": "bootstrap-cicd.sh",
+      "phase": 4,
+      "category": "cicd",
+      "description": "CI/CD pipelines (GitHub Actions, GitLab CI, Azure, CircleCI)",
+      "templates": ["cicd/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "docs": {
+      "file": "bootstrap-docs.sh",
+      "phase": 4,
+      "category": "documentation",
+      "description": "Documentation setup (API docs, architecture)",
+      "templates": [],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "api": {
+      "file": "bootstrap-api.sh",
+      "phase": 4,
+      "category": "backend",
+      "description": "API scaffolding (OpenAPI, routes, middleware)",
+      "templates": ["api/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["typescript"]
+    },
+    "buildtools": {
+      "file": "bootstrap-buildtools.sh",
+      "phase": 2,
+      "category": "build",
+      "description": "Build tools setup (Vite, Webpack, Rollup, tsup)",
+      "templates": ["buildtools/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["packages"]
+    },
+    "nodejs": {
+      "file": "bootstrap-nodejs.sh",
+      "phase": 1,
+      "category": "runtime",
+      "description": "Node.js runtime and package manager setup (nvm, npm, pnpm, yarn)",
+      "templates": ["nodejs/"],
+      "questions": null,
+      "detects": ["has_package_json"],
+      "depends": []
+    },
+    "ssl": {
+      "file": "bootstrap-ssl.sh",
+      "phase": 4,
+      "category": "security",
+      "description": "SSL/TLS certificate setup (local dev certs)",
+      "templates": ["ssl/"],
+      "questions": null,
+      "detects": [],
+      "depends": []
+    },
+    "kubernetes": {
+      "file": "bootstrap-kubernetes.sh",
+      "phase": 4,
+      "category": "deployment",
+      "description": "Kubernetes manifests (deployments, services, ingress)",
+      "templates": ["kubernetes/"],
+      "questions": null,
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["kubectl", "helm"] }
+    },
+    "monitoring": {
+      "file": "bootstrap-monitoring.sh",
+      "phase": 4,
+      "category": "observability",
+      "description": "Monitoring setup (Prometheus, Datadog, Sentry)",
+      "templates": ["monitoring/"],
+      "questions": "monitoring",
+      "detects": [],
+      "depends": []
+    },
+    "mysql": {
+      "file": "bootstrap-mysql.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "MySQL database setup (Docker Compose, init scripts, backups, environment)",
+      "templates": ["mysql/"],
+      "questions": "mysql",
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["mysql", "mysqldump"] }
+    },
+    "elasticsearch": {
+      "file": "bootstrap-elasticsearch.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Elasticsearch cluster setup (Docker Compose, configuration, health checks)",
+      "templates": ["elasticsearch/"],
+      "questions": "elasticsearch",
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["curl"] }
+    },
+    "rate-limiting": {
+      "file": "bootstrap-rate-limiting.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Redis-based rate limiting service (Lua scripts, strategies, Docker)",
+      "templates": ["rate-limiting/"],
+      "questions": "rate-limiting",
+      "detects": [],
+      "depends": ["redis"],
+      "requires": { "tools": ["docker"], "optional": ["redis-cli"] }
+    },
+    "email": {
+      "file": "bootstrap-email-service.sh",
+      "phase": 2,
+      "category": "infrastructure",
+      "description": "Email service integration (SendGrid, Mailgun, SMTP, templates)",
+      "templates": ["email/"],
+      "questions": "email",
+      "detects": [],
+      "depends": [],
+      "requires": { "tools": [], "optional": [] }
+    },
+    "auth-oauth2": {
+      "file": "bootstrap-auth-oauth2.sh",
+      "phase": 4,
+      "category": "security",
+      "description": "OAuth2 provider setup (Keycloak, OpenID Connect, Docker)",
+      "templates": ["oauth2/"],
+      "questions": "auth-oauth2",
+      "detects": [],
+      "depends": ["docker"],
+      "requires": { "tools": ["docker"], "optional": ["curl"] }
+    },
+    "network-vpn": {
+      "file": "bootstrap-network-vpn.sh",
+      "phase": 4,
+      "category": "security",
+      "description": "VPN and secure networking (WireGuard, OpenVPN, Docker overlay)",
+      "templates": ["network/"],
+      "questions": "network-vpn",
+      "detects": [],
+      "depends": [],
+      "requires": { "tools": [], "optional": ["wg", "openvpn"] }
+    },
+    "backup": {
+      "file": "bootstrap-backup-service.sh",
+      "phase": 4,
+      "category": "deployment",
+      "description": "Backup and disaster recovery (restic, S3, encryption, restore procedures)",
+      "templates": ["backup/"],
+      "questions": "backup",
+      "detects": [],
+      "depends": [],
+      "requires": { "tools": [], "optional": ["restic", "aws-cli"] }
+    },
+    "detect": {
+      "file": "bootstrap-detect.sh",
+      "phase": 0,
+      "category": "system",
+      "description": "System detection and environment scanning",
+      "templates": [],
+      "questions": null,
+      "detects": [],
+      "depends": [],
+      "hidden": true
+    }
+  },
+
+  "profiles": {
+    "minimal": {
+      "description": "Bare minimum for AI-assisted development",
+      "scripts": ["claude", "git", "packages"]
+    },
+    "standard": {
+      "description": "Recommended setup for most projects",
+      "scripts": ["claude", "git", "vscode", "packages", "typescript", "environment", "linting", "editor"]
+    },
+    "full": {
+      "description": "Complete setup including CI/CD",
+      "scripts": ["claude", "git", "vscode", "codex", "packages", "typescript", "environment", "docker", "postgres", "redis", "linting", "editor", "testing", "security", "github"]
+    },
+    "api": {
+      "description": "Backend API development",
+      "scripts": ["claude", "git", "packages", "typescript", "environment", "docker", "postgres", "redis", "testing", "security"]
+    },
+    "frontend": {
+      "description": "Frontend web development",
+      "scripts": ["claude", "git", "vscode", "packages", "typescript", "linting", "editor", "testing"]
+    },
+    "library": {
+      "description": "NPM package/library development",
+      "scripts": ["claude", "git", "packages", "typescript", "linting", "testing", "github"]
+    },
+    "python-backend": {
+      "description": "Python backend development",
+      "scripts": ["claude", "git", "python", "environment", "docker", "database", "testing", "security"]
+    },
+    "python-cli": {
+      "description": "Python CLI tool development",
+      "scripts": ["claude", "git", "python", "environment", "testing", "security", "github"]
+    }
+  },
+
+  "tools": {
+    "_description": "Global tool definitions with versions and install hints. Scripts reference these by key in their 'requires' field.",
+    "git": {
+      "command": "git",
+      "min_version": "2.30.0",
+      "install_hint": "https://git-scm.com/downloads",
+      "detect_version": "git --version | awk '{print $3}'"
+    },
+    "node": {
+      "command": "node",
+      "min_version": "18.0.0",
+      "install_hint": "https://nodejs.org/ or use nvm: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash",
+      "detect_version": "node --version | sed 's/v//'"
+    },
+    "npm": {
+      "command": "npm",
+      "min_version": "9.0.0",
+      "install_hint": "Comes with Node.js",
+      "detect_version": "npm --version"
+    },
+    "pnpm": {
+      "command": "pnpm",
+      "min_version": "8.0.0",
+      "install_hint": "npm install -g pnpm",
+      "detect_version": "pnpm --version"
+    },
+    "yarn": {
+      "command": "yarn",
+      "min_version": "1.22.0",
+      "install_hint": "npm install -g yarn",
+      "detect_version": "yarn --version"
+    },
+    "docker": {
+      "command": "docker",
+      "min_version": "20.0.0",
+      "install_hint": "https://docs.docker.com/get-docker/",
+      "detect_version": "docker --version | awk '{print $3}' | sed 's/,//'"
+    },
+    "docker-compose": {
+      "command": "docker-compose",
+      "min_version": "2.0.0",
+      "install_hint": "Included with Docker Desktop or: pip install docker-compose",
+      "detect_version": "docker-compose --version | awk '{print $4}' | sed 's/v//'"
+    },
+    "jq": {
+      "command": "jq",
+      "min_version": "1.6",
+      "install_hint": "apt install jq / brew install jq",
+      "detect_version": "jq --version | sed 's/jq-//'"
+    },
+    "python3": {
+      "command": "python3",
+      "min_version": "3.8.0",
+      "install_hint": "https://www.python.org/downloads/",
+      "detect_version": "python3 --version | awk '{print $2}'"
+    },
+    "gh": {
+      "command": "gh",
+      "min_version": "2.0.0",
+      "install_hint": "https://cli.github.com/",
+      "detect_version": "gh --version | head -1 | awk '{print $3}'"
+    },
+    "kubectl": {
+      "command": "kubectl",
+      "min_version": "1.25.0",
+      "install_hint": "https://kubernetes.io/docs/tasks/tools/",
+      "detect_version": "kubectl version --client -o json | jq -r '.clientVersion.gitVersion' | sed 's/v//'"
+    },
+    "helm": {
+      "command": "helm",
+      "min_version": "3.10.0",
+      "install_hint": "https://helm.sh/docs/intro/install/",
+      "detect_version": "helm version --short | sed 's/v//'"
+    },
+    "eslint": {
+      "command": "eslint",
+      "min_version": "8.0.0",
+      "install_hint": "npm install -g eslint",
+      "detect_version": "eslint --version | sed 's/v//'"
+    },
+    "prettier": {
+      "command": "prettier",
+      "min_version": "3.0.0",
+      "install_hint": "npm install -g prettier",
+      "detect_version": "prettier --version"
+    },
+    "vitest": {
+      "command": "vitest",
+      "min_version": "0.34.0",
+      "install_hint": "npm install -D vitest",
+      "detect_version": "npx vitest --version 2>/dev/null || echo '0.0.0'"
+    },
+    "playwright": {
+      "command": "playwright",
+      "min_version": "1.35.0",
+      "install_hint": "npm install -D @playwright/test",
+      "detect_version": "npx playwright --version 2>/dev/null || echo '0.0.0'"
+    }
+  },
+
+  "libraries": {
+    "common": {
+      "file": "lib/common.sh",
+      "description": "Shared logging, file ops, validation helpers"
+    },
+    "paths": {
+      "file": "lib/paths.sh",
+      "description": "Centralized path initialization"
+    },
+    "config-manager": {
+      "file": "lib/config-manager.sh",
+      "description": "INI config file read/write"
+    },
+    "script-registry": {
+      "file": "lib/script-registry.sh",
+      "description": "Script discovery and manifest queries"
+    },
+    "question-engine": {
+      "file": "lib/question-engine.sh",
+      "description": "Interactive Q&A and config persistence"
+    },
+    "cache-manager": {
+      "file": "lib/cache-manager.sh",
+      "description": "Menu state and scan result caching"
+    },
+    "template-utils": {
+      "file": "lib/template-utils.sh",
+      "description": "Template copying and variable substitution"
+    },
+    "validation-common": {
+      "file": "lib/validation-common.sh",
+      "description": "Input validation helpers"
+    }
+  }
+}
