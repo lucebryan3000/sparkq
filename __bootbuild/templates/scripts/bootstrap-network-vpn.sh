@@ -1,13 +1,27 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-network-vpn.sh
+# =============================================================================
+# @name           bootstrap-network-vpn
+# @phase          7
+# @category       deploy
+# @short          VPN and secure networking configuration
+# @description    Configures VPN infrastructure using WireGuard with key
+#                 generation, iptables rules, Docker networking, peer
+#                 management, and security monitoring documentation.
 #
-# Purpose: VPN and secure networking configuration for CI/CD & Deployment
-# Creates: VPN configs, key generation, iptables rules, Docker networks
-# Config:  [vpn] section in bootstrap.config
-# Phase:   CI/CD & Deployment (Phase 4)
-# ===================================================================
+# @creates        config/network/vpn/wireguard-config.conf
+# @creates        config/network/vpn/generate-keys.sh
+# @creates        config/network/vpn/iptables-rules.conf
+# @creates        config/network/vpn/docker-network.yml
+# @creates        .env.vpn
+#
+# @defaults       vpn.enabled=false, vpn.provider=wireguard, vpn.port=51820
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

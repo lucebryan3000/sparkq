@@ -1,11 +1,27 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-testing.sh
+# =============================================================================
+# @name           bootstrap-testing
+# @phase          3
+# @category       test
+# @short          Testing frameworks and coverage configuration
+# @description    Sets up testing frameworks including Jest for JavaScript/
+#                 TypeScript unit and integration tests, Pytest for Python,
+#                 and coverage reporting configuration with .coveragerc for
+#                 code coverage tracking and thresholds.
 #
-# Bootstrap testing frameworks and coverage configuration
-# Creates jest.config.js, vitest.config.ts, and related files
-# ===================================================================
+# @creates        jest.config.js
+# @creates        pytest.ini
+# @creates        .coveragerc
+#
+# @depends        bootstrap-project, bootstrap-packages
+# @requires_tools node, npm
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

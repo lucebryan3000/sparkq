@@ -1,11 +1,30 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-ssl.sh
+# =============================================================================
+# @name           bootstrap-ssl
+# @phase          3
+# @category       config
+# @short          Local HTTPS certificate generation for development
+# @description    Generates self-signed SSL/TLS certificates for localhost
+#                 development with OpenSSL. Creates certificate info,
+#                 installation script, and PEM format certificates for
+#                 HTTPS development without external CA.
 #
-# Bootstrap local HTTPS certificate generation
-# Creates SSL certificates for localhost development using mkcert or openssl
-# ===================================================================
+# @creates        ssl/openssl.cnf
+# @creates        ssl/cert-info.txt
+# @creates        ssl/install-cert.sh
+# @creates        ssl/localhost.crt
+# @creates        ssl/localhost.key
+# @creates        ssl/localhost.pem
+#
+# @modifies       .gitignore
+#
+# @depends        bootstrap-project
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

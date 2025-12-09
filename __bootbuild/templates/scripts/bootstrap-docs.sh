@@ -1,12 +1,30 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-docs.sh
+# =============================================================================
+# @name           bootstrap-docs
+# @phase          4
+# @category       setup
+# @short          Documentation generation and management
+# @description    Sets up documentation generation with TypeDoc for API docs,
+#                 VitePress for site building, changelog generation,
+#                 architecture documentation, and deployment configuration
+#                 for hosting generated documentation.
 #
-# Purpose: Documentation generation and management
-# Creates: API docs, changelogs, architecture docs, doc sites
-# Config:  [docs] section in bootstrap.config
-# ===================================================================
+# @creates        typedoc.json
+# @creates        docs/api/openapi.yaml
+# @creates        CHANGELOG.md
+# @creates        docs/architecture/ARCHITECTURE.md
+# @creates        docs/.vitepress/config.js
+# @creates        docs/index.md
+#
+# @depends        bootstrap-project
+# @defaults       DOC_TOOL=auto, DOC_SITE=vitepress, GENERATE_CHANGELOG=true
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

@@ -1,10 +1,29 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-docker-sandbox.sh
-# Single-container sandbox (app + Postgres + Redis) for local dev
-# Bridge networking so you can reach services via host IP
-# ===================================================================
+# =============================================================================
+# @name           bootstrap-docker-sandbox
+# @phase          3
+# @category       config
+# @short          Tier 1 sandbox single-container for local dev
+# @description    Sandbox environment with single container for local development.
+#                 Combines app, PostgreSQL, and Redis with permissive settings,
+#                 optional Docker socket and SSH mounts, bridge networking,
+#                 and health checks. Ideal for quick local testing.
+#
+# @creates        docker-compose.yml
+# @creates        Dockerfile
+# @creates        .dockerignore
+# @creates        entrypoint.sh
+# @creates        .env.docker-sandbox
+#
+# @requires_tools docker
+# @defaults       app_port=3000, postgres_port=5432, redis_port=6379
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

@@ -1,12 +1,29 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-redis.sh
+# =============================================================================
+# @name           bootstrap-redis
+# @phase          3
+# @category       setup
+# @short          Redis cache/session store setup with Docker
+# @description    Sets up Redis cache and session store with Docker Compose,
+#                 Redis configuration, backup scripts with retention policies,
+#                 persistent volume management, and environment configuration
+#                 for caching and session management.
 #
-# Purpose: Redis cache/session store setup with file tracking
-# Creates: Docker Compose config, Redis configuration, backups, env files
-# Config:  [redis] section in bootstrap.config
-# ===================================================================
+# @creates        config/redis/redis.conf
+# @creates        config/redis/backup.sh
+# @creates        backups/redis/
+# @creates        .env.redis
+# @creates        docker-compose.redis.yml
+#
+# @defaults       redis.enabled=true, redis.version=latest, redis.port=6379
+# @defaults       redis.backup_enabled=true
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

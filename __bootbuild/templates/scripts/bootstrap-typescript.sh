@@ -1,11 +1,33 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-typescript.sh
+# =============================================================================
+# @name           bootstrap-typescript
+# @phase          2
+# @category       setup
+# @short          TypeScript configuration and project structure setup
+# @description    Sets up TypeScript compiler configuration with strict mode,
+#                 builds framework configs (Next.js, Babel, Vite), creates
+#                 standard source directory structure (components, hooks, lib,
+#                 types, services) for organized code organization.
 #
-# Bootstrap TypeScript and build configuration
-# Sets up tsconfig.json, next.config.js, babel.config.js, vite.config.ts
-# ===================================================================
+# @creates        tsconfig.json
+# @creates        next.config.js
+# @creates        babel.config.js
+# @creates        vite.config.ts
+# @creates        src/components
+# @creates        src/hooks
+# @creates        src/lib
+# @creates        src/types
+# @creates        src/services
+#
+# @depends        bootstrap-project, bootstrap-packages
+# @requires_tools node, npm
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

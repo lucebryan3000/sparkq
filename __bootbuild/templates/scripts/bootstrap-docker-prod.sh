@@ -1,10 +1,33 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-docker-prod.sh
-# Tier 3 prod: single-container app + Postgres + Redis, hardened
-# Bridge networking for host access; secrets required; read-only app FS
-# ===================================================================
+# =============================================================================
+# @name           bootstrap-docker-prod
+# @phase          3
+# @category       config
+# @short          Tier 3 prod hardened single-container + services
+# @description    Production-hardened environment with single container, services,
+#                 secrets management, read-only app filesystem, security scanning,
+#                 health checks, and bridge networking. Requires environment
+#                 variables for database and cache passwords.
+#
+# @creates        docker-compose.yml
+# @creates        Dockerfile
+# @creates        .dockerignore
+# @creates        entrypoint.sh
+# @creates        healthcheck.js
+# @creates        .env.docker-prod
+# @creates        secrets/db_password.txt
+# @creates        secrets/redis_password.txt
+#
+# @requires_tools docker
+# @requires_env   DOCKER_PROD_POSTGRES_PASSWORD, DOCKER_PROD_REDIS_PASSWORD
+# @defaults       app_port=3000, postgres_port=5432, redis_port=6379
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

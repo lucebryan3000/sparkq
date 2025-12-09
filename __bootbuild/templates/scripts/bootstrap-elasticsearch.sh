@@ -1,12 +1,28 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-elasticsearch.sh
+# =============================================================================
+# @name           bootstrap-elasticsearch
+# @phase          5
+# @category       config
+# @short          Elasticsearch cluster infrastructure config
+# @description    Configures Elasticsearch cluster with analysis plugins,
+#                 security settings, Docker Compose orchestration, persistent
+#                 data/log volumes, and environment configuration for search
+#                 and analytics capabilities.
 #
-# Purpose: Elasticsearch cluster infrastructure configuration
-# Creates: Docker Compose config, elasticsearch.yml, analysis config
-# Config:  [elasticsearch] section in bootstrap.config
-# ===================================================================
+# @creates        infrastructure/elasticsearch/elasticsearch.yml
+# @creates        infrastructure/elasticsearch/analysis.yml
+# @creates        .env.elasticsearch
+# @creates        docker-compose.elasticsearch.yml
+#
+# @defaults       ES_VERSION=8.0, ES_PORT=9200, ES_MEMORY=512m
+# @defaults       ES_DISCOVERY_TYPE=single-node, ES_SECURITY_ENABLED=false
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

@@ -1,12 +1,28 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-packages.sh
+# =============================================================================
+# @name           bootstrap-packages
+# @phase          2
+# @category       setup
+# @short          Package management and runtime configuration
+# @description    Sets up package management configuration including npm
+#                 registry, Node version specification, tool-versions for
+#                 asdf compatibility, direnv support, and package.json setup.
 #
-# Bootstrap package management and runtime versions
-# Sets up .npmrc, .nvmrc, .tool-versions, .envrc, and package.json
-# Config: None (uses Node.js version detection)
-# ===================================================================
+# @creates        .npmrc
+# @creates        .nvmrc
+# @creates        .tool-versions
+# @creates        .envrc
+# @creates        package.json
+#
+# @depends        bootstrap-project
+# @requires_tools node, npm
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

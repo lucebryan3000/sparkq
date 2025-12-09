@@ -1,11 +1,22 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-editor.sh
+# =============================================================================
+# @name           bootstrap-editor
+# @phase          2
+# @category       config
+# @short          Editor formatting and coding standards
+# @description    Sets up editor configuration with EditorConfig for consistent
+#                 formatting across different editors and IDEs, plus Stylelint
+#                 for CSS/SCSS linting and style enforcement.
 #
-# Bootstrap editor formatting standards
-# Creates .editorconfig and .stylelintrc configuration files
-# ===================================================================
+# @creates        .editorconfig
+# @creates        .stylelintrc.json
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

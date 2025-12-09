@@ -1,11 +1,27 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-codex.sh
+# =============================================================================
+# @name           bootstrap-codex
+# @phase          1
+# @category       ai
+# @short          OpenAI Codex CLI configuration
+# @description    Sets up OpenAI Codex CLI integration for AI-assisted coding.
+#                 Creates Codex configuration with OpenAI API settings, model
+#                 parameters, context limitations, and ignore patterns for
+#                 excluding build artifacts and dependencies from AI context.
 #
-# Bootstrap OpenAI Codex CLI configuration
-# Sets up .codex.json for Codex AI assistance integration
-# ===================================================================
+# @creates        .codex.json
+# @creates        .codexignore
+#
+# @requires_env   OPENAI_API_KEY (required when enabled=true)
+# @defaults       model=code-davinci-002, enabled=false, temperature=0.5
+# @defaults       maxTokens=100, cache.ttl=3600
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

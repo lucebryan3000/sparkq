@@ -1,12 +1,30 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-quality.sh
+# =============================================================================
+# @name           bootstrap-quality
+# @phase          4
+# @category       test
+# @short          Code quality metrics and baseline configuration
+# @description    Sets up code quality framework with SonarQube configuration,
+#                 CodeClimate setup, quality gates, complexity rules,
+#                 and baseline reporting for tracking code quality metrics
+#                 and establishing minimum standards.
 #
-# Purpose: Bootstrap code quality metrics and baseline configuration
-# Creates: SonarQube, Code Climate, quality gates, and baseline reports
-# Config:  [quality] section in bootstrap.config
-# ===================================================================
+# @creates        quality/sonar-project.properties
+# @creates        quality/.codeclimate.yml
+# @creates        quality/quality-gates.json
+# @creates        quality/complexity-rules.json
+# @creates        quality/baseline-report.md
+#
+# @depends        bootstrap-linting, bootstrap-testing
+# @defaults       quality.enabled=true, quality.coverage_threshold=80
+# @defaults       quality.complexity_threshold=10
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

@@ -1,11 +1,26 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-git.sh
+# =============================================================================
+# @name           bootstrap-git
+# @phase          1
+# @category       setup
+# @short          Git configuration for new project
+# @description    Initializes Git repository and creates .gitignore with
+#                 sensible defaults for Node.js, Python, IDE artifacts,
+#                 environment files, and build outputs. Sets up Git attributes
+#                 for consistent line endings and merge strategies.
 #
-# Bootstrap Git configuration for a new project
-# Sets up .gitignore, .gitattributes, and git repository
-# ===================================================================
+# @creates        .gitignore
+# @creates        .gitattributes
+# @creates        .git/
+#
+# @requires_tools git
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

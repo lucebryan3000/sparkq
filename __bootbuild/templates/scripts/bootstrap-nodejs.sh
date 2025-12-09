@@ -1,12 +1,30 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-nodejs.sh
+# =============================================================================
+# @name           bootstrap-nodejs
+# @phase          2
+# @category       setup
+# @short          Node.js runtime and package manager configuration
+# @description    Configures Node.js runtime with version specification (.nvmrc),
+#                 npm configuration (.npmrc), Yarn configuration (.yarnrc.yml),
+#                 and PNPM configuration (.pnpmfile.cjs) for consistent package
+#                 management across team and environments.
 #
-# Purpose: Node.js runtime and package manager setup
-# Creates: .nvmrc, .npmrc, .yarnrc.yml, .pnpmfile.cjs
-# Config:  [nodejs] section in bootstrap.config
-# ===================================================================
+# @creates        .nvmrc
+# @creates        .npmrc
+# @creates        .yarnrc.yml
+# @creates        .pnpmfile.cjs
+#
+# @depends        bootstrap-project
+# @requires_tools node
+# @defaults       nodejs.enabled=true, nodejs.version=20
+# @defaults       nodejs.package_manager=npm
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

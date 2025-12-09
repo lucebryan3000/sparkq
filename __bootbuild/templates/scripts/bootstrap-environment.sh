@@ -1,11 +1,27 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-environment.sh
+# =============================================================================
+# @name           bootstrap-environment
+# @phase          2
+# @category       config
+# @short          Environment configuration files and types
+# @description    Creates .env files for different environments (example, local,
+#                 production) with sensible defaults, TypeScript environment
+#                 type definitions, and validation support.
 #
-# Bootstrap environment configuration
-# Sets up .env.example, .env.local, .env.production, and env.d.ts
-# ===================================================================
+# @creates        .env.example
+# @creates        .env.local
+# @creates        .env.production
+# @creates        env.d.ts
+#
+# @depends        bootstrap-project
+# @defaults       NODE_ENV=development, PORT=3000, HOST=localhost
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

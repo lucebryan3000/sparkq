@@ -1,12 +1,29 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-postgres.sh
+# =============================================================================
+# @name           bootstrap-postgres
+# @phase          3
+# @category       setup
+# @short          PostgreSQL database setup with Docker
+# @description    Sets up PostgreSQL database with Docker Compose orchestration,
+#                 initialization scripts with schema creation, seed data,
+#                 automated backup scripts with retention policies, and
+#                 environment configuration.
 #
-# Purpose: PostgreSQL-specific database setup with file tracking
-# Creates: Docker Compose config, initialization scripts, backups, env files
-# Config:  [postgres] section in bootstrap.config
-# ===================================================================
+# @creates        database/postgres/init.sql
+# @creates        database/postgres/backup.sh
+# @creates        database/backups/
+# @creates        .env.postgres
+# @creates        docker-compose.postgres.yml
+#
+# @defaults       postgres.enabled=true, postgres.version=latest
+# @defaults       postgres.port=5432, postgres.backup_enabled=true
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

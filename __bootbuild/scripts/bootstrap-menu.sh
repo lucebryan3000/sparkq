@@ -818,10 +818,75 @@ run_category_menu() {
                         echo -e "${BLUE}$selected_script${NC}"
                         echo "$script_desc"
                         echo ""
-                        if [[ "$AUTO_YES" == "true" ]] || confirm "Run $selected_script?"; then
+
+                        # Show additional metadata
+                        local templates=$(registry_get_script_field "$selected_script" "templates")
+                        local depends=$(registry_get_script_field "$selected_script" "depends")
+                        local requires=$(registry_get_script_field "$selected_script" "requires")
+
+                        if [[ -n "$templates" && "$templates" != "null" && "$templates" != "[]" ]]; then
+                            echo -e "${GREY}Creates/Updates:${NC} $templates"
+                        fi
+
+                        if [[ -n "$depends" && "$depends" != "null" && "$depends" != "[]" ]]; then
+                            echo -e "${GREY}Depends on:${NC} $depends"
+                        fi
+
+                        if [[ -n "$requires" && "$requires" != "null" ]]; then
+                            echo -e "${GREY}Requires:${NC} $requires"
+                        fi
+
+                        local has_questions=$(registry_has_questions "$selected_script" && echo "true" || echo "false")
+                        if [[ "$has_questions" == "true" ]]; then
+                            echo -e "${YELLOW}[Q]${NC} This script will ask questions during execution"
+                        fi
+
+                        echo ""
+                        if [[ "$AUTO_YES" == "true" ]]; then
                             run_script "$selected_script"
                         else
-                            ((SCRIPTS_SKIPPED++))
+                            echo -e "${YELLOW}Options:${NC}"
+                            echo "  [y] Run script (confirm)"
+                            echo "  [d] Dry-run preview (see what will change)"
+                            echo "  [n] Skip this script"
+                            echo ""
+                            read -p "Choice (y/d/n): " -r run_choice || run_choice="n"
+                            run_choice=${run_choice,,}  # Convert to lowercase
+
+                            case "$run_choice" in
+                                y)
+                                    log_section "Running: $selected_script"
+                                    run_script "$selected_script"
+                                    echo ""
+                                    log_success "Script completed: $selected_script"
+                                    echo ""
+                                    read -p "Press Enter to continue..." || true
+                                    ;;
+                                d)
+                                    log_section "Dry-Run Preview - $selected_script"
+                                    if [[ -f "${SCRIPTS_DIR}/bootstrap-dry-run-wrapper.sh" ]]; then
+                                        bash "${SCRIPTS_DIR}/bootstrap-dry-run-wrapper.sh" "${SCRIPTS_DIR}/bootstrap-${selected_script}.sh" || true
+                                    else
+                                        log_warning "Dry-run wrapper not found"
+                                    fi
+                                    echo ""
+                                    read -p "Continue? (y/n): " -r continue_choice || continue_choice="n"
+                                    continue_choice=${continue_choice,,}
+                                    if [[ "$continue_choice" == "y" ]]; then
+                                        log_section "Running: $selected_script"
+                                        run_script "$selected_script"
+                                        echo ""
+                                        log_success "Script completed: $selected_script"
+                                        echo ""
+                                        read -p "Press Enter to continue..." || true
+                                    else
+                                        ((SCRIPTS_SKIPPED++))
+                                    fi
+                                    ;;
+                                *)
+                                    ((SCRIPTS_SKIPPED++))
+                                    ;;
+                            esac
                         fi
                     else
                         log_warning "Script not available: $selected_script"
@@ -967,21 +1032,20 @@ display_menu() {
 
     echo ""
     echo -e "${YELLOW}Commands:${NC}"
-    echo "  1-4      Select phase"
-    echo "  all      Run all scripts"
-    echo "  d        Defaults (80% industry standards)"
-    echo "  v        Validation report (pre-flight check)"
-    echo "  hc       Health check (quick)"
-    echo "  t        Test suite"
-    echo "  qa       Questions (20% you'll be asked)"
-    echo "  s        Status"
-    echo "  c        Full config"
-    echo "  e        Edit config"
-    echo "  sg       Toggle suggestions (currently: $([ "$ENABLE_SUGGESTIONS" == "true" ] && echo "ON" || echo "OFF"))"
-    echo "  r        Refresh"
-    echo "  l        List all scripts"
-    echo "  h        Help"
-    echo "  q        Quit"
+    echo "  1-4      Enter phase menu to browse and run scripts"
+    echo "  d        Show 80% pre-configured defaults (industry standards)"
+    echo "  v        Run pre-flight validation to check environment readiness"
+    echo "  hc       Quick system health check - validates tools and libraries"
+    echo "  t        Run full test suite for all bootstrap components"
+    echo "  qa       Display 20% of questions you'll be asked during setup"
+    echo "  s        Show current environment status and bootstrap state"
+    echo "  c        Display complete bootstrap configuration in detail"
+    echo "  e        Interactively edit bootstrap configuration sections"
+    echo "  sg       Toggle command suggestions (currently: $([ "$ENABLE_SUGGESTIONS" == "true" ] && echo "ON" || echo "OFF"))"
+    echo "  r        Refresh and rescan for new or updated scripts"
+    echo "  l        List all available scripts with metadata"
+    echo "  h        Show this help information"
+    echo "  q        Quit bootstrap menu and end session"
     echo ""
 }
 
@@ -1037,11 +1101,6 @@ validate_menu_command() {
         esac
     fi
 
-    # Three letter commands
-    if [[ "$cmd" == "all" || "$cmd" == "ALL" ]]; then
-        return 0
-    fi
-
     # Script name validation (fallback)
     if registry_script_exists "$cmd"; then
         return 0
@@ -1076,23 +1135,20 @@ run_menu() {
             h|H|\?)
                 echo ""
                 echo "Commands:"
-                echo "  1-$total_scripts  Run specific script"
-                echo "  p1        Run Phase 1 (AI toolkit)"
-                echo "  p2        Run Phase 2 (Infrastructure)"
-                echo "  p3        Run Phase 3 (Quality)"
-                echo "  v         Validation report (pre-flight check on Phase 1)"
-                echo "  hc        Health check (quick)"
-                echo "  t         Test suite"
-                echo "  p4        Run Phase 4 (CI/CD)"
-                echo "  all       Run all available scripts"
-                echo "  d         Show 80% defaults (industry standards)"
-                echo "  qa        Show 20% questions (what you'll be asked)"
-                echo "  s         Show environment status"
-                echo "  c         Show full config file"
-                echo "  e         Edit config interactively"
-                echo "  r         Refresh/rescan"
-                echo "  l         List all scripts"
-                echo "  q/x       Exit"
+                echo "  1-4       Enter phase menu to browse and run scripts"
+                echo "  d         Show 80% pre-configured defaults (industry standards)"
+                echo "  v         Run pre-flight validation to check environment readiness"
+                echo "  hc        Quick system health check - validates tools and libraries"
+                echo "  t         Run full test suite for all bootstrap components"
+                echo "  qa        Display 20% of questions you'll be asked during setup"
+                echo "  s         Show current environment status and bootstrap state"
+                echo "  c         Display complete bootstrap configuration in detail"
+                echo "  e         Interactively edit bootstrap configuration sections"
+                echo "  sg        Toggle command suggestions"
+                echo "  r         Refresh and rescan for new or updated scripts"
+                echo "  l         List all available scripts with metadata"
+                echo "  h         Show this help information"
+                echo "  q/x       Quit bootstrap menu and end session"
                 echo ""
                 ;;
 
@@ -1205,14 +1261,6 @@ run_menu() {
 
             p4|P4)
                 run_phase 4
-                show_session_summary
-                ;;
-
-            all|ALL)
-                log_info "Running all scripts..."
-                for phase in $(registry_get_phases); do
-                    run_phase "$phase"
-                done
                 show_session_summary
                 ;;
 

@@ -1,13 +1,28 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-email-service.sh
+# =============================================================================
+# @name           bootstrap-email-service
+# @phase          5
+# @category       config
+# @short          Email service integration setup
+# @description    Sets up email service integration with provider configuration
+#                 (SendGrid, AWS SES, etc), Handlebars email templates,
+#                 template layouts, Redis queue support, and rate limiting
+#                 for email delivery.
 #
-# Purpose: Email service integration setup with file tracking
-# Creates: Email provider config, templates, queue config, env files
-# Config:  [email] section in bootstrap.config
-# Phase:   Infrastructure (Phase 2)
-# ===================================================================
+# @creates        config/email/email-provider.config.json
+# @creates        config/email/templates/welcome.hbs
+# @creates        config/email/templates/password-reset.hbs
+# @creates        .env.email
+#
+# @defaults       EMAIL_PROVIDER=sendgrid, EMAIL_QUEUE_ENABLED=true
+# @defaults       TEMPLATE_ENGINE=handlebars, RATE_LIMIT_PER_HOUR=100
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

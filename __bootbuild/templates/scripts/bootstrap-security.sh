@@ -1,12 +1,29 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-security.sh
+# =============================================================================
+# @name           bootstrap-security
+# @phase          4
+# @category       config
+# @short          Security scanning and vulnerability detection
+# @description    Sets up security scanning with npm audit for dependencies,
+#                 Snyk for vulnerability detection (optional), license
+#                 verification with whitelist, and security policy
+#                 documentation for responsible disclosure.
 #
-# Purpose: Security scanning and vulnerability detection configuration
-# Creates: Security configuration files, audit configs, license policies
-# Config:  [security] section in bootstrap.config
-# ===================================================================
+# @creates        security/.snyk
+# @creates        security/security-policy.json
+# @creates        security/.npmauditrc
+# @creates        security/license-whitelist.json
+#
+# @depends        bootstrap-project, bootstrap-packages
+# @defaults       security.enabled=true, security.npm_audit=true
+# @defaults       security.snyk=false, security.audit_level=moderate
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

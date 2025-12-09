@@ -1,11 +1,33 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-kubernetes.sh
+# =============================================================================
+# @name           bootstrap-kubernetes
+# @phase          6
+# @category       deploy
+# @short          Kubernetes deployment and Helm chart config
+# @description    Generates Kubernetes deployment configuration with Kustomize
+#                 for environment-specific overlays (dev/staging/prod) and Helm
+#                 chart for package management. Includes base manifests for
+#                 deployments, services, ingress, ConfigMaps, and secrets.
 #
-# Bootstrap Kubernetes deployment configuration
-# Creates K8s manifests, Helm charts, and deployment templates
-# ===================================================================
+# @creates        kubernetes/base/deployment.yaml
+# @creates        kubernetes/base/service.yaml
+# @creates        kubernetes/base/ingress.yaml
+# @creates        kubernetes/base/kustomization.yaml
+# @creates        kubernetes/overlays/dev/kustomization.yaml
+# @creates        kubernetes/helm-chart/Chart.yaml
+# @creates        kubernetes/helm-chart/values.yaml
+# @creates        kubernetes/README.md
+#
+# @depends        bootstrap-docker
+# @requires_tools kubectl, docker
+# @defaults       replicas=2, container_port=3000
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

@@ -1,12 +1,29 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-project.sh
+# =============================================================================
+# @name           bootstrap-project
+# @phase          1
+# @category       setup
+# @short          Initialize project metadata and directory structure
+# @description    Creates foundational project files including CLAUDE.md with
+#                 project guidelines, README.md, .claudeignore for context
+#                 optimization, docs/ directory with architecture, API,
+#                 development, and deployment documentation templates.
 #
-# Purpose: Initialize project metadata and structure
-# Creates: CLAUDE.md, README.md, .claudeignore, docs/ structure
-# Config:  [project] section in bootstrap.config
-# ===================================================================
+# @creates        CLAUDE.md
+# @creates        README.md
+# @creates        .claudeignore
+# @creates        docs/
+# @creates        docs/architecture.md
+# @creates        docs/api.md
+# @creates        docs/development.md
+# @creates        docs/deployment.md
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

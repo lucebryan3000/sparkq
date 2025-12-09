@@ -1,12 +1,28 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-mysql.sh
+# =============================================================================
+# @name           bootstrap-mysql
+# @phase          3
+# @category       setup
+# @short          MySQL database setup with Docker
+# @description    Sets up MySQL database with Docker Compose orchestration,
+#                 initialization scripts, seed data, and automated backup
+#                 scripts with retention policies.
 #
-# Purpose: MySQL-specific database setup with file tracking
-# Creates: Docker Compose config, initialization scripts, backups, env files
-# Config:  [mysql] section in bootstrap.config
-# ===================================================================
+# @creates        database/mysql/init.sql
+# @creates        database/mysql/backup.sh
+# @creates        database/backups/
+# @creates        .env.mysql
+# @creates        docker-compose.mysql.yml
+#
+# @defaults       mysql.enabled=true, mysql.version=8.0, mysql.port=3306
+# @defaults       mysql.backup_enabled=true
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

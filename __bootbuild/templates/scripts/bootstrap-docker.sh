@@ -1,11 +1,28 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-docker.sh
+# =============================================================================
+# @name           bootstrap-docker
+# @phase          3
+# @category       config
+# @short          Docker and containerized dev environment setup
+# @description    Configures Docker and containerized development environment.
+#                 Creates docker-compose.yml for orchestrating services,
+#                 Dockerfile for application container, and .dockerignore
+#                 to exclude unnecessary files from build context.
 #
-# Bootstrap Docker and containerized development environment
-# Creates docker-compose.yml, Dockerfile, and .dockerignore
-# ===================================================================
+# @creates        docker-compose.yml
+# @creates        Dockerfile
+# @creates        .dockerignore
+# @creates        .env.local
+#
+# @requires_tools docker
+# @defaults       DATABASE_TYPE=auto, DATABASE_NAME=app_dev, APP_PORT=3000
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

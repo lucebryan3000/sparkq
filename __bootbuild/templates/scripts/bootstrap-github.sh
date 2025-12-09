@@ -1,12 +1,27 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-github.sh
+# =============================================================================
+# @name           bootstrap-github
+# @phase          2
+# @category       setup
+# @short          GitHub configuration and issue/PR templates
+# @description    Creates GitHub-specific configuration including pull request
+#                 templates, issue templates (bug/feature), GitHub Actions CI
+#                 workflow, and discussion configuration for project collaboration.
 #
-# Bootstrap GitHub configuration for a new project
-# Creates .github/ directory structure with PR templates, issue templates,
-# and CI/CD workflows per official GitHub documentation
-# ===================================================================
+# @creates        .github/PULL_REQUEST_TEMPLATE.md
+# @creates        .github/ISSUE_TEMPLATE/bug_report.md
+# @creates        .github/ISSUE_TEMPLATE/feature_request.md
+# @creates        .github/workflows/ci.yml
+#
+# @depends        bootstrap-git, bootstrap-project
+# @requires_tools git
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

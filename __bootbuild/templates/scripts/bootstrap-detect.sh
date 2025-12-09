@@ -1,12 +1,28 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-detect.sh
+# =============================================================================
+# @name           bootstrap-detect
+# @phase          1
+# @category       setup
+# @short          Detect system tools, project files, and capabilities
+# @description    Performs comprehensive system and project detection to inform
+#                 bootstrap script recommendations. Detects installed tools
+#                 with versions, checks for project files, analyzes Git status,
+#                 generates timestamped JSON reports, and updates bootstrap.config
+#                 with project-level facts. Maintains history of last 10 runs.
 #
-# Purpose: Detect system tools, project files, and environment capabilities
-# Creates: __bootbuild/logs/bootstrap-detect-*.json, updates [detected] in bootstrap.config
-# Config:  [detect] section in bootstrap.config
-# ===================================================================
+# @creates        __bootbuild/logs/bootstrap-detect-*.json
+# @creates        __bootbuild/logs/bootstrap-recommendations.json
+# @modifies       bootstrap.config [detected] section
+#
+# @requires_tools python3
+# @defaults       None explicitly configured
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

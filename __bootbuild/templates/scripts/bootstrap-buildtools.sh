@@ -1,12 +1,28 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-buildtools.sh
+# =============================================================================
+# @name           bootstrap-buildtools
+# @phase          3
+# @category       build
+# @short          Build tool configurations (Vite, Webpack, Rollup, tsup)
+# @description    Generates modern JavaScript/TypeScript build tool configs for
+#                 Vite (React plugin), Webpack (Babel, CSS), Rollup (library
+#                 builds), and tsup (fast TypeScript). Each includes source maps,
+#                 minification, code splitting, and ESM/CJS output options.
 #
-# Purpose: Build tools setup and configuration
-# Creates: Build configuration files (webpack, rollup, vite, tsup configs)
-# Config:  [buildtools] section in bootstrap.config
-# ===================================================================
+# @creates        vite.config.ts
+# @creates        webpack.config.js
+# @creates        rollup.config.js
+# @creates        tsup.config.ts
+#
+# @depends        bootstrap-project, bootstrap-packages
+# @requires_tools node, npm
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

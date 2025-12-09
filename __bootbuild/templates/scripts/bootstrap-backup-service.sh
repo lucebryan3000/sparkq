@@ -1,12 +1,35 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-backup-service.sh
+# =============================================================================
+# @name           bootstrap-backup-service
+# @phase          4
+# @category       deploy
+# @short          Disaster recovery with Restic backups and restore
+# @description    Implements comprehensive disaster recovery system using
+#                 Restic for encrypted, deduplicated backups. Creates backup
+#                 configuration with retention policies, database-specific
+#                 backup/restore scripts, verification procedures, S3 storage
+#                 backend configuration, and detailed restore documentation.
 #
-# Purpose: Backup and Disaster Recovery Setup (CI/CD & Deployment - Phase 4)
-# Creates: Backup configuration, restore procedures, monitoring scripts
-# Config:  [backup] section in bootstrap.config
-# ===================================================================
+# @creates        config/backup/backup.config.json
+# @creates        config/backup/restic-backup.sh
+# @creates        config/backup/.backup.env
+# @creates        config/backup/restore-procedure.md
+# @creates        scripts/backup-database.sh
+# @creates        scripts/restore-database.sh
+# @creates        scripts/verify-backup.sh
+#
+# @deletes        Old backups (via retention policy)
+#
+# @requires_tools openssl
+# @defaults       provider=restic, storage=s3, schedule=0 2 * * *
+# @defaults       retention_days=30, compression=true, verify=true
+#
+# @safe           no
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

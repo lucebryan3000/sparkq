@@ -1,12 +1,34 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-python.sh
+# =============================================================================
+# @name           bootstrap-python
+# @phase          2
+# @category       setup
+# @short          Python virtual environment and dependencies
+# @description    Sets up Python virtual environment with isolated dependencies,
+#                 creates .env for environment variables, configures .gitignore
+#                 and .claudeignore for version control and Claude context,
+#                 and sets up logs/ directory for Python application logs.
 #
-# Purpose: Set up Python virtual environment and dependencies
-# Creates: .venv/, .env, pyproject.toml, requirements.txt
-# Config:  [python] section in bootstrap.config
-# ===================================================================
+# @creates        .venv/
+# @creates        .env
+# @creates        .gitignore
+# @creates        .claudeignore
+# @creates        logs/
+#
+# @modifies       .gitignore
+# @modifies       .claudeignore
+#
+# @depends        bootstrap-project
+# @requires_tools python3
+# @defaults       python.version=3.11, python.venv_mode=isolated
+# @defaults       python.install_deps=true
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

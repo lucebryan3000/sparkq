@@ -1,12 +1,31 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-database.sh
+# =============================================================================
+# @name           bootstrap-database
+# @phase          3
+# @category       setup
+# @short          Database initialization, migrations, and backups
+# @description    Creates comprehensive database infrastructure supporting
+#                 PostgreSQL, MySQL, and MongoDB. Generates initialization
+#                 scripts with schema creation, seed data, automated backup
+#                 scripts with retention policies, and restore capabilities.
 #
-# Purpose: Database initialization, migration, and management setup
-# Creates: Database initialization scripts, seed data, backup scripts
-# Config:  [database] section in bootstrap.config
-# ===================================================================
+# @creates        database/db-init.sql
+# @creates        database/seed-data.sql
+# @creates        database/db-backup.sh
+# @creates        database/migrations/
+# @creates        database/README.md
+#
+# @depends        bootstrap-docker
+# @requires_tools docker
+# @defaults       type=postgresql, auto_migrate=false, backup_enabled=true
+# @defaults       pool_size=10, backup_retention_days=7
+#
+# @safe           no
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

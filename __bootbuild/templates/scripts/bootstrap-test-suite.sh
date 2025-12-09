@@ -1,17 +1,41 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-test-suite.sh
+# =============================================================================
+# @name           bootstrap-test-suite
+# @phase          4
+# @category       test
+# @short          Complete test suite setup for projects
+# @description    Sets up comprehensive testing infrastructure with Jest for
+#                 unit/integration testing, Pytest for Python, Vitest for
+#                 modern TypeScript, Playwright for e2e browser testing, and
+#                 test contract documentation with patterns and best practices.
 #
-# Bootstrap a complete test suite for any project.
-# Copies test templates and performs variable substitution.
+# @creates        tests/conftest.py
+# @creates        tests/jest.config.js
+# @creates        tests/TEST_CONTRACT.md
+# @creates        tests/patterns.md
+# @creates        tests/unit/
+# @creates        tests/integration/
+# @creates        tests/e2e/
+# @creates        pytest.ini
+# @creates        vitest.config.ts
+# @creates        playwright.config.ts
+#
+# @modifies       .gitignore
+#
+# @defaults       INSTALL_MODE=full
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 #
 # USAGE:
 #   ./bootstrap-test-suite.sh [PROJECT_PATH]
 #   ./bootstrap-test-suite.sh --minimal
 #   ./bootstrap-test-suite.sh --frameworks=pytest,vitest
 #   ./bootstrap-test-suite.sh --dry-run
-# ===================================================================
 
 set -euo pipefail
 

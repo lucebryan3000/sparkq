@@ -1,12 +1,25 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-vscode.sh
+# =============================================================================
+# @name           bootstrap-vscode
+# @phase          1
+# @category       config
+# @short          VS Code workspace configuration and extensions
+# @description    Sets up VS Code workspace configuration with recommended
+#                 settings for development, extensions list for team
+#                 standardization, debugging tasks, and launch configurations
+#                 for different environments (Node, browser, etc).
 #
-# Bootstrap VS Code configuration for a new project
-# Creates .vscode/ directory structure with settings, tasks, launch,
-# and extensions configuration per official VS Code documentation
-# ===================================================================
+# @creates        .vscode/settings.json
+# @creates        .vscode/extensions.json
+# @creates        .vscode/tasks.json
+# @creates        .vscode/launch.json
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

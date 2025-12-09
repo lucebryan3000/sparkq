@@ -1,12 +1,31 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-claude.sh
+# =============================================================================
+# @name           bootstrap-claude
+# @phase          1
+# @category       ai
+# @short          Complete Claude Code configuration with agents & commands
+# @description    Bootstraps complete Claude Code development environment with
+#                 comprehensive agent system, custom slash commands, hooks, and
+#                 project-specific instructions. Creates .claude/ structure with
+#                 agents, commands, skills, MCP config, and team settings.
 #
-# Bootstrap Claude Code configuration for a new project
-# Pulls from templates/.claude/ and creates complete .claude/ directory
-# structure per Anthropic's official guidelines
-# ===================================================================
+# @creates        .claude/settings.json
+# @creates        .claude/agents/code-reviewer.md
+# @creates        .claude/agents/debugger.md
+# @creates        .claude/commands/analyze.md
+# @creates        .claude/hooks/post-write.sh
+# @creates        .mcp.json
+# @creates        .claudeignore
+# @creates        CLAUDE.md
+#
+# @defaults       model=claude-opus-4-5-20251101, bypassPermissions=true
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

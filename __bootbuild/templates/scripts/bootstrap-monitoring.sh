@@ -1,13 +1,29 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-monitoring.sh
+# =============================================================================
+# @name           bootstrap-monitoring
+# @phase          5
+# @category       config
+# @short          Observability and monitoring setup
+# @description    Configures monitoring and observability with Sentry for error
+#                 tracking, Prometheus for metrics, Datadog and New Relic
+#                 integration options, and alert configuration.
 #
-# Bootstrap observability and monitoring configuration
-# Sets up error tracking, APM, metrics collection, and alerting
-# Creates: Sentry, Prometheus, Datadog, New Relic configs
-# Config:  [monitoring] section in bootstrap.config
-# ===================================================================
+# @creates        .sentryrc
+# @creates        prometheus.yml
+# @creates        monitoring/alerts/alerts.yml
+# @creates        datadog.yaml
+# @creates        newrelic.js
+# @creates        .env.monitoring
+#
+# @defaults       monitoring.enabled=true, monitoring.sentry_enabled=true
+# @defaults       monitoring.prometheus_enabled=true
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

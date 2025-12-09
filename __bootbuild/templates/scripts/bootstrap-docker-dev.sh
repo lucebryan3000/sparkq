@@ -1,10 +1,30 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-docker-dev.sh
-# Tier 2 dev: single-container app + Postgres + Redis, hardened vs sandbox
-# Bridge networking for Codeswarm/local hosts, optional mounts are opt-in
-# ===================================================================
+# =============================================================================
+# @name           bootstrap-docker-dev
+# @phase          3
+# @category       config
+# @short          Tier 2 dev single-container app + Postgres + Redis
+# @description    Development environment with single container combining app,
+#                 PostgreSQL, and Redis. Includes hardened networking vs sandbox,
+#                 optional Docker socket and SSH credential mounts, healthchecks,
+#                 and bridge networking for local host access.
+#
+# @creates        docker-compose.yml
+# @creates        Dockerfile
+# @creates        .dockerignore
+# @creates        entrypoint.sh
+# @creates        .env.docker-dev
+#
+# @requires_tools docker
+# @defaults       app_port=3000, postgres_port=5432, redis_port=6379
+# @defaults       debug_port=9229, user_id=1000, group_id=1000
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 

@@ -1,13 +1,32 @@
 #!/bin/bash
-
-# ===================================================================
-# bootstrap-rate-limiting.sh
+# =============================================================================
+# @name           bootstrap-rate-limiting
+# @phase          2
+# @category       config
+# @short          Redis-based rate limiting service configuration
+# @description    Sets up Redis-based rate limiting infrastructure with token
+#                 bucket strategy, Lua scripts for atomic operations, endpoint
+#                 configuration, Docker Compose for Redis, environment setup,
+#                 and example integration code.
 #
-# Purpose: Redis-based rate limiting service setup with file tracking
-# Creates: Redis config, Lua scripts, rate limit strategies, env files
-# Config:  [rate_limiting] section in bootstrap.config
-# Phase:   Infrastructure (Phase 2)
-# ===================================================================
+# @creates        config/rate-limiting/rate-limit.config.json
+# @creates        config/rate-limiting/redis-init.lua
+# @creates        config/rate-limiting/strategies.lua
+# @creates        config/rate-limiting/endpoints.json
+# @creates        config/rate-limiting/example-integration.js
+# @creates        .env.rate-limiting
+# @creates        docker-compose.rate-limiting.yml
+#
+# @requires_tools openssl
+# @defaults       redis_version=7.0, redis_port=6379, window_seconds=60
+# @defaults       max_requests=100, strategy=token-bucket
+#
+# @safe           yes
+# @idempotent     yes
+#
+# @author         Bootstrap System
+# @updated        2025-12-08
+# =============================================================================
 
 set -euo pipefail
 
