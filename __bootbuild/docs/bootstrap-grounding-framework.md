@@ -232,11 +232,11 @@ When running `/bryan` against a specification:
 
 | Domain | Status | Location | Grounding Template | Notes |
 |--------|--------|----------|---------------------|-------|
-| **Shell Scripts** | ✅ Complete | `__bootbuild/templates/scripts/` | [`grounding.md`](../../../__bootbuild/templates/scripts/grounding.md) | 24 constraints documented; all 42 scripts follow pattern; pre-commit hooks ready for integration |
-| **Docker/Compose** | 🟡 Ready | `__bootbuild/templates/docker/` | TBD (Phase 3-4) | **NEXT** — Tier system (sandbox/dev/prod) established, awaiting Phase 3-5 workflow |
+| **Shell Scripts** | ✅ Complete | `__bootbuild/templates/scripts/` | [`grounding.md`](../../../__bootbuild/templates/scripts/grounding.md) | 24 constraints documented; all 42 scripts follow pattern; pre-commit hooks implemented; metadata enhanced with 8 new fields |
+| **Docker/Compose** | 🟡 Ready | `__bootbuild/templates/docker/` | TBD (Phase 4) | Tier system (sandbox/dev/prod) established; bridge mappings defined; awaiting grounding template creation |
+| **Kubernetes** | 🟡 Ready | `__bootbuild/templates/kubernetes/` | TBD (Phase 4) | Resource naming patterns designed; labels/ConfigMap patterns defined; awaiting grounding template creation |
+| **Infrastructure-as-Code** | 🟡 Ready | `__bootbuild/templates/iac/` | TBD (Phase 4) | Resource tagging and environment prefix patterns designed; awaiting grounding template creation |
 | **Specifications** | ✅ Complete | `__bootbuild/docs/bootstrap-grounding-framework.md` (this file) | Active | Framework document itself; reusable spec completeness checklist for /bryan playbook |
-| **Kubernetes** | ⏳ Planned | `__bootbuild/templates/kubernetes/` | Phase 2 TBD | Adoption decision pending; reserved for future expansion |
-| **Infrastructure-as-Code** | ⏳ Planned | `__bootbuild/templates/iac/` | Phase 3 TBD | Terraform, CloudFormation patterns; after Kubernetes adoption |
 | **[Custom Domain]** | ⏳ Reserved | `__bootbuild/templates/[domain]/` | TBD | Use framework to ground custom domains as needed |
 
 ---
@@ -574,12 +574,14 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
   - **Disabled by default** (user must explicitly enable)
   - ROI: Prevents invalid scripts from entering repository locally
 
-### Coming Soon (Phase 3: 80/20 Bootstrap Orchestration)
+### Phase 3: 80/20 Bootstrap Orchestration (NEXT)
+
+**Goal:** Operationalize the 80/20 model using completed metadata infrastructure.
 
 - [ ] **Implement 80/20 bootstrap orchestration script**
   - Location: `__bootbuild/scripts/bootstrap-system.sh` (main orchestrator)
   - Goal: Use new 8 metadata fields to automatically generate Docker Compose with 80% predefined, 20% questions
-  - Dependencies: Manifest.json with full metadata (✅ DONE), metadata validation library (✅ DONE)
+  - Dependencies: ✅ Manifest.json with full metadata (DONE), ✅ Metadata validation library (DONE), ✅ Pre-commit hooks (DONE)
   - Scope: Orchestrate Docker + Node.js + TypeScript + PostgreSQL with health checks
   - Success: Single command bootstraps entire stack, comes online healthy, verified
 
@@ -595,23 +597,40 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
   - Content: `git config core.hooksPath __bootbuild/hooks` setup instructions
   - Optional: Git alias `git validate-scripts` for manual validation
 
-### Coming Soon (Phase 4: Advanced Domain Grounding)
+### Phase 4: Comprehensive Domain Grounding (FOLLOWS PHASE 3)
 
-- [ ] **Create Docker grounding template**
+**Goal:** Create grounding templates for all technology domains using the same pattern established in Phase 1.
+
+- [ ] **Create Docker/Compose grounding template**
   - Location: `__bootbuild/templates/docker/grounding.md`
   - Goal: Document Docker container patterns, Compose structure, tier configurations (sandbox/dev/prod)
-  - Foundation: Bridge mappings and precedence framework already defined
+  - Foundation: Bridge mappings and precedence framework already defined in framework doc
+  - Pattern: Follow Shell Scripts grounding template structure (constraints → patterns → decisions → examples)
+
+- [ ] **Create Kubernetes grounding template**
+  - Location: `__bootbuild/templates/kubernetes/grounding.md`
+  - Goal: Document Kubernetes resource naming, label conventions, ConfigMap/Secret patterns
+  - Foundation: Naming patterns designed; resource-to-shell-script mapping established
   - Pattern: Follow Shell Scripts grounding template structure
 
-- [ ] **Create precedence-matrix.md (detailed)**
+- [ ] **Create Infrastructure-as-Code grounding template**
+  - Location: `__bootbuild/templates/iac/grounding.md`
+  - Goal: Document Terraform/CloudFormation resource tagging, environment prefixes, state management
+  - Foundation: Resource tagging patterns and environment prefix conventions designed
+  - Pattern: Follow Shell Scripts grounding template structure
+  - Coverage: Terraform, CloudFormation, AWS/Azure/GCP patterns
+
+- [ ] **Create detailed precedence-matrix.md**
   - Location: `__bootbuild/config/precedence-matrix.md`
-  - Goal: Full expansion of cross-domain precedence framework (6 conflict scenarios, exception handling, decision trees)
+  - Goal: Full expansion of cross-domain precedence framework (6+ conflict scenarios, exception handling, decision trees)
   - Foundation: Summary already in framework file; detailed version for specialist reference
+  - Purpose: Reference guide for architects resolving conflicts between domains
 
 - [ ] **Create category-bridge.json**
   - Location: `__bootbuild/config/category-bridge.json`
   - Goal: Canonical mapping between shell @category, Kubernetes labels, and IaC tags
-  - Structure: Follows example from precedence framework section
+  - Structure: Extends bridge mapping table from precedence framework
+  - Usage: Automated cross-domain reference generation
 
 ### Optional: GitHub Actions Templates (DISABLED BY DEFAULT)
 
@@ -621,12 +640,6 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
   - Activation: Teams must explicitly enable in GitHub settings if desired
   - Cost concern: Disabled to avoid excessive Actions usage
   - Note: Local pre-commit hooks provide sufficient validation for most workflows
-
-### Future (Phase 5+)
-
-- [ ] Expand to Kubernetes domain grounding (Phase 5)
-- [ ] Expand to Infrastructure-as-Code domain grounding (Phase 6)
-- [ ] Create domain-specific checklist files in `__bootbuild/docs/` for `/bryan` integration
 
 ---
 
