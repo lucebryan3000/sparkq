@@ -598,3 +598,332 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
 - [ ] Expand to Kubernetes domain grounding (Phase 3)
 - [ ] Expand to Infrastructure-as-Code domain grounding (Phase 4)
 - [ ] Create domain-specific checklist files in `__bootbuild/docs/` for `/bryan` integration
+
+---
+
+## 80/20 Bootstrap Model: Metadata Requirements
+
+**Vision:** Enable a single bootstrap script that configures Docker + Node.js + TypeScript + PostgreSQL with 80% predefined parameters and 20% developer input questions, resulting in a healthy, online system.
+
+**Research Base:** Authoritative documentation fetched from Docker Compose spec, Node.js v25 docs, TypeScript Handbook, and PostgreSQL bootstrap procedures.
+
+### Essential Metadata by Technology (80% Predefined vs 20% Developer Choice)
+
+| Technology | Configuration Area | Essential Field | Type | Default/Predefined | Category | Why |
+|-----------|-------------------|-----------------|------|-------------------|----------|-----|
+| **Docker Compose** | Service Dependencies | `depends_on` | list | `[database, cache]` | 80% | Service startup ordering critical |
+| | | Service Name | string | `app`, `db`, `redis` | 80% | Container identification |
+| | Health Checks | `healthcheck` | object | TCP/HTTP templates per service | 80% | Readiness verification |
+| | Environment | Service variables | object | Predefined defaults per service | 80% | Standard configuration |
+| | Networking | Network mode | string | `bridge` (internal by default) | 80% | Default isolation |
+| | Volumes | Data persistence paths | list | `/var/lib/postgresql/data`, `/app` | 80% | Database durability, app isolation |
+| | **20% Developer Choice** | Port bindings | map | Ask: host ports for external access | 20% | May conflict with local services |
+| | | Database name | string | Ask: `dbname`, credentials | 20% | Application-specific choice |
+| | | Database password | string | MUST ASK (security) | 20% | Never predefined |
+| **PostgreSQL** | Initialization | `PGDATA` | path | `/var/lib/postgresql/data` | 80% | Standard container path |
+| | | Encoding | string | `UTF8` | 80% | Predefined standard |
+| | | Locale | string | `en_US.UTF-8` | 80% | Predefined standard |
+| | | Cluster initdb | command | `initdb` standard options | 80% | Predefined schema creation |
+| | Health Checks | Query command | SQL | `pg_ctl status && SELECT 1` | 80% | Predefined readiness check |
+| | | Timeout | seconds | 10s | 80% | Predefined timeout |
+| | Connection Parameters | `shared_buffers` | memory | 256MB (container default) | 80% | Container-appropriate size |
+| | | `effective_cache_size` | memory | 512MB (container default) | 80% | Container-appropriate size |
+| | | `max_connections` | integer | 20 (container default) | 80% | Limits per container |
+| | **20% Developer Choice** | Initial database | string | Ask: primary database name | 20% | Application-specific |
+| | | Initial user | string | Ask: username (not `postgres`) | 20% | Security best practice |
+| | | Custom parameters | flags | Ask: any beyond defaults | 20% | Advanced configurations |
+| **Node.js** | Bootstrap | Version | string | Ask: 20.x, 22.x, or 24.x LTS | 20% | Stability vs. features tradeoff |
+| | | Base image | string | `node:24-alpine` (or chosen) | 80% | Predefined minimal image |
+| | Module System | Module format | string | `ES2022` (ESM) | 80% | Modern standard |
+| | | Module resolution | string | `node` | 80% | npm standard |
+| | Startup Pattern | Environment setup | bash | Read from process.env | 80% | Predefined pattern |
+| | | Port binding | variable | `PORT` env var (default 3000) | 80% | Predefined pattern |
+| | | `NODE_ENV` | variable | `production` in container | 80% | Predefined for production |
+| | Health Checks | Endpoint | path | `/health` (predefined route) | 80% | Standard health check pattern |
+| | | Response | JSON | `{"status":"ok"}` | 80% | Predefined schema |
+| | **20% Developer Choice** | Application port | integer | Ask: custom port if needed | 20% | Rare override case |
+| | | Feature flags | object | Ask: feature toggles required | 20% | Application-specific |
+| **TypeScript** | Compiler | Strict mode | flag | `"strict": true` | 80% | Predefined required |
+| | | NoImplicitAny | flag | `true` | 80% | Predefined required |
+| | | StrictNullChecks | flag | `true` | 80% | Predefined required |
+| | | StrictFunctionTypes | flag | `true` | 80% | Predefined required |
+| | | StrictBindCallApply | flag | `true` | 80% | Predefined required |
+| | | StrictPropertyInitialization | flag | `true` | 80% | Predefined required |
+| | | NoImplicitThis | flag | `true` | 80% | Predefined required |
+| | | AlwaysStrict | flag | `true` | 80% | Predefined required |
+| | | Module | string | `ES2022` | 80% | Predefined standard |
+| | | Target | string | `ES2022` | 80% | Predefined standard |
+| | | ModuleResolution | string | `node` | 80% | Predefined standard |
+| | Outputs | Declaration | flag | `true` | 80% | Predefined for libraries |
+| | | SourceMap | flag | `true` | 80% | Predefined for debugging |
+| | | OutDir | path | `dist/` | 80% | Predefined standard |
+| | | RootDir | path | `src/` | 80% | Predefined standard |
+| | **20% Developer Choice** | Project name | string | Ask: package name | 20% | Application identity |
+| | | ES version target | enum | Ask: ES2020, ES2021, ES2022 | 20% | Browser compatibility |
+
+### Proposed Script Header Metadata Extensions
+
+**Currently tracked in @script tags:**
+```bash
+@version X.Y.Z
+@phase [1-5]
+@category [infrastructure|language|database|etc]
+@priority [0-100]
+@safe [true|false]
+@idempotent [true|false]
+```
+
+**Proposed additions for 80/20 bootstrap:**
+
+```bash
+# Service Configuration (NEW)
+@provides_service <service_name>     # What Docker Compose service(s) this script configures
+@provides_healthcheck <check_type>   # Health check mechanism: 'http', 'tcp', 'shell', 'sql'
+@requires_service <service_list>     # Dependencies (e.g., @requires_service database cache)
+
+# Environment Configuration (NEW)
+@env_vars_80 VAR1=default VAR2=value # Predefined (80%) environment variables
+@env_vars_20 VAR3 VAR4               # Developer must provide (20%) environment variables
+@env_vars_ask questions about vars   # Human-readable question for required variables
+
+# Initialization Parameters (NEW)
+@initialization_type <setup|config|migrate|deploy>  # What kind of initialization
+@initialization_idempotent [true|false]  # Can run multiple times safely
+@initialization_vars KEY1=preset KEY2=auto  # Parameters: preset=predefined, auto=detected, ask=user input
+
+# Health Check Details (NEW)
+@healthcheck_endpoint <path_or_command>  # /health or 'pg_ctl status' or 'SELECT 1'
+@healthcheck_timeout <seconds>           # 10s default
+@healthcheck_retry_count <int>           # 3 retries default
+@healthcheck_interval <seconds>          # 5s default
+
+# Bootstrap Integration (NEW)
+@bootstrap_80_percent <descriptor>   # What's predefined and immutable
+@bootstrap_20_percent <descriptor>   # What requires user input
+@bootstrap_order <dependency_list>   # Execution sequence within phase
+```
+
+### Manifest.json Schema Additions
+
+**Current structure** supports script metadata; **proposed extensions** for 80/20 bootstrap:
+
+```json
+{
+  "scripts": [
+    {
+      "name": "bootstrap-docker",
+      "version": "1.0.0",
+      "phase": 1,
+      "category": "infrastructure",
+
+      "new_fields": {
+        "provides_service": ["docker-daemon"],
+        "provides_healthcheck": ["docker", "healthcheck", "socket"],
+        "requires_service": [],
+
+        "env_vars_80": {
+          "DOCKER_VERSION": "latest",
+          "DOCKER_DAEMON_CONFIG": "/etc/docker/daemon.json",
+          "DOCKER_STORAGE_DRIVER": "overlay2"
+        },
+        "env_vars_20": {
+          "DOCKER_REGISTRY": "registry host (ask user)",
+          "DOCKER_INSECURE_REGISTRIES": "private registries (optional)"
+        },
+
+        "initialization": {
+          "type": "setup",
+          "idempotent": true,
+          "parameters": {
+            "DOCKER_VERSION": "predefined",
+            "DOCKER_DAEMON_CONFIG": "predefined",
+            "DOCKER_LOG_DRIVER": "json-file"
+          }
+        },
+
+        "healthcheck": {
+          "type": "socket",
+          "endpoint": "/var/run/docker.sock",
+          "timeout_seconds": 10,
+          "retry_count": 3,
+          "interval_seconds": 5
+        },
+
+        "bootstrap_coverage": {
+          "percent_80": ["Docker installation", "Daemon configuration", "Log driver setup"],
+          "percent_20": ["Custom registry mirrors", "Experimental features"]
+        }
+      }
+    },
+    {
+      "name": "bootstrap-postgres",
+      "new_fields": {
+        "provides_service": ["postgresql"],
+        "provides_healthcheck": ["postgresql", "query-based"],
+
+        "env_vars_80": {
+          "PGDATA": "/var/lib/postgresql/data",
+          "POSTGRES_ENCODING": "UTF8",
+          "POSTGRES_LOCALE": "en_US.UTF-8",
+          "POSTGRES_INITDB_ARGS": "-c shared_buffers=256MB -c max_connections=20"
+        },
+        "env_vars_20": {
+          "POSTGRES_DB": "Application database name",
+          "POSTGRES_USER": "Non-root user (security requirement)",
+          "POSTGRES_PASSWORD": "MUST ASK (security)"
+        },
+
+        "initialization": {
+          "type": "migrate",
+          "idempotent": false,
+          "parameters": {
+            "SHARED_BUFFERS": "256MB",
+            "EFFECTIVE_CACHE_SIZE": "512MB",
+            "MAX_CONNECTIONS": 20,
+            "CLUSTER_INITDB": "initdb -D $PGDATA --encoding=$POSTGRES_ENCODING --locale=$POSTGRES_LOCALE"
+          }
+        },
+
+        "healthcheck": {
+          "type": "sql",
+          "endpoint": "SELECT 1 as health_check",
+          "timeout_seconds": 10,
+          "retry_count": 5,
+          "interval_seconds": 5
+        }
+      }
+    },
+    {
+      "name": "bootstrap-nodejs",
+      "new_fields": {
+        "provides_service": ["nodejs-app"],
+        "provides_healthcheck": ["http", "json-endpoint"],
+
+        "env_vars_80": {
+          "NODE_ENV": "production",
+          "NODE_VERSION": "24",
+          "NODE_MODULE_SYSTEM": "ES2022",
+          "HEALTH_CHECK_ENDPOINT": "/health"
+        },
+        "env_vars_20": {
+          "PORT": "Application port (default 3000)",
+          "FEATURE_FLAGS": "Application-specific toggles (optional)"
+        },
+
+        "initialization": {
+          "type": "setup",
+          "idempotent": true,
+          "parameters": {
+            "NODE_LTS_VERSION": "ask user: 20.x, 22.x, or 24.x",
+            "BASE_IMAGE": "node:24-alpine",
+            "MODULE_RESOLUTION": "node",
+            "STARTUP_PATTERN": "read $PORT and $NODE_ENV from environment"
+          }
+        },
+
+        "healthcheck": {
+          "type": "http",
+          "endpoint": "http://localhost:3000/health",
+          "timeout_seconds": 10,
+          "retry_count": 3,
+          "interval_seconds": 5,
+          "expected_response": {"status": "ok"}
+        }
+      }
+    },
+    {
+      "name": "bootstrap-typescript",
+      "new_fields": {
+        "provides_service": ["typescript-compiler"],
+        "provides_healthcheck": ["compiler-check", "type-check"],
+
+        "env_vars_80": {
+          "TYPESCRIPT_VERSION": "latest-stable",
+          "TSCONFIG_STRICT": "true",
+          "TSCONFIG_MODULE": "ES2022",
+          "TSCONFIG_TARGET": "ES2022"
+        },
+        "env_vars_20": {
+          "PROJECT_NAME": "Package/project name",
+          "TARGET_ES_VERSION": "ES2020, ES2021, or ES2022 (browser compatibility)"
+        },
+
+        "initialization": {
+          "type": "config",
+          "idempotent": true,
+          "parameters": {
+            "STRICT_MODE": "true (immutable)",
+            "NO_IMPLICIT_ANY": "true (immutable)",
+            "STRICT_NULL_CHECKS": "true (immutable)",
+            "NO_IMPLICIT_THIS": "true (immutable)",
+            "SOURCE_MAP": "true",
+            "DECLARATION": "true",
+            "OUT_DIR": "dist/",
+            "ROOT_DIR": "src/"
+          }
+        },
+
+        "healthcheck": {
+          "type": "compiler-check",
+          "endpoint": "tsc --noEmit",
+          "timeout_seconds": 30,
+          "acceptable_output": "0 errors"
+        }
+      }
+    }
+  ]
+}
+```
+
+### How 80/20 Bootstrap Works: Implementation Pattern
+
+**Bootstrap Script Flow (Pseudocode):**
+
+```bash
+#!/bin/bash
+# bootstrap-system.sh - Main orchestrator
+
+# Phase 1: Load 80% predefined configuration
+source __bootbuild/lib/load-defaults.sh      # Loads all @env_vars_80 defaults
+source __bootbuild/lib/detect-existing.sh    # Checks what's already configured
+
+# Phase 2: Collect 20% developer input
+bootstrap_ask "What Node.js LTS version? (20.x/22.x/24.x)" NODE_LTS_VERSION
+bootstrap_ask "Database name for PostgreSQL?" POSTGRES_DB
+bootstrap_ask "Non-root PostgreSQL user?" POSTGRES_USER
+bootstrap_ask "PostgreSQL password?" POSTGRES_PASSWORD
+bootstrap_ask "Application port? (default 3000)" APP_PORT
+
+# Phase 3: Generate Docker Compose with merged values
+generate_docker_compose \
+  --predefined-services "docker postgresql redis nodejs" \
+  --predefined-healthchecks "yes" \
+  --user-inputs "PORT=$APP_PORT,DB_NAME=$POSTGRES_DB" \
+  > docker-compose.yml
+
+# Phase 4: Execute phases 1-5 in order (each script checks @requires_service)
+for phase in 1 2 3 4 5; do
+  run_bootstrap_phase $phase
+done
+
+# Phase 5: Validate everything is healthy
+validate_healthchecks \
+  --service docker \
+  --service postgresql \
+  --service redis \
+  --service nodejs
+```
+
+### Success Criteria for 80/20 Bootstrap Implementation
+
+Once metadata additions are coded and scripts updated:
+
+- [ ] Bootstrap script can generate Docker Compose with **0 developer coding required**
+- [ ] Bootstrap asks **exactly 5-7 questions** upfront (all others predefined)
+- [ ] All services include predefined **health checks** (with automatic retries)
+- [ ] After execution, system comes online **healthy and verified**
+- [ ] Developer can override any 80% value via environment variables if needed
+- [ ] Metadata fields tracked in manifest.json and synced with script headers
+- [ ] Pre-commit hook validates that scripts declare their service/healthcheck/env requirements
+
+---
