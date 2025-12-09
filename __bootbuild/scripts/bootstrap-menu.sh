@@ -260,51 +260,64 @@ launch_background_scan() {
         # Ensure cache directory
         mkdir -p "$CACHE_DIR"
 
-        # Scan for script status
-        local scan_result="{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\","
-        scan_result+="\"scripts\":{"
-
-        local first=true
+        # Build script status object using jq
+        local scripts_obj='{}'
         for script in $(registry_get_visible_scripts); do
             local status=$(registry_get_script_status "$script")
             local has_q="false"
             registry_has_questions "$script" && has_q="true"
 
-            [[ "$first" != "true" ]] && scan_result+=","
-            first=false
-
-            scan_result+="\"$script\":{\"status\":\"$status\",\"has_questions\":$has_q}"
+            scripts_obj=$(jq --arg script "$script" --arg status "$status" --argjson has_q "$has_q" \
+                '.[$script] = {status: $status, has_questions: $has_q}' <<< "$scripts_obj")
         done
 
-        scan_result+="},"
+        # Build new scripts array
+        local new_scripts_array=()
+        while IFS= read -r script; do
+            [[ -n "$script" ]] && new_scripts_array+=("$script")
+        done < <(registry_discover_new_scripts)
 
-        # Check for new scripts
-        local new_scripts=$(registry_discover_new_scripts | tr '\n' ',' | sed 's/,$//')
-        scan_result+="\"new_scripts\":[$(echo "$new_scripts" | sed 's/\([^,]*\)/"\1"/g')],"
+        # Build missing scripts array
+        local missing_scripts_array=()
+        while IFS= read -r script; do
+            [[ -n "$script" ]] && missing_scripts_array+=("$script")
+        done < <(registry_find_missing_scripts)
 
-        # Check for missing scripts
-        local missing=$(registry_find_missing_scripts | tr '\n' ',' | sed 's/,$//')
-        scan_result+="\"missing_scripts\":[$(echo "$missing" | sed 's/\([^,]*\)/"\1"/g')]"
+        # Construct final JSON using jq
+        local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        jq --arg timestamp "$timestamp" \
+           --argjson scripts "$scripts_obj" \
+           --argjson new_scripts "$(printf '%s\n' "${new_scripts_array[@]}" | jq -Rs -s 'split("\n") | map(select(length > 0))')" \
+           --argjson missing_scripts "$(printf '%s\n' "${missing_scripts_array[@]}" | jq -Rs -s 'split("\n") | map(select(length > 0))')" \
+           '{timestamp: $timestamp, scripts: $scripts, new_scripts: $new_scripts, missing_scripts: $missing_scripts}' \
+           <<< 'null' > "${SCAN_CACHE}.$$" || return 1
 
-        scan_result+="}"
-
-        echo "$scan_result" > "$SCAN_CACHE"
+        jq empty < "${SCAN_CACHE}.$$" || { rm "${SCAN_CACHE}.$$"; return 1; }
+        mv "${SCAN_CACHE}.$$" "$SCAN_CACHE"
 
     ) &
     HELPER_PID=$!
 }
 
 wait_for_scan() {
-    local timeout=3
     local elapsed=0
+    local max_elapsed=300
 
-    while [[ ! -f "$SCAN_CACHE" ]] && [[ $elapsed -lt $timeout ]]; do
+    while [[ ! -f "$SCAN_CACHE" && $elapsed -lt $max_elapsed ]]; do
         sleep 0.1
         elapsed=$((elapsed + 1))
     done
 
-    # Kill helper if still running
-    [[ -n "${HELPER_PID:-}" ]] && kill "$HELPER_PID" 2>/dev/null || true
+    if [[ -n "${HELPER_PID:-}" ]] && kill -0 "$HELPER_PID" 2>/dev/null; then
+        kill "$HELPER_PID" 2>/dev/null || true
+    fi
+
+    if [[ -f "$SCAN_CACHE" ]]; then
+        return 0
+    fi
+
+    log_warning "Scan timeout after 30s" >&2
+    return 124
 }
 
 read_scan_cache() {
@@ -377,6 +390,11 @@ run_script() {
 run_phase() {
     local phase="$1"
 
+    if [[ -z "$phase" ]]; then
+        log_error "Unknown phase"
+        return 1
+    fi
+
     # Pre-flight check
     if [[ "$SKIP_PREFLIGHT" != "true" ]] && type -t preflight_check_phase &>/dev/null; then
         if ! preflight_check_phase "$phase"; then
@@ -395,6 +413,7 @@ run_phase() {
     local total_scripts=${#phase_scripts[@]}
     local current=0
     local start_time=$(date +%s)
+    local FAILED_SCRIPTS=0
 
     for script in "${phase_scripts[@]}"; do
         if registry_script_file_exists "$script"; then
@@ -403,7 +422,10 @@ run_phase() {
                 show_progress_bar "$current" "$total_scripts" "Phase $phase"
             fi
 
-            run_script "$script" || true
+            run_script "$script"
+            if [[ $? -ne 0 ]]; then
+                FAILED_SCRIPTS=$((FAILED_SCRIPTS + 1))
+            fi
             ((current++))
         else
             log_warning "Skipping unavailable: $script"
@@ -419,20 +441,13 @@ run_phase() {
         # Show completion time
         local end_time=$(date +%s)
         local duration=$((end_time - start_time))
-
-    # Pre-flight check
-    if [[ "$SKIP_PREFLIGHT" != "true" ]] && type -t preflight_check_profile &>/dev/null; then
-        if ! preflight_check_profile "$profile"; then
-            log_error "Pre-flight check failed for profile $profile"
-            return 1
-        fi
-        echo ""
-    fi
         if type -t format_duration &>/dev/null; then
             local formatted_duration=$(format_duration "$duration")
             log_success "Phase $phase completed in $formatted_duration"
         fi
     fi
+
+    [[ $FAILED_SCRIPTS -gt 0 ]] && return 1
 }
 
 run_profile() {
@@ -1303,6 +1318,8 @@ main() {
     # Parse command line
     parse_arguments "$@"
 
+    local manifest_file="$MANIFEST_FILE"
+
     # Show help if requested
     if [[ "$SHOW_HELP" == "true" ]]; then
         show_help
@@ -1341,17 +1358,39 @@ main() {
     # Run profile if specified
     if [[ -n "$PROFILE" ]]; then
         wait_for_scan
-        run_profile "$PROFILE"
+
+        local profile="$PROFILE"
+        if ! grep -q "\"$profile\"" "$manifest_file"; then
+            echo "Error: Unknown profile: $profile" >&2
+            exit 1
+        fi
+
+        set +e
+        run_profile "$profile"
+        RUN_STATUS=$?
+        set -e
+
         show_session_summary
-        exit 0
+        exit $RUN_STATUS
     fi
 
     # Run phase if specified
     if [[ -n "$PHASE" ]]; then
         wait_for_scan
-        run_phase "$PHASE"
+
+        local phase="$PHASE"
+        if ! grep -q "\"$phase\"" "$manifest_file"; then
+            echo "Error: Unknown phase: $phase" >&2
+            exit 1
+        fi
+
+        set +e
+        run_phase "$phase"
+        RUN_STATUS=$?
+        set -e
+
         show_session_summary
-        exit 0
+        exit $RUN_STATUS
     fi
 
     # Wait for scan before showing menu
