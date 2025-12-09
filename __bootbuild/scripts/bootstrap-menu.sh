@@ -1073,9 +1073,9 @@ show_list() {
 
 display_menu() {
     clear
-    read_scan_cache
+    read_scan_cache || true
 
-    local project_name=$(config_get "project.name" "Project" "$BOOTSTRAP_CONFIG")
+    local project_name=$(config_get "project.name" "Project" "$BOOTSTRAP_CONFIG" 2>/dev/null || echo "Project")
 
     echo ""
     echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
@@ -1102,12 +1102,12 @@ display_menu() {
 
     local counter=0
     local -a PHASES=()
-    mapfile -t PHASES < <(registry_get_phases)
+    mapfile -t PHASES < <(registry_get_phases 2>/dev/null || true)
     for phase in "${PHASES[@]}"; do
         counter=$((counter + 1))
-        local phase_name=$(registry_get_phase_name "$phase")
-        local phase_color=$(registry_get_phase_color "$phase")
-        local script_count=$(registry_get_phase_count "$phase")
+        local phase_name=$(registry_get_phase_name "$phase" 2>/dev/null || echo "Phase $phase")
+        local phase_color=$(registry_get_phase_color "$phase" 2>/dev/null || echo "blue")
+        local script_count=$(registry_get_phase_count "$phase" 2>/dev/null || echo "0")
 
         # Set color and icon
         local color_code="$BLUE"
@@ -1123,7 +1123,7 @@ display_menu() {
 
     echo ""
     echo -e "${YELLOW}Commands:${NC}"
-    local max_phase=$(registry_get_phases | wc -l)
+    local max_phase=$( (registry_get_phases 2>/dev/null || true) | wc -l)
     echo "  1-${max_phase}      Enter phase menu to browse and run scripts"
     echo "  d        Show 80% pre-configured defaults (industry standards)"
     echo "  v        Run pre-flight validation to check environment readiness"
