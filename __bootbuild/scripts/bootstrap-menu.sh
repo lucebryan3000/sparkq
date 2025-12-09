@@ -1437,13 +1437,13 @@ main() {
 
     # Handle special modes
     if [[ "$SHOW_STATUS" == "true" ]]; then
-        wait_for_scan
+        wait_for_scan || true
         show_status
         exit 0
     fi
 
     if [[ "$SHOW_LIST" == "true" ]]; then
-        wait_for_scan
+        wait_for_scan || true
         show_list
         exit 0
     fi
@@ -1486,8 +1486,8 @@ main() {
         exit $RUN_STATUS
     fi
 
-    # Wait for scan before showing menu
-    wait_for_scan
+    # Wait for scan before showing menu (gracefully handle timeout)
+    wait_for_scan || true
 
     # Interactive menu
     run_menu
