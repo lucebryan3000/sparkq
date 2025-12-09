@@ -46,7 +46,7 @@
       "docs": "https://swagger.io/specification/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-api.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-api.sh"
     },
     "auth-oauth2": {
       "version": "1.0.0",
@@ -121,7 +121,7 @@
       "docs": "https://oauth.net/2/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-auth-oauth2.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-auth-oauth2.sh"
     },
     "backup-service": {
       "version": "1.0.0",
@@ -206,7 +206,7 @@
       "defaults": "provider=restic, storage=s3, schedule=0 2 * * *",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-backup-service.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-backup-service.sh"
     },
     "buildtools": {
       "version": "1.0.0",
@@ -245,7 +245,7 @@
       "docs": "https://docs.npmjs.com/cli/commands",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-buildtools.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-buildtools.sh"
     },
     "ci-cd": {
       "version": "1.0.0",
@@ -288,7 +288,7 @@
       "docs": "https://docs.github.com/en/actions",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-ci-cd.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-ci-cd.sh"
     },
     "cicd": {
       "version": "1.0.0",
@@ -332,7 +332,7 @@
       "docs": "https://docs.github.com/en/actions",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-cicd.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-cicd.sh"
     },
     "claude": {
       "version": "1.0.0",
@@ -380,7 +380,7 @@
       "defaults": "model=claude-opus-4-5-20251101, bypassPermissions=true",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-claude.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-claude.sh"
     },
     "codex": {
       "version": "1.0.0",
@@ -426,7 +426,7 @@
       "defaults": "model=code-davinci-002, enabled=false, temperature=0.5",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-codex.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-codex.sh"
     },
     "database": {
       "version": "1.0.0",
@@ -489,7 +489,7 @@
       "defaults": "type=postgresql, auto_migrate=false, backup_enabled=true",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-database.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-database.sh"
     },
     "detect": {
       "version": "1.0.0",
@@ -573,7 +573,7 @@
       "defaults": "None explicitly configured",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-detect.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-detect.sh"
     },
     "docker-dev": {
       "version": "1.0.0",
@@ -630,7 +630,7 @@
       "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-docker-dev.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-docker-dev.sh"
     },
     "docker-prod": {
       "version": "1.0.0",
@@ -694,7 +694,7 @@
       "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-docker-prod.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-docker-prod.sh"
     },
     "docker-sandbox": {
       "version": "1.0.0",
@@ -745,7 +745,7 @@
       "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-docker-sandbox.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-docker-sandbox.sh"
     },
     "docker": {
       "version": "1.0.0",
@@ -788,7 +788,7 @@
       "defaults": "DATABASE_TYPE=auto, DATABASE_NAME=app_dev, APP_PORT=3000",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-docker.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-docker.sh"
     },
     "docs": {
       "version": "1.0.0",
@@ -847,7 +847,7 @@
       "defaults": "DOC_TOOL=auto, DOC_SITE=vitepress, GENERATE_CHANGELOG=true",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-docs.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-docs.sh"
     },
     "editor": {
       "version": "1.0.0",
@@ -881,7 +881,7 @@
       "docs": "https://editorconfig.org/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-editor.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-editor.sh"
     },
     "elasticsearch": {
       "version": "1.0.0",
@@ -941,7 +941,7 @@
       "defaults": "ES_VERSION=8.0, ES_PORT=9200, ES_MEMORY=512m",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-elasticsearch.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-elasticsearch.sh"
     },
     "email-service": {
       "version": "1.0.0",
@@ -1012,7 +1012,7 @@
       "defaults": "EMAIL_PROVIDER=sendgrid, EMAIL_QUEUE_ENABLED=true",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-email-service.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-email-service.sh"
     },
     "environment": {
       "version": "1.0.0",
@@ -1058,7 +1058,7 @@
       "defaults": "NODE_ENV=development, PORT=3000, HOST=localhost",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-environment.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-environment.sh"
     },
     "github": {
       "version": "1.0.0",
@@ -1099,7 +1099,7 @@
       "docs": "https://docs.github.com/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-github.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-github.sh"
     },
     "git": {
       "version": "1.0.0",
@@ -1134,7 +1134,7 @@
       "docs": "https://git-scm.com/doc",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-git.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-git.sh"
     },
     "husky": {
       "version": "1.0.0",
@@ -1180,7 +1180,7 @@
       "defaults": "PACKAGE_MANAGER=npm",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-husky.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-husky.sh"
     },
     "kubernetes": {
       "version": "1.0.0",
@@ -1228,7 +1228,7 @@
       "defaults": "replicas=2, container_port=3000",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-kubernetes.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-kubernetes.sh"
     },
     "linting": {
       "version": "1.0.0",
@@ -1264,7 +1264,7 @@
       "docs": "https://eslint.org/docs/latest/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-linting.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-linting.sh"
     },
     "monitoring": {
       "version": "1.0.0",
@@ -1342,7 +1342,7 @@
       "defaults": "monitoring.enabled=true, monitoring.sentry_enabled=true",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-monitoring.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-monitoring.sh"
     },
     "mysql": {
       "version": "1.0.0",
@@ -1408,7 +1408,7 @@
       "defaults": "mysql.enabled=true, mysql.version=8.0, mysql.port=3306",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-mysql.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-mysql.sh"
     },
     "network-vpn": {
       "version": "1.0.0",
@@ -1490,7 +1490,7 @@
       "defaults": "vpn.enabled=false, vpn.provider=wireguard, vpn.port=51820",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-network-vpn.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-network-vpn.sh"
     },
     "nodejs": {
       "version": "1.0.0",
@@ -1533,7 +1533,7 @@
       "defaults": "nodejs.enabled=true, nodejs.version=20",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-nodejs.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-nodejs.sh"
     },
     "packages": {
       "version": "1.0.0",
@@ -1574,7 +1574,7 @@
       "docs": "https://docs.npmjs.com/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-packages.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-packages.sh"
     },
     "postgres": {
       "version": "1.0.0",
@@ -1639,7 +1639,7 @@
       "defaults": "postgres.enabled=true, postgres.version=latest",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-postgres.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-postgres.sh"
     },
     "project": {
       "version": "1.0.0",
@@ -1681,7 +1681,7 @@
       "docs": "https://docs.npmjs.com/cli/configuring-npm/package-json",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-project.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-project.sh"
     },
     "python": {
       "version": "1.0.0",
@@ -1742,7 +1742,7 @@
       "defaults": "python.version=3.11, python.venv_mode=isolated",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-python.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-python.sh"
     },
     "quality": {
       "version": "1.0.0",
@@ -1803,7 +1803,7 @@
       "defaults": "quality.enabled=true, quality.coverage_threshold=80",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-quality.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-quality.sh"
     },
     "rate-limiting": {
       "version": "1.0.0",
@@ -1868,7 +1868,7 @@
       "defaults": "redis_version=7.0, redis_port=6379, window_seconds=60",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-rate-limiting.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-rate-limiting.sh"
     },
     "redis": {
       "version": "1.0.0",
@@ -1930,7 +1930,7 @@
       "defaults": "redis.enabled=true, redis.version=latest, redis.port=6379",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-redis.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-redis.sh"
     },
     "secrets": {
       "version": "1.0.0",
@@ -1985,7 +1985,7 @@
       "defaults": "secrets.enabled=true, secrets.secrets_manager=none",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-secrets.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-secrets.sh"
     },
     "security": {
       "version": "1.0.0",
@@ -2030,7 +2030,7 @@
       "defaults": "security.enabled=true, security.npm_audit=true",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-security.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-security.sh"
     },
     "ssl": {
       "version": "1.0.0",
@@ -2080,7 +2080,7 @@
       "docs": "https://letsencrypt.org/docs/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-ssl.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-ssl.sh"
     },
     "testing": {
       "version": "1.0.0",
@@ -2118,7 +2118,7 @@
       "docs": "https://vitest.dev/guide/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-testing.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-testing.sh"
     },
     "test-suite": {
       "version": "1.0.0",
@@ -2174,7 +2174,7 @@
       "defaults": "INSTALL_MODE=full",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-test-suite.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-test-suite.sh"
     },
     "typescript": {
       "version": "1.0.0",
@@ -2220,7 +2220,7 @@
       "docs": "https://www.typescriptlang.org/docs/",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-typescript.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-typescript.sh"
     },
     "vscode": {
       "version": "1.0.0",
@@ -2258,7 +2258,7 @@
       "docs": "https://code.visualstudio.com/docs",
       "author": "Bootstrap System",
       "updated": "2025-12-08",
-      "file": "__bootbuild/scripts/bootstrap-vscode.sh"
+      "file": "__bootbuild/templates/scripts/bootstrap-vscode.sh"
     }
   },
   "paths": {

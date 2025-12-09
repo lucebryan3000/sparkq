@@ -19,6 +19,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+GREY='\033[0;90m'
 NC='\033[0m'
 
 # Options
@@ -219,7 +220,7 @@ generate_manifest() {
   manifest+="\"libraries\": $libs_section,"
   manifest+="\"scripts\": $scripts_section,"
   manifest+="\"templates\": $templates_section,"
-  manifest+="\"generated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+  manifest+="\"generated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\","
   manifest+="\"version\": \"1.0\""
   manifest+="}"
 

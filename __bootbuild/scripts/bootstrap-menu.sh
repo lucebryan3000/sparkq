@@ -354,16 +354,16 @@ read_scan_cache() {
     NEW_SCRIPTS_COUNT=0
     MISSING_SCRIPTS_COUNT=0
 
-    command -v jq &>/dev/null || return
+    command -v jq &>/dev/null || return 0
 
     while (( attempts < max_attempts )); do
-        ((attempts++))
+        attempts=$((attempts + 1))
 
         if [[ -f "$SCAN_CACHE" ]]; then
             if jq empty < "$SCAN_CACHE" 2>/dev/null; then
                 NEW_SCRIPTS_COUNT=$(jq -r '.new_scripts | length' "$SCAN_CACHE" 2>/dev/null || echo 0)
                 MISSING_SCRIPTS_COUNT=$(jq -r '.missing_scripts | length' "$SCAN_CACHE" 2>/dev/null || echo 0)
-                return
+                return 0
             fi
 
             rm -f "$SCAN_CACHE"
@@ -371,9 +371,11 @@ read_scan_cache() {
 
         launch_background_scan
         if ! wait_for_scan; then
-            return
+            return 1
         fi
     done
+
+    return 0
 }
 
 # ===================================================================
@@ -947,10 +949,13 @@ run_category_menu() {
                                     ;;
                                 d)
                                     log_section "Dry-Run Preview - $selected_script"
-                                    if [[ ! -d "$SCRIPTS_DIR" ]]; then
-                                        log_error "Scripts directory not found: $SCRIPTS_DIR"
+                                    local script_path
+                                    script_path=$(registry_get_script_path "$selected_script")
+
+                                    if [[ -z "$script_path" || ! -f "$script_path" ]]; then
+                                        log_error "Script not found: $selected_script"
                                     elif [[ -f "${SCRIPTS_DIR}/bootstrap-dry-run-wrapper.sh" ]]; then
-                                        bash "${SCRIPTS_DIR}/bootstrap-dry-run-wrapper.sh" "${SCRIPTS_DIR}/bootstrap-${selected_script}.sh" || true
+                                        bash "${SCRIPTS_DIR}/bootstrap-dry-run-wrapper.sh" "$script_path" || true
                                     else
                                         log_warning "Dry-run wrapper not found"
                                     fi
@@ -1118,7 +1123,7 @@ display_menu() {
             green) color_code="$GREEN"; icon="🟢" ;;
         esac
 
-        echo -e "  ${GREEN}${counter}.${NC} ${icon} Phase $counter: ${phase_name} (${script_count} scripts)"
+        echo -e "  ${GREEN}${counter}.${NC} ${icon} ${phase_name} (${script_count} scripts)"
     done
 
     echo ""
