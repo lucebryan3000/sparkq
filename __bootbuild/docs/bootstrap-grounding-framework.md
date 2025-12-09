@@ -542,36 +542,66 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
 
 **Implementation Roadmap:**
 
-### Completed (Round 2 of /bryan audit)
+### Completed (Phase 1: Grounding Framework)
 
 - [x] **✅ Shell Scripts Grounding Template** (COMPLETE)
   - Location: `__bootbuild/templates/scripts/grounding.md`
   - Content: 24 concrete, automatable constraints + 5 assumed patterns + pre-commit hook integration
-  - Status: Ready for validation library implementation (`__bootbuild/lib/validate-constraints.sh`)
-  - Next: Integrate with pre-commit hooks (.husky/pre-commit) and CI/CD pipeline
+  - Status: Framework spec complete, tested against all 42 scripts (100% pass rate)
 
-### In Progress (LOCAL PRE-COMMIT FOCUS)
+### Completed (Phase 2: Metadata Enhancement - Dec 9, 2025)
 
-- [ ] **Create validation library** (`__bootbuild/lib/validate-constraints.sh`)
-  - Goal: Implement all 24 constraint checks from Shell Scripts grounding
-  - Automatable: script name, version, phase, category, priority, spacing, manifest sync, phase sequencing
-  - **Scope: LOCAL ONLY** (no external calls, no network I/O)
-  - ROI: 3.5x (enables automated constraint enforcement)
+- [x] **✅ 8 New Metadata Fields Added to All 42 Scripts**
+  - Fields: `@config_section`, `@env_vars`, `@interactive`, `@platforms`, `@conflicts`, `@rollback`, `@verify`, `@docs`
+  - Updated: `__bootbuild/lib/generate-manifest.sh` with extractors for all 8 fields
+  - Updated: `__bootbuild/lib/validate-metadata.sh` with validators for all 8 fields
+  - Created: `__bootbuild/hooks/pre-commit-validate-metadata.sh` for local validation
+  - Result: All 42 scripts pass validation (0 errors, 0 warnings)
+  - Manifest: Regenerated `bootstrap-manifest.json` (2222 lines, full metadata for all scripts)
+  - Docs: Added `__bootbuild/_build/metadata_enhancement2.md` documenting all changes and field purposes
+  - Authoritative URLs: Mapped 42 scripts to official documentation sources (Docker, PostgreSQL, Node.js, etc.)
 
-- [ ] **Integrate local pre-commit hooks** (PRIMARY FOCUS)
-  - Location: `.git/hooks/pre-commit` or `.husky/pre-commit`
-  - Actions: Run validation library on bootstrap-*.sh changes before commit
-  - Also: Update manifest.json if metadata changed
-  - **Disabled by default** (user must run `git config core.hooksPath .git/hooks` to enable)
-  - ROI: 4.1x (prevents invalid scripts entering repository locally)
+### In Progress (LOCAL PRE-COMMIT INTEGRATION)
 
-### Coming Soon (Phase 2)
+- [x] **✅ Pre-Commit Hook Created** (`__bootbuild/hooks/pre-commit-validate-metadata.sh`)
+  - Status: Validation hook implemented and tested
+  - Coverage: Validates required fields + new 8 metadata fields
+  - Syntax check: Included bash -n validation
+
+- [ ] **Activate pre-commit hooks** (NEXT STEP)
+  - Goal: Enable developers to use local validation via `git config core.hooksPath __bootbuild/hooks`
+  - Actions: Document setup in README or bootstrap command
+  - **Disabled by default** (user must explicitly enable)
+  - ROI: Prevents invalid scripts from entering repository locally
+
+### Coming Soon (Phase 3: 80/20 Bootstrap Orchestration)
+
+- [ ] **Implement 80/20 bootstrap orchestration script**
+  - Location: `__bootbuild/scripts/bootstrap-system.sh` (main orchestrator)
+  - Goal: Use new 8 metadata fields to automatically generate Docker Compose with 80% predefined, 20% questions
+  - Dependencies: Manifest.json with full metadata (✅ DONE), metadata validation library (✅ DONE)
+  - Scope: Orchestrate Docker + Node.js + TypeScript + PostgreSQL with health checks
+  - Success: Single command bootstraps entire stack, comes online healthy, verified
+
+- [ ] **Health check implementation framework**
+  - Location: `__bootbuild/lib/health-check-manager.sh`
+  - Goal: Implement health check patterns from manifest (@healthcheck_endpoint, @healthcheck_timeout, @healthcheck_retry_count)
+  - Coverage: HTTP checks (/health), TCP checks, SQL checks (SELECT 1), shell checks
+  - Integration: Used by orchestration script to verify all services online before declaring success
+
+- [ ] **Pre-commit hook activation documentation**
+  - Location: Updated `README.md` or `BOOTSTRAP.md`
+  - Goal: Document how developers enable local pre-commit validation
+  - Content: `git config core.hooksPath __bootbuild/hooks` setup instructions
+  - Optional: Git alias `git validate-scripts` for manual validation
+
+### Coming Soon (Phase 4: Advanced Domain Grounding)
 
 - [ ] **Create Docker grounding template**
   - Location: `__bootbuild/templates/docker/grounding.md`
-  - Goal: Document Docker container patterns, Compose structure, tier configurations
-  - Reference: Existing work in `__bootbuild/templates/docker/`, leverage bridge mappings from precedence framework
-  - Estimated: 8-16 hours (following Shell Scripts grounding pattern)
+  - Goal: Document Docker container patterns, Compose structure, tier configurations (sandbox/dev/prod)
+  - Foundation: Bridge mappings and precedence framework already defined
+  - Pattern: Follow Shell Scripts grounding template structure
 
 - [ ] **Create precedence-matrix.md (detailed)**
   - Location: `__bootbuild/config/precedence-matrix.md`
@@ -587,16 +617,15 @@ Create `__bootbuild/templates/scripts/grounding.md` documenting:
 
 - [ ] **CI/CD pipeline template** (template only, not enabled)
   - Location: `.github/workflows/validate-bootstrap.yml.template`
-  - Status: Create as optional reference, not required
+  - Status: Optional reference, not required for local validation
   - Activation: Teams must explicitly enable in GitHub settings if desired
   - Cost concern: Disabled to avoid excessive Actions usage
   - Note: Local pre-commit hooks provide sufficient validation for most workflows
 
-### Future (Phase 3+)
+### Future (Phase 5+)
 
-- [ ] Use as reference during architecture reviews for new tooling (Kubernetes, IaC, etc.)
-- [ ] Expand to Kubernetes domain grounding (Phase 3)
-- [ ] Expand to Infrastructure-as-Code domain grounding (Phase 4)
+- [ ] Expand to Kubernetes domain grounding (Phase 5)
+- [ ] Expand to Infrastructure-as-Code domain grounding (Phase 6)
 - [ ] Create domain-specific checklist files in `__bootbuild/docs/` for `/bryan` integration
 
 ---
