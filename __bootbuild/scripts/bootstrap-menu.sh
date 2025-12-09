@@ -244,6 +244,20 @@ parse_arguments() {
     done
 }
 
+normalize_project_root() {
+    # Normalize PROJECT_ROOT to absolute path with validation
+    if [[ -n "$PROJECT_ROOT" && -d "$PROJECT_ROOT" ]]; then
+        PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)" || {
+            log_fatal "Cannot access project directory: $PROJECT_ROOT"
+        }
+    elif [[ -n "$PROJECT_ROOT" ]]; then
+        log_fatal "Project directory not found: $PROJECT_ROOT"
+    else
+        PROJECT_ROOT="$(pwd)"
+    fi
+    export PROJECT_ROOT
+}
+
 # ===================================================================
 # Background Helper & Scanning
 # ===================================================================
@@ -261,7 +275,9 @@ launch_background_scan() {
 
         # Build script status object using jq
         local scripts_obj='{}'
-        for script in $(registry_get_visible_scripts); do
+        local -a VISIBLE_SCRIPTS=()
+        mapfile -t VISIBLE_SCRIPTS < <(registry_get_visible_scripts)
+        for script in "${VISIBLE_SCRIPTS[@]}"; do
             local status=$(registry_get_script_status "$script")
             local has_q="false"
             registry_has_questions "$script" && has_q="true"
@@ -285,10 +301,22 @@ launch_background_scan() {
         # Construct final JSON using jq
         local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
         local SCAN_CACHE_TMP="${SCAN_CACHE}.$$"
+
+        # Handle empty arrays properly
+        local new_scripts_json='[]'
+        if [ ${#new_scripts_array[@]} -gt 0 ]; then
+            new_scripts_json="$(printf '%s\n' "${new_scripts_array[@]}" | jq -Rs -s 'split("\n") | map(select(length > 0))')"
+        fi
+
+        local missing_scripts_json='[]'
+        if [ ${#missing_scripts_array[@]} -gt 0 ]; then
+            missing_scripts_json="$(printf '%s\n' "${missing_scripts_array[@]}" | jq -Rs -s 'split("\n") | map(select(length > 0))')"
+        fi
+
         jq --arg timestamp "$timestamp" \
            --argjson scripts "$scripts_obj" \
-           --argjson new_scripts "$(printf '%s\n' "${new_scripts_array[@]}" | jq -Rs -s 'split("\n") | map(select(length > 0))')" \
-           --argjson missing_scripts "$(printf '%s\n' "${missing_scripts_array[@]}" | jq -Rs -s 'split("\n") | map(select(length > 0))')" \
+           --argjson new_scripts "$new_scripts_json" \
+           --argjson missing_scripts "$missing_scripts_json" \
            '{timestamp: $timestamp, scripts: $scripts, new_scripts: $new_scripts, missing_scripts: $missing_scripts}' \
            <<< 'null' > "${SCAN_CACHE}.$$" || return 1
         jq empty < "$SCAN_CACHE_TMP" || { rm "$SCAN_CACHE_TMP"; return 1; }
@@ -385,7 +413,10 @@ run_script() {
     [[ -n "$desc" ]] && echo -e "  ${GREY}$desc${NC}"
     echo ""
 
-    if bash "$script_path" "$PROJECT_ROOT"; then
+    bash "$script_path" "$PROJECT_ROOT"
+    local SCRIPT_STATUS=$?
+
+    if [[ $SCRIPT_STATUS -eq 0 ]]; then
         log_success "$script_name completed"
         ((SCRIPTS_RUN++))
         track_session_script "$script_name" "completed"
@@ -397,11 +428,10 @@ run_script() {
 
         return 0
     else
-        local exit_code=$?
-        log_error "$script_name failed (exit code: $exit_code)"
+        log_error "$script_name failed (exit code: $SCRIPT_STATUS)"
         ((SCRIPTS_FAILED++))
         track_session_script "$script_name" "failed"
-        return $exit_code
+        return $SCRIPT_STATUS
     fi
 }
 
@@ -917,7 +947,9 @@ run_category_menu() {
                                     ;;
                                 d)
                                     log_section "Dry-Run Preview - $selected_script"
-                                    if [[ -f "${SCRIPTS_DIR}/bootstrap-dry-run-wrapper.sh" ]]; then
+                                    if [[ ! -d "$SCRIPTS_DIR" ]]; then
+                                        log_error "Scripts directory not found: $SCRIPTS_DIR"
+                                    elif [[ -f "${SCRIPTS_DIR}/bootstrap-dry-run-wrapper.sh" ]]; then
                                         bash "${SCRIPTS_DIR}/bootstrap-dry-run-wrapper.sh" "${SCRIPTS_DIR}/bootstrap-${selected_script}.sh" || true
                                     else
                                         log_warning "Dry-run wrapper not found"
@@ -1069,7 +1101,9 @@ display_menu() {
     echo -e "${YELLOW}Phases:${NC}"
 
     local counter=0
-    for phase in $(registry_get_phases); do
+    local -a PHASES=()
+    mapfile -t PHASES < <(registry_get_phases)
+    for phase in "${PHASES[@]}"; do
         counter=$((counter + 1))
         local phase_name=$(registry_get_phase_name "$phase")
         local phase_color=$(registry_get_phase_color "$phase")
@@ -1089,7 +1123,8 @@ display_menu() {
 
     echo ""
     echo -e "${YELLOW}Commands:${NC}"
-    echo "  1-4      Enter phase menu to browse and run scripts"
+    local max_phase=$(registry_get_phases | wc -l)
+    echo "  1-${max_phase}      Enter phase menu to browse and run scripts"
     echo "  d        Show 80% pre-configured defaults (industry standards)"
     echo "  v        Run pre-flight validation to check environment readiness"
     echo "  hc       Quick system health check - validates tools and libraries"
@@ -1115,15 +1150,19 @@ validate_menu_command() {
     # Empty input is OK (skip)
     [[ -z "$cmd" || "$cmd" == " " ]] && return 0
 
-    # Number validation FIRST (for phase selection 1-4)
+    # Number validation FIRST (for phase selection)
     if [[ "$cmd" =~ ^-?[0-9]+$ ]]; then
+        local -a PHASES=()
+        mapfile -t PHASES < <(registry_get_phases)
+        local max_phase=${#PHASES[@]}
+
         if [[ "$cmd" -lt 1 ]]; then
             log_error "Invalid number: $cmd (must be positive)"
-            echo "Valid range: 1-4"
+            echo "Valid range: 1-${max_phase}"
             return 1
-        elif [[ "$cmd" -gt 4 ]]; then
+        elif [[ "$cmd" -gt "$max_phase" ]]; then
             log_error "Number out of range: $cmd"
-            echo "Valid range: 1-4"
+            echo "Valid range: 1-${max_phase}"
             return 1
         else
             return 0
@@ -1147,8 +1186,21 @@ validate_menu_command() {
     # Two letter commands
     if [[ "${#cmd}" -eq 2 ]]; then
         case "$cmd" in
-            qa|QA|hc|HC|sg|SG|p1|p2|p3|p4|P1|P2|P3|P4)
+            qa|QA|hc|HC|sg|SG)
                 return 0
+                ;;
+            p[1-9]|P[1-9])
+                # Validate phase number exists
+                local phase_num="${cmd:1}"
+                local -a PHASES=()
+                mapfile -t PHASES < <(registry_get_phases)
+                if [[ "$phase_num" -le "${#PHASES[@]}" ]]; then
+                    return 0
+                else
+                    log_error "Unknown phase: $phase_num"
+                    echo "Valid phases: 1-${#PHASES[@]}"
+                    return 1
+                fi
                 ;;
             *)
                 log_error "Unknown command: $cmd"
@@ -1274,16 +1326,20 @@ run_menu() {
 
             t|T)
                 log_section "Running Test Suite"
-                if [[ -f "${BOOTSTRAP_DIR}/tests/lib/test-runner.sh" ]]; then
-                    cd "${BOOTSTRAP_DIR}" || exit 1
-                    if bash tests/lib/test-runner.sh; then
-                        echo ""
-                        log_success "All tests passed"
-                    else
-                        echo ""
-                        log_error "Some tests failed"
-                        log_warning "Library functions may be unreliable"
-                    fi
+                if [[ ! -d "$BOOTSTRAP_DIR" ]]; then
+                    log_error "Bootstrap directory not found: $BOOTSTRAP_DIR"
+                elif [[ -f "${BOOTSTRAP_DIR}/tests/lib/test-runner.sh" ]]; then
+                    (
+                        cd "${BOOTSTRAP_DIR}" || exit 1
+                        if bash tests/lib/test-runner.sh; then
+                            echo ""
+                            log_success "All tests passed"
+                        else
+                            echo ""
+                            log_error "Some tests failed"
+                            log_warning "Library functions may be unreliable"
+                        fi
+                    )
                 else
                     log_error "Test runner not found"
                 fi
@@ -1301,36 +1357,26 @@ run_menu() {
                 display_menu
                 ;;
 
-            p1|P1)
-                run_phase 1
+            p[1-9]|P[1-9])
+                # Dynamic phase execution (p1-p9)
+                local phase_num="${choice:1}"
+                run_phase "$phase_num"
                 show_session_summary
                 ;;
 
-            p2|P2)
-                run_phase 2
-                show_session_summary
-                ;;
-
-            p3|P3)
-                run_phase 3
-                show_session_summary
-                ;;
-
-            p4|P4)
-                run_phase 4
-                show_session_summary
-                ;;
-
-            1|2|3|4)
-                # Phase selection - route to phase menu
+            [1-9])
+                # Phase selection - route to phase menu (single digit)
                 run_phase_menu "$choice"
                 echo ""
                 sleep 0.5
                 display_menu
                 ;;
 
-            [0-9]|[0-9][0-9])
-                log_error "Invalid selection: $choice (1-4)"
+            [0-9][0-9])
+                # Invalid two-digit phase numbers
+                local -a PHASES=()
+                mapfile -t PHASES < <(registry_get_phases)
+                log_error "Invalid selection: $choice (1-${#PHASES[@]})"
                 echo ""
                 sleep 1
                 ;;
@@ -1359,6 +1405,9 @@ run_menu() {
 main() {
     # Parse command line
     parse_arguments "$@"
+
+    # Normalize project root to absolute path
+    normalize_project_root
 
     local manifest_file="$MANIFEST_FILE"
 
