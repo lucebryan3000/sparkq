@@ -97,10 +97,9 @@ OPTIONS:
     --status             Show detected environment status
     --list               List all available scripts and exit
     --no-progress        Disable progress bars for multi-script operations
-    --scan               Force rescan of scripts and refresh cache
-    --skip-preflight     Skip pre-flight dependency check
+    --scan               Force rescan of scripts and refresh cache (updates manifest cache)
+    --skip-preflight     Skip pre-flight dependency check before phase/profile execution
     --project=PATH       Target project directory (default: current)
-    --no-progress        Disable progress bars for multi-script operations
     -h, --help           Show this help message
     -v, --version        Show version
 
@@ -285,15 +284,15 @@ launch_background_scan() {
 
         # Construct final JSON using jq
         local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        local SCAN_CACHE_TMP="${SCAN_CACHE}.$$"
         jq --arg timestamp "$timestamp" \
            --argjson scripts "$scripts_obj" \
            --argjson new_scripts "$(printf '%s\n' "${new_scripts_array[@]}" | jq -Rs -s 'split("\n") | map(select(length > 0))')" \
            --argjson missing_scripts "$(printf '%s\n' "${missing_scripts_array[@]}" | jq -Rs -s 'split("\n") | map(select(length > 0))')" \
            '{timestamp: $timestamp, scripts: $scripts, new_scripts: $new_scripts, missing_scripts: $missing_scripts}' \
            <<< 'null' > "${SCAN_CACHE}.$$" || return 1
-
-        jq empty < "${SCAN_CACHE}.$$" || { rm "${SCAN_CACHE}.$$"; return 1; }
-        mv "${SCAN_CACHE}.$$" "$SCAN_CACHE"
+        jq empty < "$SCAN_CACHE_TMP" || { rm "$SCAN_CACHE_TMP"; return 1; }
+        mv "$SCAN_CACHE_TMP" "$SCAN_CACHE" || return 1
 
     ) &
     HELPER_PID=$!
@@ -321,13 +320,32 @@ wait_for_scan() {
 }
 
 read_scan_cache() {
-    if [[ -f "$SCAN_CACHE" ]]; then
-        # Source as variables if jq available
-        if command -v jq &>/dev/null; then
-            NEW_SCRIPTS_COUNT=$(jq -r '.new_scripts | length' "$SCAN_CACHE" 2>/dev/null || echo 0)
-            MISSING_SCRIPTS_COUNT=$(jq -r '.missing_scripts | length' "$SCAN_CACHE" 2>/dev/null || echo 0)
+    local attempts=0
+    local max_attempts=2
+
+    NEW_SCRIPTS_COUNT=0
+    MISSING_SCRIPTS_COUNT=0
+
+    command -v jq &>/dev/null || return
+
+    while (( attempts < max_attempts )); do
+        ((attempts++))
+
+        if [[ -f "$SCAN_CACHE" ]]; then
+            if jq empty < "$SCAN_CACHE" 2>/dev/null; then
+                NEW_SCRIPTS_COUNT=$(jq -r '.new_scripts | length' "$SCAN_CACHE" 2>/dev/null || echo 0)
+                MISSING_SCRIPTS_COUNT=$(jq -r '.missing_scripts | length' "$SCAN_CACHE" 2>/dev/null || echo 0)
+                return
+            fi
+
+            rm -f "$SCAN_CACHE"
         fi
-    fi
+
+        launch_background_scan
+        if ! wait_for_scan; then
+            return
+        fi
+    done
 }
 
 # ===================================================================
@@ -389,6 +407,7 @@ run_script() {
 
 run_phase() {
     local phase="$1"
+    local FAILED_SCRIPTS=0
 
     if [[ -z "$phase" ]]; then
         log_error "Unknown phase"
@@ -413,7 +432,6 @@ run_phase() {
     local total_scripts=${#phase_scripts[@]}
     local current=0
     local start_time=$(date +%s)
-    local FAILED_SCRIPTS=0
 
     for script in "${phase_scripts[@]}"; do
         if registry_script_file_exists "$script"; then
@@ -422,8 +440,10 @@ run_phase() {
                 show_progress_bar "$current" "$total_scripts" "Phase $phase"
             fi
 
-            run_script "$script"
-            if [[ $? -ne 0 ]]; then
+            if run_script "$script"; then
+                :
+            else
+                local exit_code=$?
                 FAILED_SCRIPTS=$((FAILED_SCRIPTS + 1))
             fi
             ((current++))
@@ -447,11 +467,12 @@ run_phase() {
         fi
     fi
 
-    [[ $FAILED_SCRIPTS -gt 0 ]] && return 1
+    if [[ $FAILED_SCRIPTS -gt 0 ]]; then return 1; fi
 }
 
 run_profile() {
     local profile="$1"
+    local FAILED_SCRIPTS=0
 
     if ! registry_profile_exists "$profile"; then
         log_error "Unknown profile: $profile"
@@ -486,7 +507,12 @@ run_profile() {
                 show_progress_bar "$current" "$total_scripts" "Profile: $profile"
             fi
 
-            run_script "$script" || true
+            if run_script "$script"; then
+                :
+            else
+                local exit_code=$?
+                FAILED_SCRIPTS=$((FAILED_SCRIPTS + 1))
+            fi
             ((current++))
         else
             log_warning "Skipping unavailable: $script"
@@ -507,6 +533,8 @@ run_profile() {
             log_success "Profile '$profile' completed in $formatted_duration"
         fi
     fi
+
+    if [[ $FAILED_SCRIPTS -gt 0 ]]; then return 1; fi
 }
 
 # ===================================================================
@@ -639,7 +667,9 @@ show_questions_preview() {
 # ===================================================================
 get_categories_for_phase() {
     local phase="$1"
-    registry_get_phase_scripts "$phase" | while read script; do
+    local -a PHASE_SCRIPTS=()
+    mapfile -t PHASE_SCRIPTS < <(registry_get_phase_scripts "$phase")
+    for script in "${PHASE_SCRIPTS[@]}"; do
         registry_get_script_field "$script" "category"
     done | sort | uniq
 }
@@ -671,7 +701,9 @@ display_phase_menu() {
         local scripts=""
         local script_count=0
 
-        for script in $(registry_get_phase_scripts "$phase"); do
+        local -a PHASE_SCRIPTS=()
+        mapfile -t PHASE_SCRIPTS < <(registry_get_phase_scripts "$phase")
+        for script in "${PHASE_SCRIPTS[@]}"; do
             if [[ "$(registry_get_script_field "$script" "category")" == "$category" ]]; then
                 if [[ -n "$scripts" ]]; then
                     scripts+=", "
@@ -712,7 +744,9 @@ display_category_menu() {
     local counter=0
     local -a scripts=()
 
-    for script in $(registry_get_phase_scripts "$phase"); do
+    local -a PHASE_SCRIPTS=()
+    mapfile -t PHASE_SCRIPTS < <(registry_get_phase_scripts "$phase")
+    for script in "${PHASE_SCRIPTS[@]}"; do
         if [[ "$(registry_get_script_field "$script" "category")" == "$category" ]]; then
             counter=$((counter + 1))
             scripts+=("$script")
@@ -783,7 +817,9 @@ run_category_menu() {
     local category="$2"
     local total_scripts=0
 
-    for script in $(registry_get_phase_scripts "$phase"); do
+    local -a SCRIPTS=()
+    mapfile -t SCRIPTS < <(registry_get_phase_scripts "$phase")
+    for script in "${SCRIPTS[@]}"; do
         if [[ "$(registry_get_script_field "$script" "category")" == "$category" ]]; then
             total_scripts=$((total_scripts + 1))
         fi
@@ -816,7 +852,9 @@ run_category_menu() {
 
                 local selected_script=""
                 local counter=0
-                for script in $(registry_get_phase_scripts "$phase"); do
+                local -a SCRIPTS=()
+                mapfile -t SCRIPTS < <(registry_get_phase_scripts "$phase")
+                for script in "${SCRIPTS[@]}"; do
                     if [[ "$(registry_get_script_field "$script" "category")" == "$category" ]]; then
                         counter=$((counter + 1))
                         if [[ "$counter" -eq "$choice" ]]; then
@@ -955,7 +993,9 @@ show_list() {
 
     local total=0
 
-    for phase in $(registry_get_phases); do
+    local -a PHASES=()
+    mapfile -t PHASES < <(registry_get_phases)
+    for phase in "${PHASES[@]}"; do
         local phase_name=$(registry_get_phase_name "$phase")
         local phase_color=$(registry_get_phase_color "$phase")
         local count=$(registry_get_phase_count "$phase")
@@ -972,7 +1012,9 @@ show_list() {
         echo -e "${color_code}Phase $phase: $phase_name ($count scripts)${NC}"
         echo -e "${color_code}$(printf '─%.0s' {1..50})${NC}"
 
-        for script in $(registry_get_phase_scripts "$phase"); do
+        local -a SCRIPTS=()
+        mapfile -t SCRIPTS < <(registry_get_phase_scripts "$phase")
+        for script in "${SCRIPTS[@]}"; do
             total=$((total + 1))
             local status_icon="✓"
             local status_color="$GREEN"
@@ -1091,7 +1133,7 @@ validate_menu_command() {
     # Single letter commands
     if [[ "${#cmd}" -eq 1 ]]; then
         case "$cmd" in
-            h|H|s|S|c|C|d|D|l|L|r|R|q|Q|x|X|t|T|v|V|e|E|u|U|\?)
+            h|H|s|S|c|C|d|D|l|L|r|R|q|Q|x|X|t|T|v|V|e|E|\?)
                 return 0
                 ;;
             *)
@@ -1105,7 +1147,7 @@ validate_menu_command() {
     # Two letter commands
     if [[ "${#cmd}" -eq 2 ]]; then
         case "$cmd" in
-            qa|QA|hc|HC|rb|RB|sg|SG|p1|p2|p3|p4|P1|P2|P3|P4)
+            qa|QA|hc|HC|sg|SG|p1|p2|p3|p4|P1|P2|P3|P4)
                 return 0
                 ;;
             *)
