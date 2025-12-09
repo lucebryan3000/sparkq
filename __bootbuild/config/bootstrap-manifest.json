@@ -45,7 +45,8 @@
       "verify": "test -f openapi.yaml",
       "docs": "https://swagger.io/specification/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-api.sh"
     },
     "auth-oauth2": {
       "version": "1.0.0",
@@ -119,7 +120,8 @@
       "verify": "test -f config/oauth2/",
       "docs": "https://oauth.net/2/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-auth-oauth2.sh"
     },
     "backup-service": {
       "version": "1.0.0",
@@ -203,7 +205,8 @@
       "docs": "https://www.postgresql.org/docs/current/backup.html",
       "defaults": "provider=restic, storage=s3, schedule=0 2 * * *",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-backup-service.sh"
     },
     "buildtools": {
       "version": "1.0.0",
@@ -241,7 +244,8 @@
       "verify": "test -f vite.config.ts",
       "docs": "https://docs.npmjs.com/cli/commands",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-buildtools.sh"
     },
     "ci-cd": {
       "version": "1.0.0",
@@ -283,7 +287,8 @@
       "verify": "test -f .gitlab-ci.yml",
       "docs": "https://docs.github.com/en/actions",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-ci-cd.sh"
     },
     "cicd": {
       "version": "1.0.0",
@@ -326,7 +331,8 @@
       "verify": "test -f .github/workflows/",
       "docs": "https://docs.github.com/en/actions",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-cicd.sh"
     },
     "claude": {
       "version": "1.0.0",
@@ -373,7 +379,8 @@
       "docs": "https://docs.anthropic.com/en/api",
       "defaults": "model=claude-opus-4-5-20251101, bypassPermissions=true",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-claude.sh"
     },
     "codex": {
       "version": "1.0.0",
@@ -418,7 +425,8 @@
       "docs": "https://platform.openai.com/docs/guides/code",
       "defaults": "model=code-davinci-002, enabled=false, temperature=0.5",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-codex.sh"
     },
     "database": {
       "version": "1.0.0",
@@ -480,7 +488,8 @@
       "docs": "https://www.postgresql.org/docs/current/",
       "defaults": "type=postgresql, auto_migrate=false, backup_enabled=true",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-database.sh"
     },
     "detect": {
       "version": "1.0.0",
@@ -563,7 +572,8 @@
       "docs": "https://www.gnu.org/software/bash/manual/bash.html",
       "defaults": "None explicitly configured",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-detect.sh"
     },
     "docker-dev": {
       "version": "1.0.0",
@@ -619,7 +629,8 @@
       "docs": "https://docs.docker.com/compose/",
       "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-docker-dev.sh"
     },
     "docker-prod": {
       "version": "1.0.0",
@@ -682,7 +693,8 @@
       "docs": "https://docs.docker.com/compose/",
       "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-docker-prod.sh"
     },
     "docker-sandbox": {
       "version": "1.0.0",
@@ -732,7 +744,8 @@
       "docs": "https://docs.docker.com/compose/",
       "defaults": "app_port=3000, postgres_port=5432, redis_port=6379",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-docker-sandbox.sh"
     },
     "docker": {
       "version": "1.0.0",
@@ -774,7 +787,8 @@
       "docs": "https://docs.docker.com/compose/",
       "defaults": "DATABASE_TYPE=auto, DATABASE_NAME=app_dev, APP_PORT=3000",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-docker.sh"
     },
     "docs": {
       "version": "1.0.0",
@@ -832,7 +846,8 @@
       "docs": "https://jsdoc.app/",
       "defaults": "DOC_TOOL=auto, DOC_SITE=vitepress, GENERATE_CHANGELOG=true",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-docs.sh"
     },
     "editor": {
       "version": "1.0.0",
@@ -865,7 +880,8 @@
       "verify": "test -f .editorconfig",
       "docs": "https://editorconfig.org/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-editor.sh"
     },
     "elasticsearch": {
       "version": "1.0.0",
@@ -924,7 +940,8 @@
       "docs": "https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html",
       "defaults": "ES_VERSION=8.0, ES_PORT=9200, ES_MEMORY=512m",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-elasticsearch.sh"
     },
     "email-service": {
       "version": "1.0.0",
@@ -994,7 +1011,8 @@
       "docs": "https://nodemailer.com/about/",
       "defaults": "EMAIL_PROVIDER=sendgrid, EMAIL_QUEUE_ENABLED=true",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-email-service.sh"
     },
     "environment": {
       "version": "1.0.0",
@@ -1039,7 +1057,8 @@
       "docs": "https://dotenvx.com/docs",
       "defaults": "NODE_ENV=development, PORT=3000, HOST=localhost",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-environment.sh"
     },
     "github": {
       "version": "1.0.0",
@@ -1079,7 +1098,8 @@
       "verify": "test -f .github/PULL_REQUEST_TEMPLATE.md",
       "docs": "https://docs.github.com/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-github.sh"
     },
     "git": {
       "version": "1.0.0",
@@ -1113,7 +1133,8 @@
       "verify": "test -f .gitignore",
       "docs": "https://git-scm.com/doc",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-git.sh"
     },
     "husky": {
       "version": "1.0.0",
@@ -1158,7 +1179,8 @@
       "docs": "https://typicode.github.io/husky/",
       "defaults": "PACKAGE_MANAGER=npm",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-husky.sh"
     },
     "kubernetes": {
       "version": "1.0.0",
@@ -1205,7 +1227,8 @@
       "docs": "https://kubernetes.io/docs/home/",
       "defaults": "replicas=2, container_port=3000",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-kubernetes.sh"
     },
     "linting": {
       "version": "1.0.0",
@@ -1240,7 +1263,8 @@
       "verify": "test -f .eslintrc.json",
       "docs": "https://eslint.org/docs/latest/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-linting.sh"
     },
     "monitoring": {
       "version": "1.0.0",
@@ -1317,7 +1341,8 @@
       "docs": "https://prometheus.io/docs/",
       "defaults": "monitoring.enabled=true, monitoring.sentry_enabled=true",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-monitoring.sh"
     },
     "mysql": {
       "version": "1.0.0",
@@ -1382,7 +1407,8 @@
       "docs": "https://dev.mysql.com/doc/",
       "defaults": "mysql.enabled=true, mysql.version=8.0, mysql.port=3306",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-mysql.sh"
     },
     "network-vpn": {
       "version": "1.0.0",
@@ -1463,7 +1489,8 @@
       "docs": "https://www.wireguard.com/quickstart/",
       "defaults": "vpn.enabled=false, vpn.provider=wireguard, vpn.port=51820",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-network-vpn.sh"
     },
     "nodejs": {
       "version": "1.0.0",
@@ -1505,7 +1532,8 @@
       "docs": "https://nodejs.org/docs/latest/api/",
       "defaults": "nodejs.enabled=true, nodejs.version=20",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-nodejs.sh"
     },
     "packages": {
       "version": "1.0.0",
@@ -1545,7 +1573,8 @@
       "verify": "test -f .npmrc",
       "docs": "https://docs.npmjs.com/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-packages.sh"
     },
     "postgres": {
       "version": "1.0.0",
@@ -1609,7 +1638,8 @@
       "docs": "https://www.postgresql.org/docs/current/",
       "defaults": "postgres.enabled=true, postgres.version=latest",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-postgres.sh"
     },
     "project": {
       "version": "1.0.0",
@@ -1650,7 +1680,8 @@
       "verify": "test -f CLAUDE.md",
       "docs": "https://docs.npmjs.com/cli/configuring-npm/package-json",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-project.sh"
     },
     "python": {
       "version": "1.0.0",
@@ -1710,7 +1741,8 @@
       "docs": "https://docs.python.org/3/",
       "defaults": "python.version=3.11, python.venv_mode=isolated",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-python.sh"
     },
     "quality": {
       "version": "1.0.0",
@@ -1770,7 +1802,8 @@
       "docs": "https://eslint.org/docs/latest/",
       "defaults": "quality.enabled=true, quality.coverage_threshold=80",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-quality.sh"
     },
     "rate-limiting": {
       "version": "1.0.0",
@@ -1834,7 +1867,8 @@
       "docs": "https://github.com/express-rate-limit/express-rate-limit",
       "defaults": "redis_version=7.0, redis_port=6379, window_seconds=60",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-rate-limiting.sh"
     },
     "redis": {
       "version": "1.0.0",
@@ -1895,7 +1929,8 @@
       "docs": "https://redis.io/docs/",
       "defaults": "redis.enabled=true, redis.version=latest, redis.port=6379",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-redis.sh"
     },
     "secrets": {
       "version": "1.0.0",
@@ -1949,7 +1984,8 @@
       "docs": "https://docs.github.com/en/actions/security-guides/encrypted-secrets",
       "defaults": "secrets.enabled=true, secrets.secrets_manager=none",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-secrets.sh"
     },
     "security": {
       "version": "1.0.0",
@@ -1993,7 +2029,8 @@
       "docs": "https://owasp.org/www-project-web-security-testing-guide/",
       "defaults": "security.enabled=true, security.npm_audit=true",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-security.sh"
     },
     "ssl": {
       "version": "1.0.0",
@@ -2042,7 +2079,8 @@
       "verify": "test -f ssl/openssl.cnf",
       "docs": "https://letsencrypt.org/docs/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-ssl.sh"
     },
     "testing": {
       "version": "1.0.0",
@@ -2079,7 +2117,8 @@
       "verify": "test -f jest.config.js",
       "docs": "https://vitest.dev/guide/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-testing.sh"
     },
     "test-suite": {
       "version": "1.0.0",
@@ -2134,7 +2173,8 @@
       "docs": "https://jestjs.io/docs/getting-started",
       "defaults": "INSTALL_MODE=full",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-test-suite.sh"
     },
     "typescript": {
       "version": "1.0.0",
@@ -2179,7 +2219,8 @@
       "verify": "test -f tsconfig.json",
       "docs": "https://www.typescriptlang.org/docs/",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-typescript.sh"
     },
     "vscode": {
       "version": "1.0.0",
@@ -2216,7 +2257,68 @@
       "verify": "test -f .vscode/settings.json",
       "docs": "https://code.visualstudio.com/docs",
       "author": "Bootstrap System",
-      "updated": "2025-12-08"
+      "updated": "2025-12-08",
+      "file": "__bootbuild/scripts/bootstrap-vscode.sh"
     }
+  },
+  "paths": {
+    "scripts": "__bootbuild/scripts",
+    "templates": "__bootbuild/templates",
+    "config": "__bootbuild/config",
+    "lib": "__bootbuild/lib"
+  },
+  "phases": {
+    "1": [
+      "claude",
+      "codex",
+      "detect",
+      "git",
+      "project",
+      "vscode"
+    ],
+    "2": [
+      "api",
+      "editor",
+      "environment",
+      "github",
+      "linting",
+      "nodejs",
+      "packages",
+      "python",
+      "rate-limiting",
+      "secrets",
+      "typescript"
+    ],
+    "3": [
+      "buildtools",
+      "database",
+      "docker-dev",
+      "docker-prod",
+      "docker-sandbox",
+      "docker",
+      "husky",
+      "mysql",
+      "postgres",
+      "redis",
+      "ssl",
+      "testing"
+    ],
+    "4": [
+      "auth-oauth2",
+      "backup-service",
+      "ci-cd",
+      "cicd",
+      "docs",
+      "kubernetes",
+      "quality",
+      "security",
+      "test-suite"
+    ],
+    "5": [
+      "elasticsearch",
+      "email-service",
+      "monitoring",
+      "network-vpn"
+    ]
   }
 }

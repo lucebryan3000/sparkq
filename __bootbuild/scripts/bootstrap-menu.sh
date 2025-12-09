@@ -1317,7 +1317,9 @@ run_menu() {
 
             hc|HC)
                 log_info "Running health check..."
-                if [[ -f "${SCRIPTS_DIR}/bootstrap-healthcheck.sh" ]]; then
+                if [[ ! -d "$SCRIPTS_DIR" ]]; then
+                    log_error "Scripts directory not found: $SCRIPTS_DIR"
+                elif [[ -f "${SCRIPTS_DIR}/bootstrap-healthcheck.sh" ]]; then
                     bash "${SCRIPTS_DIR}/bootstrap-healthcheck.sh" --quick
                 else
                     log_error "Health check script not found"
